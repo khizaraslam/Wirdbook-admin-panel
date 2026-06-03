@@ -1,0 +1,142 @@
+import React, { useEffect, useState } from "react";
+import { RefreshCcw, Trash2, Database } from "lucide-react";
+import Button from "@/components/ui/Button";
+import CustomMessageDisplay from "@/components/data-not-found";
+import useStore from "@/hooks/useStore";
+import { confirmationPopup } from "@/utils/helpers/common/alert-service";
+import { SyncModuleDTO } from "@/utils/helpers/models/sync/sync-module.dto";
+import useSyncModules from "./useHooks";
+
+const formatSyncTime = (syncTime: string | null) => {
+  if (!syncTime) return "Never synced";
+  const parsed = new Date(syncTime);
+  if (Number.isNaN(parsed.getTime())) return "Invalid date";
+  return parsed.toLocaleString();
+};
+
+const SyncModules = () => {
+  const { isLoading } = useStore();
+  const { getAllModules, updateModuleTime, deleteModule } = useSyncModules();
+  const [data, setData] = useState<SyncModuleDTO[]>([]);
+  const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    getAllModules(setData);
+  }, []);
+
+  const setModuleLoading = (id: string, value: boolean) => {
+    setActionLoading((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const handleSync = async (moduleId: string) => {
+    setModuleLoading(moduleId, true);
+    const updatedModule = await updateModuleTime(moduleId);
+    if (updatedModule) {
+      setData((prev) =>
+        prev.map((module) =>
+          module.id === moduleId ? { ...module, ...updatedModule } : module,
+        ),
+      );
+    }
+    setModuleLoading(moduleId, false);
+  };
+
+  const handleDelete = async (moduleId: string) => {
+    const result = await confirmationPopup(
+      "Are you sure you want to delete this sync module?",
+    );
+
+    if (!result.isConfirmed) return;
+
+    setModuleLoading(moduleId, true);
+    const deletedModule = await deleteModule(moduleId);
+    if (deletedModule) {
+      setData((prev) => prev.filter((module) => module.id !== moduleId));
+    }
+    setModuleLoading(moduleId, false);
+  };
+
+  return (
+    <div className="">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-4xl font-bold text-primary">Sync Modules</h1>
+          <p className="text-muted mt-2">
+            Manage module sync timestamps for app cache invalidation
+          </p>
+        </div>
+      </div>
+
+      <div className="bg-primary-light rounded-2xl p-8 mt-10 shadow-sm">
+        <h2 className="text-xl font-bold text-gray-900 mb-2">Overview</h2>
+        <p className="text-muted mb-6">Current module sync status</p>
+        <div className="flex items-center gap-2 text-gray-700 font-medium bg-white/50 w-fit px-4 py-2 rounded-lg border border-primary/10">
+          <Database size={18} className="text-primary" />
+          <span>{data.length} total modules</span>
+        </div>
+      </div>
+
+      <div className="mt-10 mb-4">
+        <h2 className="text-2xl font-bold text-gray-900">All Modules</h2>
+        <p className="text-muted">Run sync or delete a module entry</p>
+      </div>
+
+      {data.length > 0 ? (
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-gray-100 text-sm font-semibold text-gray-700">
+            <div className="col-span-3">Module</div>
+            <div className="col-span-5">Last Sync Time</div>
+            <div className="col-span-4 text-right">Actions</div>
+          </div>
+          {data.map((module) => (
+            <div
+              key={module.id}
+              className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-gray-50 last:border-b-0 items-center"
+            >
+              <div className="col-span-3 font-medium text-gray-900 capitalize">
+                {module.name}
+              </div>
+              <div className="col-span-5 text-sm text-muted">
+                {formatSyncTime(module.sync_time)}
+              </div>
+              <div className="col-span-4 flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  leftIcon={<RefreshCcw size={14} />}
+                  isLoading={!!actionLoading[module.id]}
+                  onClick={() => handleSync(module.id)}
+                  className="rounded-md"
+                >
+                  Sync
+                </Button>
+                <Button
+                  type="button"
+                  variant="danger"
+                  size="sm"
+                  leftIcon={<Trash2 size={14} />}
+                  isLoading={!!actionLoading[module.id]}
+                  onClick={() => handleDelete(module.id)}
+                  className="rounded-md"
+                >
+                  Delete
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <CustomMessageDisplay
+          show={!isLoading}
+          title="No Sync Modules"
+          slogan="No module entries are available"
+          className="bg-white rounded-2xl h-[130px] shadow-sm border border-gray-100 flex justify-center items-center"
+        />
+      )}
+    </div>
+  );
+};
+
+export default SyncModules;
+
