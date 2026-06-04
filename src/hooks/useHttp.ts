@@ -3,58 +3,72 @@ import useStore from "./useStore";
 import { errorToaster } from "../utils/helpers/common/alert-service";
 import { errorMessages } from "../utils/helpers/enums/messages.enum";
 
+let pendingRequests = 0;
+let requestInterceptorId: number | null = null;
+let responseInterceptorId: number | null = null;
+
+/** Reset stuck global loader after navigation or failed request chains */
+export const resetHttpLoading = () => {
+  pendingRequests = 0;
+};
+
 const useHttp = () => {
   const { logout, setLoading } = useStore();
 
+  const syncLoadingState = () => {
+    setLoading(pendingRequests > 0);
+  };
+
+  const stopLoaderForConfig = (config: { _shouldShowLoader?: boolean } | undefined) => {
+    if (config?._shouldShowLoader) {
+      pendingRequests = Math.max(0, pendingRequests - 1);
+      syncLoadingState();
+    }
+  };
+
   const isPreventLoaderAPI = (apiUrl: string): boolean => {
     if (!apiUrl) return false;
-    
-    // Remove query parameters
+
     let path = apiUrl.split("?")[0];
-    
-    // Handle full URL (in case baseURL is not set or URL is absolute)
+
     if (path.startsWith("http://") || path.startsWith("https://")) {
       try {
         const urlObj = new URL(path);
         path = urlObj.pathname;
-      } catch (e) {
-        // If URL parsing fails, try to extract path manually
-        const match = path.match(/https?:\/\/[^\/]+(\/.*)/);
-        if (match) {
-          path = match[1];
-        }
+      } catch {
+        const match = path.match(/https?:\/\/[^/]+(\/.*)/);
+        if (match) path = match[1];
       }
     }
-    
-    // Remove base URL if present (in case it's included)
+
     const baseUrl = import.meta.env.VITE_BASE_URL_PREFIX || "";
     if (baseUrl && path.includes(baseUrl)) {
       path = path.substring(path.indexOf(baseUrl) + baseUrl.length);
     }
-    
-    // Ensure path starts with /
+
     if (!path.startsWith("/")) {
       path = "/" + path;
     }
-    
+
     const stopLoaderAPIs = [
       /^\/event\/\d+\/messages$/,
+      /^\/api\/admin\/qa(\/|$)/,
     ];
-    
-    const matches = stopLoaderAPIs.some((regex) => regex.test(path));
-
-    
-    return matches;
+    return stopLoaderAPIs.some((regex) => regex.test(path));
   };
 
   function configureHeaders() {
-    axios.interceptors.request.use(
+    if (requestInterceptorId !== null) {
+      axios.interceptors.request.eject(requestInterceptorId);
+    }
+
+    requestInterceptorId = axios.interceptors.request.use(
       (config: any) => {
-        const url = config.url || "";
-        const shouldPreventLoader = isPreventLoaderAPI(url);
-      
+        const shouldPreventLoader = isPreventLoaderAPI(config.url || "");
+
         if (!shouldPreventLoader) {
-          setLoading(true);
+          pendingRequests += 1;
+          syncLoadingState();
           config._shouldShowLoader = true;
         } else {
           config._shouldShowLoader = false;
@@ -62,41 +76,31 @@ const useHttp = () => {
         return config;
       },
       (error) => {
-        // Promise.reject(error)
-      }
+        stopLoaderForConfig(error?.config);
+        return Promise.reject(error);
+      },
     );
   }
 
   const configureInterceptors = () => {
-    axios.interceptors.response.use(
+    if (responseInterceptorId !== null) {
+      axios.interceptors.response.eject(responseInterceptorId);
+    }
+
+    responseInterceptorId = axios.interceptors.response.use(
       (response: any) => {
-        // Only hide loader if it was explicitly shown for this request
-        // If _shouldShowLoader is undefined, it means the request interceptor didn't run,
-        // so we should hide the loader to be safe (backward compatibility)
-        if (response?.config?._shouldShowLoader === true) {
-          setLoading(false);
-        } else if (response?.config?._shouldShowLoader === undefined) {
-          // Fallback: if flag is not set, hide loader (for backward compatibility)
-          setLoading(false);
-        }
+        stopLoaderForConfig(response?.config);
         if (response?.data?.success === false || response?.data?.success == 0)
           displayApiErrors(response);
         return response;
       },
       async (error) => {
-        // Only hide loader if it was explicitly shown for this request
-        // If _shouldShowLoader is undefined, hide loader to be safe
-        if (error?.config?._shouldShowLoader === true) {
-          setLoading(false);
-        } else if (error?.config?._shouldShowLoader === undefined) {
-          // Fallback: if flag is not set, hide loader (for backward compatibility)
-          setLoading(false);
-        }
+        stopLoaderForConfig(error?.config);
         if (error?.response?.status === 401) {
           logout();
         }
         return Promise.reject(error);
-      }
+      },
     );
   };
 
@@ -106,10 +110,10 @@ const useHttp = () => {
         typeof response?.data?.errors === "object"
         ? response?.data?.errors[0]
         : response?.data?.message?.length
-        ? response?.data?.message
-        : response?.data?.error?.length
-        ? response?.data?.error
-        : errorMessages.somethingWentWrong
+          ? response?.data?.message
+          : response?.data?.error?.length
+            ? response?.data?.error
+            : errorMessages.somethingWentWrong,
     );
   };
 

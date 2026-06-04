@@ -9,9 +9,11 @@ const getHeaders = () => {
   // const role = localStorage.getItem('role');
   // const state = store.getState();
   // const token = state.sharedReducer.token;
-  const headers: any = {
+  const headers: Record<string, string> = {
     Authorization: `Bearer ${token}`,
     accept: "*/*",
+    "Cache-Control": "no-cache",
+    Pragma: "no-cache",
   };
   return headers;
 };

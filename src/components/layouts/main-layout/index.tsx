@@ -7,6 +7,7 @@ import {
   Home,
   LayoutGrid,
   BookOpen,
+  MessageCircleQuestion,
   ImageIcon,
   Calendar,
   RefreshCcw,
@@ -44,6 +45,11 @@ const MainLayout: React.FC<LayoutProps> = ({ children }) => {
       text: "Lectures",
       path: "/lectures",
       icon: <BookOpen size={20} />,
+    },
+    {
+      text: "Q&A",
+      path: "/qa",
+      icon: <MessageCircleQuestion size={20} />,
     },
     {
       text: "Banners",

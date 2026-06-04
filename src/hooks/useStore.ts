@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { siteRoutes } from "@/utils/helpers/enums/routes.enum";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
@@ -14,9 +15,12 @@ const useStore = () => {
   const dispatch = useAppDispatch();
   const { token, userData: user, isLoading } = useAppSelector((state) => state.sharedReducer);
 
-  const setLoading = (isLoading: boolean): void => {
-    dispatch(setLoadingAction(isLoading));
-  };
+  const setLoading = useCallback(
+    (loading: boolean): void => {
+      dispatch(setLoadingAction(loading));
+    },
+    [dispatch],
+  );
 
   const setToken = (payload: null | string): void => {
     dispatch(saveTokenAction(payload));
