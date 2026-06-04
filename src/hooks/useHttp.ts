@@ -53,6 +53,7 @@ const useHttp = () => {
     const stopLoaderAPIs = [
       /^\/event\/\d+\/messages$/,
       /^\/api\/admin\/qa(\/|$)/,
+      /^\/api\/admin\/islamic-highlights(\/|$)/,
     ];
     return stopLoaderAPIs.some((regex) => regex.test(path));
   };

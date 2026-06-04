@@ -9,6 +9,7 @@ import {
   BookOpen,
   MessageCircleQuestion,
   ImageIcon,
+  Sparkles,
   Calendar,
   RefreshCcw,
 } from "lucide-react";
@@ -55,6 +56,11 @@ const MainLayout: React.FC<LayoutProps> = ({ children }) => {
       text: "Banners",
       path: "/banners",
       icon: <ImageIcon size={20} />,
+    },
+    {
+      text: "Islamic Highlights",
+      path: "/islamic-highlights",
+      icon: <Sparkles size={20} />,
     },
     {
       text: "Hijri Calendar",

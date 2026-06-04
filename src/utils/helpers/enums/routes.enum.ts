@@ -6,6 +6,7 @@ export enum siteRoutes {
   lectures = "/lectures",
   qa = "/qa",
   banners = "/banners",
+  islamicHighlights = "/islamic-highlights",
   hijriEvents = "/hijri-events",
   syncModules = "/sync-modules",
 }
