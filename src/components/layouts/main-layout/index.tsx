@@ -12,6 +12,7 @@ import {
   Sparkles,
   Calendar,
   RefreshCcw,
+  Music2,
 } from "lucide-react";
 
 interface LayoutProps {
@@ -72,11 +73,19 @@ const MainLayout: React.FC<LayoutProps> = ({ children }) => {
       path: "/sync-modules",
       icon: <RefreshCcw size={20} />,
     },
+    {
+      text: "Qasidas",
+      path: "/qasidas",
+      icon: <Music2 size={20} />,
+    },
   ];
 
   const isActive = (path: string) => {
     if (path === "/dashboard") {
       return location.pathname === "/" || location.pathname === "/dashboard";
+    }
+    if (path === "/qasidas") {
+      return location.pathname.startsWith("/qasidas");
     }
     return location.pathname === path;
   };
