@@ -174,4 +174,3 @@ export const getFilePathWithBackendUrl = (path: any): string => {
   }
 };
 
-
