@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Plus, Edit2, Trash2 } from "lucide-react";
+import { Plus, Edit2, Trash2, Upload } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Pagination from "@/components/ui/Pagination";
 import WirdModal from "./WirdModal";
+import BulkUploadWirdsModal from "./BulkUploadWirdsModal";
 import useQasidas from "../useHooks";
 import { confirmationPopup } from "@/utils/helpers/common/alert-service";
 import type {
@@ -26,10 +27,12 @@ interface WirdsTabProps {
 }
 
 const WirdsTab: React.FC<WirdsTabProps> = ({ qasidaId }) => {
-  const { listWirds, createWird, updateWird, deleteWird } = useQasidas();
+  const { listWirds, createWird, updateWird, deleteWird, bulkUploadWirds } =
+    useQasidas();
   const [wirds, setWirds] = useState<QasidaWird[]>([]);
   const [pagination, setPagination] = useState<PaginationMeta>(defaultPagination);
   const [modalOpen, setModalOpen] = useState(false);
+  const [bulkUploadOpen, setBulkUploadOpen] = useState(false);
   const [editingWird, setEditingWird] = useState<QasidaWird | null>(null);
 
   const load = useCallback(
@@ -76,23 +79,39 @@ const WirdsTab: React.FC<WirdsTabProps> = ({ qasidaId }) => {
     }
   };
 
+  const handleBulkUpload = async (file: File, replace: boolean) => {
+    const ok = await bulkUploadWirds(qasidaId, file, replace);
+    if (ok) load(1);
+    return ok;
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
         <p className="text-sm text-muted">
           Paginated wirds for this qasida ({pagination.total} total)
         </p>
-        <Button
-          variant="primary"
-          size="sm"
-          leftIcon={<Plus size={16} />}
-          onClick={() => {
-            setEditingWird(null);
-            setModalOpen(true);
-          }}
-        >
-          Add Wird
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            leftIcon={<Upload size={16} />}
+            onClick={() => setBulkUploadOpen(true)}
+          >
+            Bulk Upload JSON
+          </Button>
+          <Button
+            variant="primary"
+            size="sm"
+            leftIcon={<Plus size={16} />}
+            onClick={() => {
+              setEditingWird(null);
+              setModalOpen(true);
+            }}
+          >
+            Add Wird
+          </Button>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
@@ -177,6 +196,12 @@ const WirdsTab: React.FC<WirdsTabProps> = ({ qasidaId }) => {
         }}
         wird={editingWird}
         onSave={handleSave}
+      />
+
+      <BulkUploadWirdsModal
+        isOpen={bulkUploadOpen}
+        onClose={() => setBulkUploadOpen(false)}
+        onUpload={handleBulkUpload}
       />
     </div>
   );

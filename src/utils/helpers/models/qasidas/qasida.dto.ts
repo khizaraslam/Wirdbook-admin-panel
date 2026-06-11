@@ -59,3 +59,9 @@ export interface WirdFormBody {
   isTitle?: boolean;
   indexOrder?: number;
 }
+
+export interface BulkWirdsUploadResult {
+  created: number;
+  replaced: boolean;
+  totalWirds: number;
+}

@@ -38,4 +38,13 @@ export const Qasidas_APIS = {
     deleteRequest(`/api/admin/qasidas/${qasidaId}/wirds/${wirdId}`),
   reorderWirds: (qasidaId: string, ids: string[]) =>
     patchRequest(`/api/admin/qasidas/${qasidaId}/wirds/reorder`, { ids }),
+  bulkUploadWirds: (qasidaId: string, file: File, replace = false) => {
+    const form = new FormData();
+    form.append("file", file);
+    if (replace) form.append("replace", "true");
+    return postRequest(
+      `/api/admin/qasidas/${qasidaId}/wirds/bulk-upload`,
+      form,
+    );
+  },
 };

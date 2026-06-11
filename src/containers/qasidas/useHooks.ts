@@ -146,6 +146,30 @@ const useQasidas = () => {
     return false;
   }, []);
 
+  const bulkUploadWirds = useCallback(
+    async (qasidaId: string, file: File, replace: boolean) => {
+      const response = await Qasidas_APIS.bulkUploadWirds(
+        qasidaId,
+        file,
+        replace,
+      );
+      const { success = false, message = "", data = null } = response || {};
+      if (success) {
+        const created = data?.created;
+        successToaster(
+          message ||
+            (created != null
+              ? `${created} wirds imported successfully.`
+              : "Wirds imported successfully"),
+        );
+        return true;
+      }
+      errorToaster(message || "Failed to import wirds");
+      return false;
+    },
+    [],
+  );
+
   return {
     getSettings,
     updateSettings,
@@ -158,6 +182,7 @@ const useQasidas = () => {
     createWird,
     updateWird,
     deleteWird,
+    bulkUploadWirds,
   };
 };
 
