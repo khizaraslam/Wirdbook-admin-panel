@@ -4,6 +4,7 @@ import Modal from "@/components/ui/Modal";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { TabsDTO } from "@/utils/helpers/models/tabs/tabs.dto";
+import type { ContentType } from "@/utils/helpers/enums/content-type.enum";
 import {
   formatDateForDateTimeLocal,
   formatDateTimeLocalForBackend,
@@ -15,6 +16,7 @@ interface AddLectureModalProps {
   onClose: () => void;
   onAdd: (data: FormData) => void;
   tabs: TabsDTO[];
+  contentType: ContentType;
 }
 
 export interface LectureFormInputs {
@@ -30,6 +32,7 @@ const AddLectureModal: React.FC<AddLectureModalProps> = ({
   onClose,
   onAdd,
   tabs,
+  contentType,
 }) => {
   const {
     register,
@@ -65,6 +68,7 @@ const AddLectureModal: React.FC<AddLectureModalProps> = ({
     // Format dateTime to match backend expectations (e.g. 2026-02-26T07:00:24+0000)
     const dateTime = formatDateTimeLocalForBackend(data.dateTime);
     formData.append("dateTime", dateTime);
+    formData.append("type", contentType);
 
     if (data.tabId) {
       formData.append("tabId", data.tabId);
@@ -86,7 +90,7 @@ const AddLectureModal: React.FC<AddLectureModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Add New Lecture"
+      title={`Add New ${contentType === "english" ? "English" : "Arabic"} Lecture`}
       className=""
     >
       <form onSubmit={handleSubmit(onSubmit)} noValidate>

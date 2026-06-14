@@ -4,12 +4,15 @@ import Modal from "@/components/ui/Modal";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { AddTabDTO } from "@/utils/helpers/models/tabs/create-tabs.dto";
+import { TabsDTO } from "@/utils/helpers/models/tabs/tabs.dto";
+import type { ContentType } from "@/utils/helpers/enums/content-type.enum";
 
 interface AddTabModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAdd: (label: string, slug: string, order: number) => void;
   defaultOrder: number;
+  contentType: ContentType;
 }
 
 const toSlug = (value: string) =>
@@ -20,6 +23,7 @@ const AddTabModal: React.FC<AddTabModalProps> = ({
   onClose,
   onAdd,
   defaultOrder,
+  contentType,
 }) => {
   const {
     register,
@@ -59,7 +63,7 @@ const AddTabModal: React.FC<AddTabModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Add New Tab"
+      title={`Add New ${contentType === "english" ? "English" : "Arabic"} Tab`}
       className="max-h-[90vh]"
     >
       {/* RHF handleSubmit wraps the <form> so Enter key also submits */}
@@ -84,7 +88,8 @@ const AddTabModal: React.FC<AddTabModalProps> = ({
           {/* Label */}
           <Input
             label="Label *"
-            placeholder="e.g., Wisdoms"
+            placeholder={contentType === "arabic" ? "e.g., حكم" : "e.g., Wisdoms"}
+            dir={contentType === "arabic" ? "rtl" : undefined}
             error={errors.label?.message}
             {...register("label", {
               required: "Label is required",

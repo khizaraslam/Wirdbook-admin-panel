@@ -1,6 +1,3 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import useStore from "@/hooks/useStore";
 import {
   errorToaster,
   successToaster,
@@ -8,12 +5,14 @@ import {
 import { Tabs_APIS } from "@/libs/apis/tabs.api";
 import { AddTabDTO } from "@/utils/helpers/models/tabs/create-tabs.dto";
 import { TabsDTO } from "@/utils/helpers/models/tabs/tabs.dto";
+import type { ContentType } from "@/utils/helpers/enums/content-type.enum";
 
 const useTabs = () => {
-  const navigate = useNavigate();
-
-  const getAllTabs = async (setData: Function) => {
-    const response = await Tabs_APIS.getAllTabs();
+  const getAllTabs = async (
+    setData: Function,
+    type: ContentType = "english",
+  ) => {
+    const response = await Tabs_APIS.getAllTabs(type);
     const { success = false, data = null } = response || {};
     if (success) {
       const tabs = data || [];
@@ -31,8 +30,6 @@ const useTabs = () => {
 
   const updateTab = async (id: string, queryParams: any = {}) => {
     const response = await Tabs_APIS.updateTab(id, queryParams);
-    console.log(response);
-
     const { success = false } = response || {};
 
     if (success) {
@@ -42,10 +39,8 @@ const useTabs = () => {
     }
   };
 
-  const reorderTabs = async (tabIds: string[]) => {
-    const response = await Tabs_APIS.reorderTabs({ tabIds });
-    console.log(response);
-
+  const reorderTabs = async (type: ContentType, tabIds: string[]) => {
+    const response = await Tabs_APIS.reorderTabs(type, { tabIds });
     const { success = false, message = "" } = response || {};
 
     if (success) {
@@ -61,18 +56,14 @@ const useTabs = () => {
     currentData: TabsDTO[],
   ) => {
     const response = await Tabs_APIS.deleteTab(id);
-    console.log(response)
-
     const { success = false, message = "" } = response || {};
-    console.log(message)
     if (success) {
       successToaster(message || "Tab deleted successfully");
-      // Remove deleted tab from state
       const updatedTabs = currentData.filter(
         (tab) => String(tab.id) !== String(id),
       );
       setData(updatedTabs);
-    } 
+    }
   };
 
   return {

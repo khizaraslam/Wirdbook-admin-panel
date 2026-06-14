@@ -5,6 +5,7 @@ import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { LecturesDTO } from "@/utils/helpers/models/lectures/lectures.dto";
 import { TabsDTO } from "@/utils/helpers/models/tabs/tabs.dto";
+import type { ContentType } from "@/utils/helpers/enums/content-type.enum";
 import {
   formatDateForDateTimeLocal,
   formatDateTimeLocalForBackend,
@@ -18,6 +19,7 @@ interface EditLectureModalProps {
   onSave: (id: string, data: FormData) => void;
   lecture: LecturesDTO | null;
   tabs: TabsDTO[];
+  contentType: ContentType;
 }
 
 interface EditLectureFormInputs {
@@ -34,6 +36,7 @@ const EditLectureModal: React.FC<EditLectureModalProps> = ({
   onSave,
   lecture,
   tabs,
+  contentType,
 }) => {
   const {
     register,
@@ -72,6 +75,7 @@ const EditLectureModal: React.FC<EditLectureModalProps> = ({
       // Format dateTime to match backend expectations (e.g. 2026-02-26T07:00:24+0000)
       const dateTime = formatDateTimeLocalForBackend(data.dateTime);
       formData.append("dateTime", dateTime);
+      formData.append("type", contentType);
 
       if (data.tabId) {
         formData.append("tabId", data.tabId);

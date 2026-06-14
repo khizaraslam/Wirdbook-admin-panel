@@ -1,3 +1,5 @@
+import type { ContentType } from "@/utils/helpers/enums/content-type.enum";
+
 export class LecturesDTO {
   id: string;
   title: string;
@@ -7,6 +9,7 @@ export class LecturesDTO {
   pdfUrl: string | null;
   dateTime: string | null;
   tabId: string | null;
+  type: ContentType;
   tab: any | null;
 
   constructor(data: Partial<LecturesDTO>) {
@@ -18,6 +21,7 @@ export class LecturesDTO {
     this.pdfUrl = data.pdfUrl || null;
     this.dateTime = data.dateTime || null;
     this.tabId = data.tabId || null;
+    this.type = data.type || "english";
     this.tab = data.tab || null;
   }
 }
