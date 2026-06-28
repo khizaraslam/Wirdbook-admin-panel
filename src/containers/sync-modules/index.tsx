@@ -1,10 +1,16 @@
-import React, { useEffect, useState } from "react";
-import { RefreshCcw, Trash2, Database } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import { RefreshCcw, Trash2, Database, Upload } from "lucide-react";
 import Button from "@/components/ui/Button";
 import CustomMessageDisplay from "@/components/data-not-found";
 import useStore from "@/hooks/useStore";
-import { confirmationPopup } from "@/utils/helpers/common/alert-service";
-import { SyncModuleDTO } from "@/utils/helpers/models/sync/sync-module.dto";
+import {
+  confirmationPopup,
+  errorToaster,
+} from "@/utils/helpers/common/alert-service";
+import {
+  SyncModuleDTO,
+  supportsJsonUpload,
+} from "@/utils/helpers/models/sync/sync-module.dto";
 import useSyncModules from "./useHooks";
 
 const formatSyncTime = (syncTime: string | null) => {
@@ -19,6 +25,8 @@ const SyncModules = () => {
   const { getAllModules, updateModuleTime, deleteModule } = useSyncModules();
   const [data, setData] = useState<SyncModuleDTO[]>([]);
   const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({});
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadModuleIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     getAllModules(setData);
@@ -28,15 +36,60 @@ const SyncModules = () => {
     setActionLoading((prev) => ({ ...prev, [id]: value }));
   };
 
+  const applyModuleUpdate = (moduleId: string, updatedModule: SyncModuleDTO) => {
+    setData((prev) =>
+      prev.map((module) =>
+        module.id === moduleId ? { ...module, ...updatedModule } : module,
+      ),
+    );
+  };
+
   const handleSync = async (moduleId: string) => {
     setModuleLoading(moduleId, true);
     const updatedModule = await updateModuleTime(moduleId);
     if (updatedModule) {
-      setData((prev) =>
-        prev.map((module) =>
-          module.id === moduleId ? { ...module, ...updatedModule } : module,
-        ),
-      );
+      applyModuleUpdate(moduleId, updatedModule);
+    }
+    setModuleLoading(moduleId, false);
+  };
+
+  const handleUploadClick = (moduleId: string) => {
+    uploadModuleIdRef.current = moduleId;
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+    const moduleId = uploadModuleIdRef.current;
+    event.target.value = "";
+    uploadModuleIdRef.current = null;
+
+    if (!file || !moduleId) return;
+
+    if (!file.name.toLowerCase().endsWith(".json")) {
+      errorToaster("Please select a .json file");
+      return;
+    }
+
+    let fileContent: string;
+    try {
+      fileContent = await file.text();
+      JSON.parse(fileContent);
+    } catch {
+      errorToaster("Selected file is not valid JSON");
+      return;
+    }
+
+    const uploadFile = new File([fileContent], file.name, {
+      type: "application/json",
+    });
+
+    setModuleLoading(moduleId, true);
+    const updatedModule = await updateModuleTime(moduleId, uploadFile);
+    if (updatedModule) {
+      applyModuleUpdate(moduleId, updatedModule);
     }
     setModuleLoading(moduleId, false);
   };
@@ -78,8 +131,18 @@ const SyncModules = () => {
 
       <div className="mt-10 mb-4">
         <h2 className="text-2xl font-bold text-gray-900">All Modules</h2>
-        <p className="text-muted">Run sync or delete a module entry</p>
+        <p className="text-muted">
+          Bump sync time, upload JSON for supported modules, or delete an entry
+        </p>
       </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json,application/json"
+        className="hidden"
+        onChange={handleFileChange}
+      />
 
       {data.length > 0 ? (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -99,7 +162,7 @@ const SyncModules = () => {
               <div className="col-span-5 text-sm text-muted">
                 {formatSyncTime(module.sync_time)}
               </div>
-              <div className="col-span-4 flex justify-end gap-2">
+              <div className="col-span-4 flex flex-wrap justify-end gap-2">
                 <Button
                   type="button"
                   variant="outline"
@@ -111,6 +174,19 @@ const SyncModules = () => {
                 >
                   Sync
                 </Button>
+                {supportsJsonUpload(module.name) && (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    leftIcon={<Upload size={14} />}
+                    isLoading={!!actionLoading[module.id]}
+                    onClick={() => handleUploadClick(module.id)}
+                    className="rounded-md"
+                  >
+                    Upload JSON
+                  </Button>
+                )}
                 <Button
                   type="button"
                   variant="danger"

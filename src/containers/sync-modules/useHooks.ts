@@ -14,16 +14,22 @@ const useSyncModules = () => {
     }
   };
 
-  const updateModuleTime = async (id: string) => {
-    const response = await SyncModules_APIS.updateModuleTime(id);
+  const updateModuleTime = async (id: string, file?: File) => {
+    const response = await SyncModules_APIS.updateModuleTime(id, file);
     const { success = false, data = null, message = "" } = response || {};
 
     if (success) {
-      successToaster(message || "Module sync time updated successfully.");
+      const syncMessage =
+        data?.content_path
+          ? "JSON saved. Mobile clients will pick up changes on next sync."
+          : message || "Module sync time updated successfully.";
+      successToaster(syncMessage);
       return data as SyncModuleDTO;
     }
 
-    errorToaster(message || "Failed to update sync time");
+    if (!response?.error) {
+      errorToaster(message || "Failed to update sync time");
+    }
     return null;
   };
 
