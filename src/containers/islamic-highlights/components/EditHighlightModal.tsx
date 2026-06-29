@@ -38,6 +38,7 @@ const EditHighlightModal: React.FC<EditHighlightModalProps> = ({
     formState: { errors, isSubmitting },
   } = useForm<HighlightFormInputs>({
     defaultValues: {
+      timeSlot: "morning",
       messageType: "verse",
       messageAr: "",
       messageEn: "",
@@ -58,6 +59,7 @@ const EditHighlightModal: React.FC<EditHighlightModalProps> = ({
     if (highlight && isOpen) {
       const s = highlight.schedule;
       reset({
+        timeSlot: highlight.timeSlot,
         messageType: highlight.messageType,
         messageAr: highlight.message.ar,
         messageEn: highlight.message.en,

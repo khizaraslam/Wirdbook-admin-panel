@@ -14,6 +14,7 @@ import {
 import type { IslamicHighlightDTO } from "@/utils/helpers/models/islamic-highlights/islamic-highlight.dto";
 import {
   formatScheduleLabel,
+  formatTimeSlotLabel,
   getMediaUrl,
 } from "@/utils/helpers/islamic-highlights/helpers";
 
@@ -95,6 +96,9 @@ const SortableHighlightItem: React.FC<SortableHighlightItemProps> = ({
             <h3 className="text-lg font-semibold text-gray-900 truncate">
               {highlight.message.en || highlight.message.ar || "—"}
             </h3>
+            <span className="text-xs font-medium px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 shrink-0">
+              {formatTimeSlotLabel(highlight.timeSlot)}
+            </span>
             <span className="text-xs font-medium px-2 py-0.5 rounded-md bg-primary/10 text-primary shrink-0">
               {typeLabel}
             </span>

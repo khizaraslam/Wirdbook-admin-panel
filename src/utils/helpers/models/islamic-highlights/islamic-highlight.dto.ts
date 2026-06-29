@@ -1,4 +1,5 @@
 export type IslamicHighlightMessageType = "verse" | "hadith" | "wisdom";
+export type IslamicHighlightTimeSlot = "morning" | "evening";
 export type IslamicHighlightScheduleMode = "default" | "weekly" | "hijri";
 
 export interface BilingualText {
@@ -16,6 +17,7 @@ export interface IslamicHighlightSchedule {
 export interface IslamicHighlightDTO {
   id: string;
   messageType: IslamicHighlightMessageType;
+  timeSlot: IslamicHighlightTimeSlot;
   message: BilingualText;
   source: BilingualText;
   schedule: IslamicHighlightSchedule;
@@ -27,6 +29,14 @@ export interface IslamicHighlightDTO {
   updatedAt: string;
 }
 
+const normalizeTimeSlot = (
+  value: unknown,
+): IslamicHighlightTimeSlot => {
+  const slot = String(value ?? "").toLowerCase();
+  if (slot === "evening" || slot === "pm") return "evening";
+  return "morning";
+};
+
 export const normalizeIslamicHighlight = (
   raw: Partial<IslamicHighlightDTO> & {
     isEnabled?: boolean;
@@ -34,6 +44,7 @@ export const normalizeIslamicHighlight = (
     messageEn?: string;
     sourceAr?: string;
     sourceEn?: string;
+    time_slot?: string;
   },
 ): IslamicHighlightDTO => {
   const message =
@@ -60,6 +71,7 @@ export const normalizeIslamicHighlight = (
   return {
     id: raw.id ?? "",
     messageType: (raw.messageType as IslamicHighlightMessageType) ?? "verse",
+    timeSlot: normalizeTimeSlot(raw.timeSlot ?? raw.time_slot),
     message: { ar: message.ar ?? "", en: message.en ?? "" },
     source: {
       ar: source.ar ?? "",

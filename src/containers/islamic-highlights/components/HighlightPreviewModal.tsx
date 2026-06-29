@@ -6,6 +6,7 @@ import type { IslamicHighlightDTO } from "@/utils/helpers/models/islamic-highlig
 import {
   buildShareText,
   formatScheduleLabel,
+  formatTimeSlotLabel,
   getMediaUrl,
 } from "@/utils/helpers/islamic-highlights/helpers";
 import { successToaster, errorToaster } from "@/utils/helpers/common/alert-service";
@@ -66,6 +67,9 @@ const HighlightPreviewModal: React.FC<HighlightPreviewModalProps> = ({
     >
       <div className="space-y-6 -mt-2">
         <div className="flex flex-wrap gap-2">
+          <span className="text-xs font-bold px-3 py-1 rounded-md bg-indigo-50 text-indigo-700 uppercase">
+            {formatTimeSlotLabel(highlight.timeSlot)}
+          </span>
           <span className="text-xs font-bold px-3 py-1 rounded-md bg-primary/10 text-primary uppercase">
             {typeLabel}
           </span>

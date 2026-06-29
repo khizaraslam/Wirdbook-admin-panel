@@ -21,10 +21,18 @@ import AddHighlightModal from "./components/AddHighlightModal";
 import EditHighlightModal from "./components/EditHighlightModal";
 import HighlightPreviewModal from "./components/HighlightPreviewModal";
 import useIslamicHighlights from "./useHooks";
-import type { IslamicHighlightDTO } from "@/utils/helpers/models/islamic-highlights/islamic-highlight.dto";
+import type { IslamicHighlightDTO, IslamicHighlightTimeSlot } from "@/utils/helpers/models/islamic-highlights/islamic-highlight.dto";
 import { confirmationPopup } from "@/utils/helpers/common/alert-service";
 import CustomMessageDisplay from "@/components/data-not-found";
 import useStore from "@/hooks/useStore";
+
+type TimeSlotFilter = "all" | IslamicHighlightTimeSlot;
+
+const TIME_SLOT_FILTERS: { value: TimeSlotFilter; label: string }[] = [
+  { value: "all", label: "All" },
+  { value: "morning", label: "Morning" },
+  { value: "evening", label: "Evening" },
+];
 
 const IslamicHighlights = () => {
   const {
@@ -37,6 +45,7 @@ const IslamicHighlights = () => {
   const { isLoading } = useStore();
 
   const [data, setData] = useState<IslamicHighlightDTO[]>([]);
+  const [timeSlotFilter, setTimeSlotFilter] = useState<TimeSlotFilter>("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editing, setEditing] = useState<IslamicHighlightDTO | null>(null);
   const [previewing, setPreviewing] = useState<IslamicHighlightDTO | null>(
@@ -56,20 +65,37 @@ const IslamicHighlights = () => {
     refreshList();
   }, []);
 
+  const filteredData =
+    timeSlotFilter === "all"
+      ? data
+      : data.filter((item) => item.timeSlot === timeSlotFilter);
+
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    const oldIndex = data.findIndex((item) => item.id === active.id);
-    const newIndex = data.findIndex((item) => item.id === over.id);
+    const visibleItems = filteredData;
+    const oldIndex = visibleItems.findIndex((item) => item.id === active.id);
+    const newIndex = visibleItems.findIndex((item) => item.id === over.id);
     if (oldIndex === -1 || newIndex === -1) return;
 
-    const newItems = arrayMove(data, oldIndex, newIndex).map((item, index) => ({
+    const reorderedVisible = arrayMove(visibleItems, oldIndex, newIndex);
+
+    let visibleIndex = 0;
+    const newItems = data.map((item) => {
+      const isInFilter =
+        timeSlotFilter === "all" || item.timeSlot === timeSlotFilter;
+      if (!isInFilter) return item;
+      const next = reorderedVisible[visibleIndex++];
+      return { ...next, indexOrder: visibleIndex - 1 };
+    });
+
+    const withOrder = newItems.map((item, index) => ({
       ...item,
       indexOrder: index,
     }));
-    setData(newItems);
-    await reorderHighlights(newItems.map((i) => i.id));
+    setData(withOrder);
+    await reorderHighlights(withOrder.map((i) => i.id));
   };
 
   const handleToggleEnabled = async (id: string, enabled: boolean) => {
@@ -117,27 +143,50 @@ const IslamicHighlights = () => {
         </p>
         <div className="flex items-center gap-2 text-gray-700 font-medium bg-white/50 w-fit px-4 py-2 rounded-lg border border-primary/10">
           <Sparkles size={18} className="text-primary" />
-          <span>{data.length} highlights • Drag to reorder</span>
+          <span>
+            {filteredData.length}
+            {timeSlotFilter !== "all" ? ` ${timeSlotFilter}` : ""} highlights
+            {timeSlotFilter === "all" ? ` of ${data.length}` : ""} • Drag to
+            reorder
+          </span>
         </div>
       </div>
 
-      <div className="mt-10 mb-4">
-        <h2 className="text-2xl font-bold text-gray-900">All Highlights</h2>
-        <p className="text-muted">Drag and drop to change display order</p>
+      <div className="mt-10 mb-4 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">All Highlights</h2>
+          <p className="text-muted">Drag and drop to change display order</p>
+        </div>
+        <div className="flex rounded-lg border border-gray-200 bg-white p-1 w-fit">
+          {TIME_SLOT_FILTERS.map((tab) => (
+            <button
+              key={tab.value}
+              type="button"
+              onClick={() => setTimeSlotFilter(tab.value)}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                timeSlotFilter === tab.value
+                  ? "bg-primary text-white"
+                  : "text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {data.length > 0 ? (
+      {filteredData.length > 0 ? (
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
           onDragEnd={handleDragEnd}
         >
           <SortableContext
-            items={data.map((h) => h.id)}
+            items={filteredData.map((h) => h.id)}
             strategy={verticalListSortingStrategy}
           >
             <div className="space-y-4">
-              {data.map((item) => (
+              {filteredData.map((item) => (
                 <SortableHighlightItem
                   key={item.id}
                   highlight={item}
@@ -153,8 +202,14 @@ const IslamicHighlights = () => {
       ) : (
         <CustomMessageDisplay
           show={!isLoading}
-          title="No Highlights Found"
-          slogan="Add your first scheduled message to get started"
+          title={
+            data.length > 0 ? "No Highlights in This Slot" : "No Highlights Found"
+          }
+          slogan={
+            data.length > 0
+              ? "Try another time slot filter or add a new highlight"
+              : "Add your first scheduled message to get started"
+          }
           className="bg-white rounded-2xl h-[130px] shadow-sm border border-gray-100 flex justify-center items-center"
         />
       )}

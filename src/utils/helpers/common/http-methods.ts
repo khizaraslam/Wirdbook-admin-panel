@@ -108,6 +108,14 @@ const errorHandler = (error: any) => {
 
     // ✅ 400 - Validation Error
     else if (status === 400) {
+      const fieldErrors = Array.isArray(data?.errors) ? data.errors : [];
+      if (fieldErrors.some((err: { field?: string | null }) => err.field)) {
+        return {
+          statusCode: 400,
+          message: data?.message,
+          errors: fieldErrors,
+        };
+      }
       if (Array.isArray(data?.error)) {
         data.error.forEach((err: string) => {
           errorToaster(err);
@@ -115,6 +123,15 @@ const errorHandler = (error: any) => {
       } else {
         errorToaster(data?.message || "Bad Request");
       }
+    }
+
+    // ✅ 409 - Conflict (caller handles field-level errors)
+    else if (status === 409) {
+      return {
+        statusCode: 409,
+        message: data?.message,
+        errors: Array.isArray(data?.errors) ? data.errors : [],
+      };
     }
 
     // ✅ Other errors
@@ -129,7 +146,11 @@ const errorHandler = (error: any) => {
     errorToaster(errorMessages.somethingWentWrong);
   }
 
-  return { error: message };
+  return {
+    error: error.response?.data?.message || message,
+    statusCode: error.response?.status,
+    errors: error.response?.data?.errors,
+  };
 };
 
 

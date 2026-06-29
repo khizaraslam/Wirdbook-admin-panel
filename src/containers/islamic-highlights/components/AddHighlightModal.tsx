@@ -30,6 +30,7 @@ const AddHighlightModal: React.FC<AddHighlightModalProps> = ({
     formState: { errors, isSubmitting },
   } = useForm<HighlightFormInputs>({
     defaultValues: {
+      timeSlot: "morning",
       messageType: "verse",
       messageAr: "",
       messageEn: "",
@@ -49,6 +50,7 @@ const AddHighlightModal: React.FC<AddHighlightModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       reset({
+        timeSlot: "morning",
         messageType: "verse",
         messageAr: "",
         messageEn: "",

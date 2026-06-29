@@ -1,7 +1,13 @@
 import type {
   IslamicHighlightDTO,
   IslamicHighlightScheduleMode,
+  IslamicHighlightTimeSlot,
 } from "@/utils/helpers/models/islamic-highlights/islamic-highlight.dto";
+
+export const TIME_SLOT_OPTIONS = [
+  { value: "morning" as const, label: "Morning (AM)", labelAr: "الصباح" },
+  { value: "evening" as const, label: "Evening (PM)", labelAr: "المساء" },
+];
 
 export const MESSAGE_TYPE_OPTIONS = [
   { value: "verse", label: "Verse" },
@@ -37,6 +43,13 @@ export const getMediaUrl = (url: string | null): string => {
   return url.startsWith("/") ? `${base}${url}` : `${base}/${url}`;
 };
 
+export const formatTimeSlotLabel = (
+  timeSlot: IslamicHighlightTimeSlot,
+): string => {
+  const option = TIME_SLOT_OPTIONS.find((o) => o.value === timeSlot);
+  return option?.label ?? timeSlot;
+};
+
 export const formatScheduleLabel = (
   schedule: IslamicHighlightDTO["schedule"],
 ): string => {
@@ -55,6 +68,7 @@ export const formatScheduleLabel = (
 };
 
 export interface HighlightFormValues {
+  timeSlot: IslamicHighlightTimeSlot;
   messageType: string;
   messageAr: string;
   messageEn: string;
@@ -78,6 +92,7 @@ export const appendHighlightFormData = (
     removeImage?: boolean;
   },
 ) => {
+  formData.append("timeSlot", values.timeSlot);
   formData.append("messageType", values.messageType);
   formData.append("messageAr", values.messageAr.trim());
   formData.append("messageEn", values.messageEn.trim());

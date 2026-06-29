@@ -10,6 +10,54 @@ import { QaFiltersDTO } from "@/utils/helpers/models/qa/qa-filters.dto";
 import { QaItemDTO } from "@/utils/helpers/models/qa/qa-item.dto";
 import { QaTagDTO } from "@/utils/helpers/models/qa/qa-tag.dto";
 import { UpdateQaItemDTO } from "@/utils/helpers/models/qa/update-qa-item.dto";
+import {
+  type QaFieldError,
+  type QaTagMutationResult,
+} from "@/utils/helpers/qa/helpers";
+
+const parseTagFieldErrors = (
+  errors: QaFieldError[] | undefined,
+): Record<string, string> | undefined => {
+  if (!Array.isArray(errors)) return undefined;
+  const mapped: Record<string, string> = {};
+  for (const err of errors) {
+    if (err.field) mapped[err.field] = err.message;
+  }
+  return Object.keys(mapped).length > 0 ? mapped : undefined;
+};
+
+const handleTagMutationResponse = (
+  response: {
+    success?: boolean;
+    message?: string;
+    error?: string;
+    statusCode?: number;
+    errors?: QaFieldError[];
+  } | null,
+  fallbackError: string,
+  successMessage: string,
+): QaTagMutationResult => {
+  if (response?.success) {
+    successToaster(response.message || successMessage);
+    return { success: true };
+  }
+
+  const fieldErrors = parseTagFieldErrors(response?.errors);
+  if (fieldErrors) {
+    return { success: false, fieldErrors };
+  }
+
+  if (response?.statusCode === 409) {
+    return {
+      success: false,
+      fieldErrors: { slug: "This slug name already exists" },
+    };
+  }
+
+  const message = response?.message || response?.error || fallbackError;
+  errorToaster(message);
+  return { success: false, message };
+};
 
 const buildListParams = (filters: QaFiltersDTO) => {
   const params: Record<string, string | number | boolean> = {
@@ -131,24 +179,20 @@ const useQa = () => {
 
   const createTag = useCallback(async (body: CreateQaTagDTO) => {
     const response = await Qa_APIS.createTag(body);
-    const { success = false, message = "" } = response || {};
-    if (success) {
-      successToaster(message || "Tag created successfully");
-      return true;
-    }
-    errorToaster(message || "Failed to create tag");
-    return false;
+    return handleTagMutationResponse(
+      response,
+      "Failed to create tag",
+      "Tag created successfully",
+    );
   }, []);
 
   const updateTag = useCallback(async (id: string, body: CreateQaTagDTO) => {
     const response = await Qa_APIS.updateTag(id, body);
-    const { success = false, message = "" } = response || {};
-    if (success) {
-      successToaster(message || "Tag updated successfully");
-      return true;
-    }
-    errorToaster(message || "Failed to update tag");
-    return false;
+    return handleTagMutationResponse(
+      response,
+      "Failed to update tag",
+      "Tag updated successfully",
+    );
   }, []);
 
   const deleteTag = useCallback(async (id: string) => {

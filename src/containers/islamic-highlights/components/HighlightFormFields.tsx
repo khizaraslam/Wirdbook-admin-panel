@@ -3,6 +3,7 @@ import { UseFormRegister, FieldErrors, UseFormWatch } from "react-hook-form";
 import Input from "@/components/ui/Input";
 import Textarea from "@/components/ui/Textarea";
 import {
+  TIME_SLOT_OPTIONS,
   MESSAGE_TYPE_OPTIONS,
   SCHEDULE_MODE_OPTIONS,
   DAY_OF_WEEK_OPTIONS,
@@ -36,6 +37,23 @@ const HighlightFormFields: React.FC<HighlightFormFieldsProps> = ({
 
   return (
     <div className="space-y-5">
+      <div className="flex flex-col gap-1.5">
+        <label className="form-label">Time slot *</label>
+        <select
+          className="form-input"
+          {...register("timeSlot", { required: "Time slot is required" })}
+        >
+          {TIME_SLOT_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label} — {o.labelAr}
+            </option>
+          ))}
+        </select>
+        {errors.timeSlot && (
+          <p className="text-[11px] text-red-500">{errors.timeSlot.message}</p>
+        )}
+      </div>
+
       <div className="flex flex-col gap-1.5">
         <label className="form-label">Message type *</label>
         <select className="form-input" {...register("messageType", { required: true })}>
