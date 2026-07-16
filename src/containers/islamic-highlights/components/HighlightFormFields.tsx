@@ -37,70 +37,6 @@ const HighlightFormFields: React.FC<HighlightFormFieldsProps> = ({
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-col gap-1.5">
-        <label className="form-label">Time slot *</label>
-        <select
-          className="form-input"
-          {...register("timeSlot", { required: "Time slot is required" })}
-        >
-          {TIME_SLOT_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label} — {o.labelAr}
-            </option>
-          ))}
-        </select>
-        {errors.timeSlot && (
-          <p className="text-[11px] text-red-500">{errors.timeSlot.message}</p>
-        )}
-      </div>
-
-      <div className="flex flex-col gap-1.5">
-        <label className="form-label">Message type *</label>
-        <select className="form-input" {...register("messageType", { required: true })}>
-          {MESSAGE_TYPE_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="flex items-center gap-3">
-        <input
-          id="highlight-enabled"
-          type="checkbox"
-          className="rounded border-gray-300 text-primary focus:ring-primary"
-          {...register("isEnabled")}
-        />
-        <label htmlFor="highlight-enabled" className="form-label mb-0">
-          Enabled (visible on public list when scheduled)
-        </label>
-      </div>
-
-      {showOrder && (
-        <Input
-          label="Display order"
-          type="number"
-          error={errors.indexOrder?.message}
-          {...register("indexOrder", { valueAsNumber: true, min: 0 })}
-        />
-      )}
-
-      <Textarea
-        label="Message (Arabic) *"
-        dir="rtl"
-        error={errors.messageAr?.message}
-        {...register("messageAr", { required: "Arabic message is required" })}
-      />
-      <Textarea
-        label="Message (English) *"
-        error={errors.messageEn?.message}
-        {...register("messageEn", { required: "English message is required" })}
-      />
-
-      <Input label="Source (Arabic)" dir="rtl" {...register("sourceAr")} />
-      <Input label="Source (English)" {...register("sourceEn")} />
-
       <div className="rounded-xl border border-gray-100 bg-slate-50/50 p-4 space-y-4">
         <p className="text-sm font-semibold text-gray-900">Schedule</p>
         <div className="flex flex-col gap-1.5">
@@ -168,7 +104,71 @@ const HighlightFormFields: React.FC<HighlightFormFieldsProps> = ({
             />
           </div>
         )}
+
+        <div className="flex flex-col gap-1.5 pt-1 border-t border-gray-100">
+          <label className="form-label">Time slot *</label>
+          <select
+            className="form-input"
+            {...register("timeSlot", { required: "Time slot is required" })}
+          >
+            {TIME_SLOT_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label} — {o.labelAr}
+              </option>
+            ))}
+          </select>
+          {errors.timeSlot && (
+            <p className="text-[11px] text-red-500">{errors.timeSlot.message}</p>
+          )}
+        </div>
       </div>
+
+      <div className="flex flex-col gap-1.5">
+        <label className="form-label">Message type *</label>
+        <select className="form-input" {...register("messageType", { required: true })}>
+          {MESSAGE_TYPE_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <input
+          id="highlight-enabled"
+          type="checkbox"
+          className="rounded border-gray-300 text-primary focus:ring-primary"
+          {...register("isEnabled")}
+        />
+        <label htmlFor="highlight-enabled" className="form-label mb-0">
+          Enabled (visible on public list when scheduled)
+        </label>
+      </div>
+
+      {showOrder && (
+        <Input
+          label="Display order"
+          type="number"
+          error={errors.indexOrder?.message}
+          {...register("indexOrder", { valueAsNumber: true, min: 0 })}
+        />
+      )}
+
+      <Textarea
+        label="Message (Arabic) *"
+        dir="rtl"
+        error={errors.messageAr?.message}
+        {...register("messageAr", { required: "Arabic message is required" })}
+      />
+      <Textarea
+        label="Message (English) *"
+        error={errors.messageEn?.message}
+        {...register("messageEn", { required: "English message is required" })}
+      />
+
+      <Input label="Source (Arabic)" dir="rtl" {...register("sourceAr")} />
+      <Input label="Source (English)" {...register("sourceEn")} />
 
       {audioSection}
       {imageSection}

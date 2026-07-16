@@ -10,11 +10,13 @@ const getHeaders = () => {
   // const state = store.getState();
   // const token = state.sharedReducer.token;
   const headers: Record<string, string> = {
-    Authorization: `Bearer ${token}`,
     accept: "*/*",
     "Cache-Control": "no-cache",
     Pragma: "no-cache",
   };
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
   return headers;
 };
 

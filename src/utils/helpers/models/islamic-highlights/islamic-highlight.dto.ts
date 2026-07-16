@@ -1,5 +1,5 @@
 export type IslamicHighlightMessageType = "verse" | "hadith" | "wisdom";
-export type IslamicHighlightTimeSlot = "morning" | "evening";
+export type IslamicHighlightTimeSlot = "whole_day" | "morning" | "evening";
 export type IslamicHighlightScheduleMode = "default" | "weekly" | "hijri";
 
 export interface BilingualText {
@@ -33,8 +33,12 @@ const normalizeTimeSlot = (
   value: unknown,
 ): IslamicHighlightTimeSlot => {
   const slot = String(value ?? "").toLowerCase();
+  if (slot === "whole_day" || slot === "whole-day" || slot === "wholeday") {
+    return "whole_day";
+  }
   if (slot === "evening" || slot === "pm") return "evening";
-  return "morning";
+  if (slot === "morning" || slot === "am") return "morning";
+  return "whole_day";
 };
 
 export const normalizeIslamicHighlight = (

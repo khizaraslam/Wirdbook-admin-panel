@@ -30,6 +30,7 @@ type TimeSlotFilter = "all" | IslamicHighlightTimeSlot;
 
 const TIME_SLOT_FILTERS: { value: TimeSlotFilter; label: string }[] = [
   { value: "all", label: "All" },
+  { value: "whole_day", label: "Whole day" },
   { value: "morning", label: "Morning" },
   { value: "evening", label: "Evening" },
 ];
@@ -145,7 +146,10 @@ const IslamicHighlights = () => {
           <Sparkles size={18} className="text-primary" />
           <span>
             {filteredData.length}
-            {timeSlotFilter !== "all" ? ` ${timeSlotFilter}` : ""} highlights
+            {timeSlotFilter !== "all"
+              ? ` ${TIME_SLOT_FILTERS.find((tab) => tab.value === timeSlotFilter)?.label ?? ""}`
+              : ""}{" "}
+            highlights
             {timeSlotFilter === "all" ? ` of ${data.length}` : ""} • Drag to
             reorder
           </span>

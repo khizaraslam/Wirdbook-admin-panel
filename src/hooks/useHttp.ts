@@ -98,7 +98,10 @@ const useHttp = () => {
       async (error) => {
         stopLoaderForConfig(error?.config);
         if (error?.response?.status === 401) {
-          logout();
+          const requestUrl = error?.config?.url || "";
+          if (!requestUrl.includes("/login")) {
+            logout();
+          }
         }
         return Promise.reject(error);
       },
