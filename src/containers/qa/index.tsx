@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Plus,
   Search,
@@ -15,11 +15,17 @@ import { confirmationPopup } from "@/utils/helpers/common/alert-service";
 import { QaItemDTO } from "@/utils/helpers/models/qa/qa-item.dto";
 import { QaTagDTO } from "@/utils/helpers/models/qa/qa-tag.dto";
 import { QaFiltersDTO, QaSortOption } from "@/utils/helpers/models/qa/qa-filters.dto";
+import {
+  QA_SOURCE_OPTIONS,
+  QA_STATUS_TABS,
+  QA_VISIBILITY_OPTIONS,
+} from "@/utils/helpers/models/qa/qa.enums";
 import useQa from "./useHooks";
 import QaItemsTable from "./components/QaItemsTable";
 import AddQaItemModal from "./components/AddQaItemModal";
 import EditQaItemModal from "./components/EditQaItemModal";
 import ManageTagsModal from "./components/ManageTagsModal";
+
 const Qa = () => {
   const {
     getAllItems,
@@ -28,6 +34,8 @@ const Qa = () => {
     deleteItem,
     publishItem,
     unpublishItem,
+    rejectItem,
+    getSubmittedCount,
     getAllTags,
     createTag,
     updateTag,
@@ -38,6 +46,7 @@ const Qa = () => {
   const [tags, setTags] = useState<QaTagDTO[]>([]);
   const [filters, setFilters] = useState<QaFiltersDTO>(new QaFiltersDTO());
   const [totalElements, setTotalElements] = useState(0);
+  const [submittedCount, setSubmittedCount] = useState(0);
   const filtersRef = useRef(filters);
   filtersRef.current = filters;
 
@@ -47,14 +56,31 @@ const Qa = () => {
   const [isTagsModalOpen, setIsTagsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<QaItemDTO | null>(null);
 
-  // Tags: load once when page opens (same pattern as Lectures → tabs)
+  const refreshSubmittedCount = useCallback(async () => {
+    const count = await getSubmittedCount();
+    setSubmittedCount(count);
+  }, [getSubmittedCount]);
+
+  const refreshList = useCallback(async () => {
+    await getAllItems(
+      setData,
+      filtersRef.current,
+      setFilters,
+      setTotalElements,
+    );
+    await refreshSubmittedCount();
+  }, [getAllItems, refreshSubmittedCount]);
+
   useEffect(() => {
     getAllTags(setTags);
   }, [getAllTags]);
 
+  useEffect(() => {
+    refreshSubmittedCount();
+  }, [refreshSubmittedCount]);
+
   const debouncedSearch = useDebounce(filters.search, 1500);
 
-  // Items: fetch when debounced search changes (initial mount included)
   useEffect(() => {
     let cancelled = false;
 
@@ -73,6 +99,7 @@ const Qa = () => {
       });
 
       await getAllItems(setData, next, setFilters, setTotalElements);
+      await refreshSubmittedCount();
 
       if (!cancelled) {
         setIsPageLoading(false);
@@ -84,7 +111,7 @@ const Qa = () => {
     return () => {
       cancelled = true;
     };
-  }, [debouncedSearch, getAllItems]);
+  }, [debouncedSearch, getAllItems, refreshSubmittedCount]);
 
   const applyFilters = (patch: Partial<QaFiltersDTO>) => {
     const next = new QaFiltersDTO({ ...filtersRef.current, ...patch, page: 1 });
@@ -108,27 +135,28 @@ const Qa = () => {
     );
     if (result.isConfirmed) {
       const ok = await deleteItem(id);
-      if (ok)
-        getAllItems(
-          setData,
-          filtersRef.current,
-          setFilters,
-          setTotalElements,
-        );
+      if (ok) refreshList();
     }
   };
 
-  const handleTogglePublish = async (item: QaItemDTO) => {
-    const ok = item.isPublished
-      ? await unpublishItem(item.id)
-      : await publishItem(item.id);
-    if (ok)
-      getAllItems(
-        setData,
-        filtersRef.current,
-        setFilters,
-        setTotalElements,
-      );
+  const handlePublish = async (item: QaItemDTO) => {
+    const ok = await publishItem(item.id);
+    if (ok) refreshList();
+  };
+
+  const handleUnpublish = async (item: QaItemDTO) => {
+    const ok = await unpublishItem(item.id);
+    if (ok) refreshList();
+  };
+
+  const handleReject = async (item: QaItemDTO) => {
+    const result = await confirmationPopup(
+      "Reject this submitted question? It will not appear on the public app.",
+    );
+    if (result.isConfirmed) {
+      const ok = await rejectItem(item.id);
+      if (ok) refreshList();
+    }
   };
 
   const currentTagLabel = !filters.tagId
@@ -144,7 +172,8 @@ const Qa = () => {
         <div>
           <h1 className="text-4xl font-bold text-primary">Q&A Management</h1>
           <p className="text-muted mt-2">
-            Manage bilingual questions and answers (English & Arabic) for the app
+            Review user submissions, set public/private visibility, write answers,
+            and publish
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -173,14 +202,84 @@ const Qa = () => {
           <span>
             {isPageLoading
               ? "Loading Q&A..."
-              : `${totalElements} total items • Search, filter by tag or date, sort by date or alphabetically`}
+              : `${totalElements} total items • ${submittedCount} awaiting review`}
           </span>
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm mt-6">
+      <div className="mt-6 flex flex-wrap gap-2">
+        {QA_STATUS_TABS.map((tab) => (
+          <button
+            key={tab.value}
+            type="button"
+            onClick={() => applyFilters({ status: tab.value })}
+            className={`relative px-4 py-2 text-sm font-medium rounded-lg border transition-colors ${
+              filters.status === tab.value
+                ? "bg-primary text-white border-primary"
+                : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+            }`}
+          >
+            {tab.label}
+            {tab.value === "submitted" && submittedCount > 0 && (
+              <span
+                className={`ml-2 inline-flex min-w-[1.25rem] justify-center rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+                  filters.status === "submitted"
+                    ? "bg-white/20 text-white"
+                    : "bg-blue-100 text-blue-700"
+                }`}
+              >
+                {submittedCount}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm mt-4">
         <h3 className="text-sm font-bold text-gray-900 mb-4">Filters</h3>
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-6 gap-4">
+          <div>
+            <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1 block mb-2">
+              Visibility
+            </label>
+            <select
+              value={filters.visibility}
+              onChange={(e) =>
+                applyFilters({
+                  visibility: e.target.value as QaFiltersDTO["visibility"],
+                })
+              }
+              className="w-full py-3 px-4 bg-gray-50 border border-gray-100 rounded-lg text-sm font-medium text-gray-700 focus:outline-none focus:border-primary"
+            >
+              {QA_VISIBILITY_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1 block mb-2">
+              Source
+            </label>
+            <select
+              value={filters.source}
+              onChange={(e) =>
+                applyFilters({
+                  source: e.target.value as QaFiltersDTO["source"],
+                })
+              }
+              className="w-full py-3 px-4 bg-gray-50 border border-gray-100 rounded-lg text-sm font-medium text-gray-700 focus:outline-none focus:border-primary"
+            >
+              {QA_SOURCE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div className="relative">
             <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1 block mb-2">
               Filter by tag
@@ -298,9 +397,7 @@ const Qa = () => {
                 onChange={(e) =>
                   setFilters((prev) => ({ ...prev, from: e.target.value }))
                 }
-                onBlur={(e) =>
-                  applyFilters({ from: e.target.value })
-                }
+                onBlur={(e) => applyFilters({ from: e.target.value })}
                 className="w-full py-3 px-3 bg-gray-50 border border-gray-100 rounded-lg text-sm"
               />
             </div>
@@ -331,7 +428,7 @@ const Qa = () => {
               }
               className="rounded border-gray-300 text-primary"
             />
-            Include unpublished (drafts)
+            Include unpublished
           </label>
           <Button
             type="button"
@@ -353,29 +450,30 @@ const Qa = () => {
           Loading Q&A items...
         </div>
       ) : (
-      <QaItemsTable
-        items={data}
-        totalElements={totalElements}
-        onEdit={setEditingItem}
-        onDelete={handleDelete}
-        onTogglePublish={handleTogglePublish}
-      />
+        <QaItemsTable
+          items={data}
+          totalElements={totalElements}
+          onEdit={setEditingItem}
+          onDelete={handleDelete}
+          onPublish={handlePublish}
+          onUnpublish={handleUnpublish}
+          onReject={handleReject}
+        />
       )}
 
       {!isPageLoading && (
-      <Pagination
-        meta={{
-          page: filters.page,
-          limit: filters.limit,
-          total: totalElements,
-          totalPages: Math.ceil(totalElements / filters.limit) || 1,
-          hasNext:
-            filters.page <
-            Math.ceil(totalElements / filters.limit),
-          hasPrev: filters.page > 1,
-        }}
-        onPageChange={handlePageChange}
-      />
+        <Pagination
+          meta={{
+            page: filters.page,
+            limit: filters.limit,
+            total: totalElements,
+            totalPages: Math.ceil(totalElements / filters.limit) || 1,
+            hasNext:
+              filters.page < Math.ceil(totalElements / filters.limit),
+            hasPrev: filters.page > 1,
+          }}
+          onPageChange={handlePageChange}
+        />
       )}
 
       <AddQaItemModal
@@ -383,11 +481,7 @@ const Qa = () => {
         onClose={() => setIsAddModalOpen(false)}
         onAdd={async (body) => {
           const ok = await createItem(body);
-          if (ok) {
-            const cleared = new QaFiltersDTO();
-            setFilters(cleared);
-            getAllItems(setData, cleared, setFilters, setTotalElements);
-          }
+          if (ok) refreshList();
           return ok;
         }}
         tags={tags}
@@ -400,13 +494,22 @@ const Qa = () => {
         onClose={() => setEditingItem(null)}
         onSave={async (id, body) => {
           const ok = await updateItem(id, body);
-          if (ok)
-            getAllItems(
-              setData,
-              filtersRef.current,
-              setFilters,
-              setTotalElements,
-            );
+          if (ok) refreshList();
+          return ok;
+        }}
+        onPublish={async (id) => {
+          const ok = await publishItem(id);
+          if (ok) refreshList();
+          return ok;
+        }}
+        onReject={async (id) => {
+          const ok = await rejectItem(id);
+          if (ok) refreshList();
+          return ok;
+        }}
+        onUnpublish={async (id) => {
+          const ok = await unpublishItem(id);
+          if (ok) refreshList();
           return ok;
         }}
         tags={tags}

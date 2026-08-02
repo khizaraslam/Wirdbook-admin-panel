@@ -6,16 +6,34 @@ import {
   Eye,
   EyeOff,
   Tag,
+  XCircle,
+  User,
 } from "lucide-react";
 import { QaItemDTO } from "@/utils/helpers/models/qa/qa-item.dto";
 import Button from "@/components/ui/Button";
+import {
+  canPublishQaItem,
+  canPublishQaStatus,
+  canRejectQaItem,
+  canUnpublishQaItem,
+  formatQaSourceLabel,
+  formatQaStatusLabel,
+  formatQaVisibilityLabel,
+  getAskerDisplayName,
+  needsAnswer,
+  QA_SOURCE_STYLES,
+  QA_STATUS_STYLES,
+  QA_VISIBILITY_STYLES,
+} from "@/utils/helpers/qa/helpers";
 
 interface QaItemsTableProps {
   items: QaItemDTO[];
   totalElements: number;
   onEdit: (item: QaItemDTO) => void;
   onDelete: (id: string) => void;
-  onTogglePublish: (item: QaItemDTO) => void;
+  onPublish: (item: QaItemDTO) => void;
+  onUnpublish: (item: QaItemDTO) => void;
+  onReject: (item: QaItemDTO) => void;
 }
 
 const formatDate = (value: string) => {
@@ -32,11 +50,16 @@ const QaItemsTable: React.FC<QaItemsTableProps> = ({
   totalElements,
   onEdit,
   onDelete,
-  onTogglePublish,
+  onPublish,
+  onUnpublish,
+  onReject,
 }) => {
   const columns = [
     "Question",
+    "Asker",
+    "Visibility",
     "Tag",
+    "Source",
     "Status",
     "Date",
     "Actions",
@@ -53,7 +76,7 @@ const QaItemsTable: React.FC<QaItemsTableProps> = ({
         </p>
       </div>
       <div className="w-full overflow-x-auto">
-        <table className="w-full text-left border-collapse min-w-[900px]">
+        <table className="w-full text-left border-collapse min-w-[1100px]">
           <thead>
             <tr className="border-b border-gray-100 bg-gray-50/30">
               {columns.map((column) => (
@@ -75,6 +98,13 @@ const QaItemsTable: React.FC<QaItemsTableProps> = ({
                   item.tag?.labelEn ||
                   item.tag?.labelAr ||
                   "Uncategorized";
+                const publishable = canPublishQaItem(item);
+                const showPublish =
+                  canPublishQaStatus(item.status) && publishable;
+                const showUnpublish = canUnpublishQaItem(item.status);
+                const showReject = canRejectQaItem(item.status);
+                const askerName = getAskerDisplayName(item);
+
                 return (
                   <tr
                     key={item.id}
@@ -90,16 +120,38 @@ const QaItemsTable: React.FC<QaItemsTableProps> = ({
                             className="font-semibold text-gray-900 text-sm truncate"
                             dir="ltr"
                           >
-                            {item.questionEn || "—"}
+                            {item.questionEn || item.questionAr || "—"}
                           </p>
-                          <p
-                            className="text-xs text-gray-500 mt-1 truncate"
-                            dir="rtl"
-                          >
-                            {item.questionAr || "—"}
-                          </p>
+                          {item.questionAr && item.questionEn && (
+                            <p
+                              className="text-xs text-gray-500 mt-1 truncate"
+                              dir="rtl"
+                            >
+                              {item.questionAr}
+                            </p>
+                          )}
+                          {needsAnswer(item) && (
+                            <span className="inline-flex mt-2 px-2 py-0.5 rounded-md bg-orange-50 text-orange-700 text-[10px] font-bold uppercase tracking-wider">
+                              Needs answer
+                            </span>
+                          )}
                         </div>
                       </div>
+                    </td>
+                    <td className="py-4 px-4 text-sm">
+                      <span className="inline-flex items-center gap-1.5 text-gray-700">
+                        {item.source === "user" && (
+                          <User size={14} className="text-gray-400 shrink-0" />
+                        )}
+                        <span className="truncate max-w-[120px]">{askerName}</span>
+                      </span>
+                    </td>
+                    <td className="py-4 px-4 text-sm">
+                      <span
+                        className={`px-3 py-1 rounded-md font-bold text-[10px] uppercase tracking-wider ${QA_VISIBILITY_STYLES[item.visibility]}`}
+                      >
+                        {formatQaVisibilityLabel(item.visibility)}
+                      </span>
                     </td>
                     <td className="py-4 px-4 text-sm">
                       <span className="inline-flex items-center gap-1 px-3 py-1 rounded-md bg-primary/5 text-primary font-bold text-[10px] uppercase tracking-wider">
@@ -109,36 +161,73 @@ const QaItemsTable: React.FC<QaItemsTableProps> = ({
                     </td>
                     <td className="py-4 px-4 text-sm">
                       <span
-                        className={`px-3 py-1 rounded-md font-bold text-[10px] uppercase tracking-wider ${
-                          item.isPublished
-                            ? "bg-green-100 text-green-700"
-                            : "bg-amber-100 text-amber-700"
-                        }`}
+                        className={`px-3 py-1 rounded-md font-bold text-[10px] uppercase tracking-wider ${QA_SOURCE_STYLES[item.source]}`}
                       >
-                        {item.isPublished ? "Published" : "Draft"}
+                        {formatQaSourceLabel(item.source)}
+                      </span>
+                    </td>
+                    <td className="py-4 px-4 text-sm">
+                      <span
+                        className={`px-3 py-1 rounded-md font-bold text-[10px] uppercase tracking-wider ${QA_STATUS_STYLES[item.status]}`}
+                      >
+                        {formatQaStatusLabel(item.status)}
                       </span>
                     </td>
                     <td className="py-4 px-4 text-sm font-medium text-gray-600 whitespace-nowrap">
                       {formatDate(item.createdAt)}
                     </td>
                     <td className="py-4 px-4">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onTogglePublish(item)}
-                          title={
-                            item.isPublished ? "Unpublish" : "Publish"
-                          }
-                          className="p-2 text-gray-500 hover:text-primary"
-                        >
-                          {item.isPublished ? (
-                            <EyeOff size={18} />
-                          ) : (
+                      <div className="flex items-center justify-end gap-1">
+                        {showPublish && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onPublish(item)}
+                            title="Publish"
+                            className="p-2 text-gray-500 hover:text-emerald-600"
+                          >
                             <Eye size={18} />
+                          </Button>
+                        )}
+                        {showUnpublish && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onUnpublish(item)}
+                            title="Unpublish"
+                            className="p-2 text-gray-500 hover:text-amber-600"
+                          >
+                            <EyeOff size={18} />
+                          </Button>
+                        )}
+                        {showReject && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onReject(item)}
+                            title="Reject"
+                            className="p-2 text-gray-500 hover:text-red-600"
+                          >
+                            <XCircle size={18} />
+                          </Button>
+                        )}
+                        {!showPublish &&
+                          canPublishQaStatus(item.status) &&
+                          !publishable && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              disabled
+                              title="Fill EN + AR answers before publishing"
+                              className="p-2 text-gray-300 cursor-not-allowed"
+                            >
+                              <Eye size={18} />
+                            </Button>
                           )}
-                        </Button>
                         <Button
                           type="button"
                           variant="ghost"

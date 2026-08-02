@@ -20,6 +20,7 @@ export const Qa_APIS = {
   publishItem: (id: string) => patchRequest(`/api/admin/qa/${id}/publish`, {}),
   unpublishItem: (id: string) =>
     patchRequest(`/api/admin/qa/${id}/unpublish`, {}),
+  rejectItem: (id: string) => patchRequest(`/api/admin/qa/${id}/reject`, {}),
 
   getTags: () => getRequest("/api/admin/qa/tags"),
   getTag: (id: string) => getRequest(`/api/admin/qa/tags/${id}`),

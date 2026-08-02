@@ -6,6 +6,12 @@ import Textarea from "@/components/ui/Textarea";
 import Button from "@/components/ui/Button";
 import { CreateQaItemDTO } from "@/utils/helpers/models/qa/create-qa-item.dto";
 import { QaTagDTO } from "@/utils/helpers/models/qa/qa-tag.dto";
+import type { QaVisibility } from "@/utils/helpers/models/qa/qa.enums";
+import { QA_VISIBILITY_FORM_OPTIONS } from "@/utils/helpers/models/qa/qa.enums";
+import {
+  canPublishQaItem,
+  hasQuestionText,
+} from "@/utils/helpers/qa/helpers";
 
 interface AddQaItemModalProps {
   isOpen: boolean;
@@ -14,6 +20,17 @@ interface AddQaItemModalProps {
   tags: QaTagDTO[];
   defaultIndexOrder: number;
 }
+
+type AddQaFormValues = {
+  questionEn: string;
+  questionAr: string;
+  answerEn: string;
+  answerAr: string;
+  visibility: QaVisibility;
+  tagId: string;
+  isPublished: boolean;
+  indexOrder: number;
+};
 
 const AddQaItemModal: React.FC<AddQaItemModalProps> = ({
   isOpen,
@@ -26,33 +43,53 @@ const AddQaItemModal: React.FC<AddQaItemModalProps> = ({
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors, isSubmitting },
-  } = useForm<CreateQaItemDTO>({
-    defaultValues: new CreateQaItemDTO({
+  } = useForm<AddQaFormValues>({
+    defaultValues: {
+      questionEn: "",
+      questionAr: "",
+      answerEn: "",
+      answerAr: "",
+      visibility: "public",
+      tagId: "",
       isPublished: false,
       indexOrder: defaultIndexOrder,
-    }),
+    },
   });
+
+  const formValues = watch();
+  const publishReady = canPublishQaItem(formValues);
+  const selectedVisibility = QA_VISIBILITY_FORM_OPTIONS.find(
+    (option) => option.value === formValues.visibility,
+  );
 
   useEffect(() => {
     if (isOpen) {
-      reset(
-        new CreateQaItemDTO({
-          isPublished: false,
-          indexOrder: defaultIndexOrder,
-        }),
-      );
+      reset({
+        questionEn: "",
+        questionAr: "",
+        answerEn: "",
+        answerAr: "",
+        visibility: "public",
+        tagId: "",
+        isPublished: false,
+        indexOrder: defaultIndexOrder,
+      });
     }
   }, [isOpen, defaultIndexOrder, reset]);
 
-  const onSubmit = async (data: CreateQaItemDTO) => {
+  const onSubmit = async (data: AddQaFormValues) => {
+    if (!hasQuestionText(data)) return;
+
     const body = new CreateQaItemDTO({
-      ...data,
-      questionEn: data.questionEn.trim(),
-      questionAr: data.questionAr.trim(),
-      answerEn: data.answerEn.trim(),
-      answerAr: data.answerAr.trim(),
-      tagId: data.tagId || undefined,
+      questionEn: data.questionEn.trim() || undefined,
+      questionAr: data.questionAr.trim() || undefined,
+      answerEn: data.answerEn.trim() || undefined,
+      answerAr: data.answerAr.trim() || undefined,
+      visibility: data.visibility,
+      tagId: data.tagId || null,
+      isPublished: publishReady ? data.isPublished : false,
       indexOrder: Number(data.indexOrder ?? defaultIndexOrder),
     });
     const ok = await onAdd(body);
@@ -69,58 +106,68 @@ const AddQaItemModal: React.FC<AddQaItemModalProps> = ({
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <div className="space-y-5">
           <p className="text-sm text-muted -mt-3">
-            Bilingual question and answer for the mobile app
+            Admin-authored Q&A. Answers are optional until you publish.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Textarea
-              label="Question (English) *"
+              label="Question (English)"
               placeholder="Enter question in English"
               error={errors.questionEn?.message}
-              {...register("questionEn", {
-                required: "English question is required",
-              })}
+              {...register("questionEn")}
             />
             <Textarea
-              label="Question (Arabic) *"
+              label="Question (Arabic)"
               placeholder="أدخل السؤال بالعربية"
               dir="rtl"
               error={errors.questionAr?.message}
-              {...register("questionAr", {
-                required: "Arabic question is required",
-              })}
+              {...register("questionAr")}
             />
+          </div>
+          {!hasQuestionText(formValues) && (
+            <p className="text-[11px] text-red-500">
+              At least one question language is required.
+            </p>
+          )}
+
+          <div className="rounded-xl border border-gray-100 bg-slate-50/50 p-4 space-y-3">
+            <div className="flex flex-col gap-1.5">
+              <label className="form-label">Visibility after publish</label>
+              <select className="form-input" {...register("visibility")}>
+                {QA_VISIBILITY_FORM_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <p className="text-xs text-muted">
+              {selectedVisibility?.description}
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Textarea
-              label="Answer (English) *"
+              label="Answer (English)"
               rows={5}
-              placeholder="Enter answer in English"
+              placeholder="Enter answer in English (optional)"
               error={errors.answerEn?.message}
-              {...register("answerEn", {
-                required: "English answer is required",
-              })}
+              {...register("answerEn")}
             />
             <Textarea
-              label="Answer (Arabic) *"
+              label="Answer (Arabic)"
               rows={5}
-              placeholder="أدخل الإجابة بالعربية"
+              placeholder="أدخل الإجابة بالعربية (اختياري)"
               dir="rtl"
               error={errors.answerAr?.message}
-              {...register("answerAr", {
-                required: "Arabic answer is required",
-              })}
+              {...register("answerAr")}
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
               <label className="form-label">Tag</label>
-              <select
-                className="form-input"
-                {...register("tagId")}
-              >
+              <select className="form-input" {...register("tagId")}>
                 <option value="">No tag</option>
                 {tags.map((tag) => (
                   <option key={tag.id} value={tag.id}>
@@ -141,27 +188,25 @@ const AddQaItemModal: React.FC<AddQaItemModalProps> = ({
             <input
               type="checkbox"
               className="rounded border-gray-300 text-primary focus:ring-primary"
+              disabled={!publishReady}
               {...register("isPublished")}
             />
-            <span className="text-sm font-medium text-gray-700">
-              Publish immediately
+            <span
+              className={`text-sm font-medium ${publishReady ? "text-gray-700" : "text-gray-400"}`}
+            >
+              Publish immediately (requires EN + AR answers)
             </span>
           </label>
 
           <div className="flex items-center justify-end gap-3 pt-2">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={onClose}
-              className="rounded-md px-5 py-2.5 btn-secondary"
-            >
+            <Button type="button" variant="secondary" onClick={onClose}>
               Cancel
             </Button>
             <Button
               type="submit"
               variant="primary"
               isLoading={isSubmitting}
-              className="rounded-md px-5 py-2.5 btn-primary"
+              disabled={!hasQuestionText(formValues)}
             >
               Add Q&A
             </Button>

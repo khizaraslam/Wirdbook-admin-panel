@@ -1,10 +1,12 @@
+import type { QaVisibility } from "./qa.enums";
+
 export class UpdateQaItemDTO {
-  questionEn?: string;
-  questionAr?: string;
-  answerEn?: string;
-  answerAr?: string;
+  questionEn?: string | null;
+  questionAr?: string | null;
+  answerEn?: string | null;
+  answerAr?: string | null;
+  visibility?: QaVisibility;
   tagId?: string | null;
-  isPublished?: boolean;
   indexOrder?: number;
 
   constructor(data: Partial<UpdateQaItemDTO> = {}) {

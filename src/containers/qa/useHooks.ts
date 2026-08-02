@@ -70,6 +70,11 @@ const buildListParams = (filters: QaFiltersDTO) => {
   if (filters.tagId) params.tagId = filters.tagId;
   if (filters.from) params.from = filters.from;
   if (filters.to) params.to = filters.to;
+  if (filters.status && filters.status !== "all") params.status = filters.status;
+  if (filters.source && filters.source !== "all") params.source = filters.source;
+  if (filters.visibility && filters.visibility !== "all") {
+    params.visibility = filters.visibility;
+  }
   return params;
 };
 
@@ -152,7 +157,9 @@ const useQa = () => {
       successToaster(message || "Q&A item published");
       return true;
     }
-    errorToaster(message || "Failed to publish Q&A item");
+    errorToaster(
+      message || response?.error || "Failed to publish Q&A item",
+    );
     return false;
   }, []);
 
@@ -165,6 +172,27 @@ const useQa = () => {
     }
     errorToaster(message || "Failed to unpublish Q&A item");
     return false;
+  }, []);
+
+  const rejectItem = useCallback(async (id: string) => {
+    const response = await Qa_APIS.rejectItem(id);
+    const { success = false, message = "" } = response || {};
+    if (success) {
+      successToaster(message || "Q&A item rejected");
+      return true;
+    }
+    errorToaster(message || "Failed to reject Q&A item");
+    return false;
+  }, []);
+
+  const getSubmittedCount = useCallback(async (): Promise<number> => {
+    const response = await Qa_APIS.getItems({
+      status: "submitted",
+      page: 1,
+      limit: 1,
+      includeUnpublished: true,
+    });
+    return response?.pagination?.total ?? 0;
   }, []);
 
   const getAllTags = useCallback(async (setData: (tags: QaTagDTO[]) => void) => {
@@ -214,6 +242,8 @@ const useQa = () => {
     deleteItem,
     publishItem,
     unpublishItem,
+    rejectItem,
+    getSubmittedCount,
     getAllTags,
     createTag,
     updateTag,

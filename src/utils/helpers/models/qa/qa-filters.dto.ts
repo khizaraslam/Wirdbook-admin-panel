@@ -1,3 +1,9 @@
+import type {
+  QaSourceFilter,
+  QaStatusFilter,
+  QaVisibilityFilter,
+} from "./qa.enums";
+
 export type QaSortOption = "date" | "alpha";
 
 export class QaFiltersDTO {
@@ -9,6 +15,9 @@ export class QaFiltersDTO {
   from: string = "";
   to: string = "";
   includeUnpublished: boolean = true;
+  status: QaStatusFilter = "all";
+  source: QaSourceFilter = "all";
+  visibility: QaVisibilityFilter = "all";
 
   constructor(data: Partial<QaFiltersDTO> = {}) {
     this.page = data.page ?? 1;
@@ -19,5 +28,8 @@ export class QaFiltersDTO {
     this.from = data.from ?? "";
     this.to = data.to ?? "";
     this.includeUnpublished = data.includeUnpublished ?? true;
+    this.status = data.status ?? "all";
+    this.source = data.source ?? "all";
+    this.visibility = data.visibility ?? "all";
   }
 }
