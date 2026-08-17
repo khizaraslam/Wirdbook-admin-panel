@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { RefreshCcw, Trash2, Database, Upload } from "lucide-react";
+import { RefreshCcw, Trash2, Database, Upload, ExternalLink } from "lucide-react";
 import Button from "@/components/ui/Button";
 import CustomMessageDisplay from "@/components/data-not-found";
 import useStore from "@/hooks/useStore";
@@ -9,6 +9,10 @@ import {
 } from "@/utils/helpers/common/alert-service";
 import {
   SyncModuleDTO,
+  getSyncContentUrl,
+  getSyncModuleFilenameHint,
+  getSyncModuleLabel,
+  SYNC_MODULE_CONTENT_PATHS,
   supportsJsonUpload,
 } from "@/utils/helpers/models/sync/sync-module.dto";
 import useSyncModules from "./useHooks";
@@ -70,6 +74,12 @@ const SyncModules = () => {
 
     if (!file.name.toLowerCase().endsWith(".json")) {
       errorToaster("Please select a .json file");
+      return;
+    }
+
+    const maxSizeBytes = 50 * 1024 * 1024;
+    if (file.size > maxSizeBytes) {
+      errorToaster("File must be 50MB or smaller");
       return;
     }
 
@@ -151,16 +161,43 @@ const SyncModules = () => {
             <div className="col-span-5">Last Sync Time</div>
             <div className="col-span-4 text-right">Actions</div>
           </div>
-          {data.map((module) => (
+          {data.map((module) => {
+            const filenameHint = getSyncModuleFilenameHint(module.name);
+            const contentPath =
+              module.content_path ?? SYNC_MODULE_CONTENT_PATHS[module.name];
+            const contentUrl = contentPath
+              ? getSyncContentUrl(contentPath)
+              : null;
+
+            return (
             <div
               key={module.id}
               className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-gray-50 last:border-b-0 items-center"
             >
-              <div className="col-span-3 font-medium text-gray-900 capitalize">
-                {module.name}
+              <div className="col-span-3">
+                <p className="font-medium text-gray-900">
+                  {getSyncModuleLabel(module.name)}
+                </p>
+                <p className="text-xs text-muted mt-0.5">{module.name}</p>
+                {filenameHint && (
+                  <p className="text-xs text-primary/70 mt-1">
+                    Expected file: {filenameHint}
+                  </p>
+                )}
               </div>
               <div className="col-span-5 text-sm text-muted">
-                {formatSyncTime(module.sync_time)}
+                <p>{formatSyncTime(module.sync_time)}</p>
+                {contentUrl && (
+                  <a
+                    href={contentUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-1"
+                  >
+                    <ExternalLink size={12} />
+                    Preview / download JSON
+                  </a>
+                )}
               </div>
               <div className="col-span-4 flex flex-wrap justify-end gap-2">
                 <Button
@@ -183,6 +220,11 @@ const SyncModules = () => {
                     isLoading={!!actionLoading[module.id]}
                     onClick={() => handleUploadClick(module.id)}
                     className="rounded-md"
+                    title={
+                      filenameHint
+                        ? `Upload ${filenameHint}`
+                        : "Upload JSON file"
+                    }
                   >
                     Upload JSON
                   </Button>
@@ -200,7 +242,8 @@ const SyncModules = () => {
                 </Button>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <CustomMessageDisplay
