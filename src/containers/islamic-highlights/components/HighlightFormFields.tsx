@@ -1,5 +1,10 @@
-import React from "react";
-import { UseFormRegister, FieldErrors, UseFormWatch } from "react-hook-form";
+import React, { useEffect } from "react";
+import {
+  UseFormRegister,
+  FieldErrors,
+  UseFormWatch,
+  UseFormSetValue,
+} from "react-hook-form";
 import Input from "@/components/ui/Input";
 import Textarea from "@/components/ui/Textarea";
 import {
@@ -20,6 +25,7 @@ interface HighlightFormFieldsProps {
   register: UseFormRegister<HighlightFormInputs>;
   errors: FieldErrors<HighlightFormInputs>;
   watch: UseFormWatch<HighlightFormInputs>;
+  setValue: UseFormSetValue<HighlightFormInputs>;
   showOrder?: boolean;
   audioSection?: React.ReactNode;
   imageSection?: React.ReactNode;
@@ -29,11 +35,29 @@ const HighlightFormFields: React.FC<HighlightFormFieldsProps> = ({
   register,
   errors,
   watch,
+  setValue,
   showOrder = true,
   audioSection,
   imageSection,
 }) => {
   const scheduleMode = watch("scheduleMode");
+  const selectedDays = watch("daysOfWeek") ?? [];
+
+  useEffect(() => {
+    register("daysOfWeek", {
+      validate: (value) =>
+        scheduleMode !== "weekly" ||
+        (Array.isArray(value) && value.length > 0) ||
+        "Select at least one day",
+    });
+  }, [register, scheduleMode]);
+
+  const toggleDay = (day: number) => {
+    const next = selectedDays.includes(day)
+      ? selectedDays.filter((value) => value !== day)
+      : [...selectedDays, day].sort((a, b) => a - b);
+    setValue("daysOfWeek", next, { shouldValidate: true, shouldDirty: true });
+  };
 
   return (
     <div className="space-y-5">
@@ -52,22 +76,34 @@ const HighlightFormFields: React.FC<HighlightFormFieldsProps> = ({
 
         {scheduleMode === "weekly" && (
           <div className="flex flex-col gap-1.5">
-            <label className="form-label">Day of week *</label>
-            <select
-              className="form-input"
-              {...register("dayOfWeek", {
-                required: scheduleMode === "weekly" ? "Select a day" : false,
+            <label className="form-label">Days of week *</label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {DAY_OF_WEEK_OPTIONS.map((day) => {
+                const checked = selectedDays.includes(day.value);
+                return (
+                  <label
+                    key={day.value}
+                    className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm cursor-pointer ${
+                      checked
+                        ? "border-primary bg-primary/5 text-primary"
+                        : "border-gray-200 text-gray-700"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      className="rounded border-gray-300 text-primary focus:ring-primary"
+                      checked={checked}
+                      onChange={() => toggleDay(day.value)}
+                    />
+                    {day.label}
+                  </label>
+                );
               })}
-            >
-              <option value="">Select day</option>
-              {DAY_OF_WEEK_OPTIONS.map((d) => (
-                <option key={d.value} value={String(d.value)}>
-                  {d.label}
-                </option>
-              ))}
-            </select>
-            {errors.dayOfWeek && (
-              <p className="text-[11px] text-red-500">{errors.dayOfWeek.message}</p>
+            </div>
+            {errors.daysOfWeek && (
+              <p className="text-[11px] text-red-500">
+                {errors.daysOfWeek.message}
+              </p>
             )}
           </div>
         )}

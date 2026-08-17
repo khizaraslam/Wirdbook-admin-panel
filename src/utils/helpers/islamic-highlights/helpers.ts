@@ -73,12 +73,26 @@ export const formatTimeSlotLabel = (
   return option?.label ?? timeSlot;
 };
 
+export const getSelectedDaysOfWeek = (
+  schedule: IslamicHighlightDTO["schedule"],
+): number[] => {
+  if (schedule.daysOfWeek?.length) return schedule.daysOfWeek;
+  if (schedule.dayOfWeek != null) return [schedule.dayOfWeek];
+  return [];
+};
+
 export const formatScheduleLabel = (
   schedule: IslamicHighlightDTO["schedule"],
 ): string => {
-  if (schedule.mode === "weekly" && schedule.dayOfWeek !== null) {
-    const day = DAY_OF_WEEK_OPTIONS.find((d) => d.value === schedule.dayOfWeek);
-    return `Weekly · ${day?.label ?? schedule.dayOfWeek}`;
+  if (schedule.mode === "weekly") {
+    const days = getSelectedDaysOfWeek(schedule);
+    if (days.length) {
+      const labels = days
+        .map((value) => DAY_OF_WEEK_OPTIONS.find((d) => d.value === value)?.label)
+        .filter(Boolean);
+      return `Weekly · ${labels.join(", ")}`;
+    }
+    return "Weekly";
   }
   if (
     schedule.mode === "hijri" &&
@@ -99,6 +113,7 @@ export interface HighlightFormValues {
   sourceEn: string;
   scheduleMode: IslamicHighlightScheduleMode;
   dayOfWeek: string;
+  daysOfWeek: number[];
   hijriMonth: string;
   hijriDay: string;
   isEnabled: boolean;
@@ -123,8 +138,13 @@ export const appendHighlightFormData = (
   if (values.sourceEn.trim()) formData.append("sourceEn", values.sourceEn.trim());
 
   formData.append("scheduleMode", values.scheduleMode);
-  if (values.scheduleMode === "weekly" && values.dayOfWeek !== "") {
-    formData.append("dayOfWeek", values.dayOfWeek);
+  if (values.scheduleMode === "weekly") {
+    const days = (values.daysOfWeek ?? []).filter((day) =>
+      Number.isInteger(day),
+    );
+    if (days.length) {
+      formData.append("daysOfWeek", days.join(","));
+    }
   }
   if (values.scheduleMode === "hijri") {
     if (values.hijriMonth) formData.append("hijriMonth", values.hijriMonth);

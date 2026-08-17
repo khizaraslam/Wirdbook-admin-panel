@@ -12,6 +12,7 @@ export interface IslamicHighlightSchedule {
   hijriMonth: number | null;
   hijriDay: number | null;
   dayOfWeek: number | null;
+  daysOfWeek: number[] | null;
 }
 
 export interface IslamicHighlightDTO {
@@ -70,7 +71,12 @@ export const normalizeIslamicHighlight = (
     hijriMonth: null,
     hijriDay: null,
     dayOfWeek: null,
+    daysOfWeek: null,
   };
+
+  const daysOfWeek = Array.isArray(schedule.daysOfWeek)
+    ? schedule.daysOfWeek.filter((day) => Number.isInteger(day))
+    : null;
 
   return {
     id: raw.id ?? "",
@@ -86,6 +92,7 @@ export const normalizeIslamicHighlight = (
       hijriMonth: schedule.hijriMonth ?? null,
       hijriDay: schedule.hijriDay ?? null,
       dayOfWeek: schedule.dayOfWeek ?? null,
+      daysOfWeek: daysOfWeek?.length ? daysOfWeek : null,
     },
     audioUrl: raw.audioUrl ?? null,
     imageUrl: raw.imageUrl ?? null,

@@ -38,6 +38,7 @@ const AddHighlightModal: React.FC<AddHighlightModalProps> = ({
       sourceEn: "",
       scheduleMode: "default",
       dayOfWeek: "",
+      daysOfWeek: [],
       hijriMonth: "",
       hijriDay: "",
       isEnabled: true,
@@ -58,6 +59,7 @@ const AddHighlightModal: React.FC<AddHighlightModalProps> = ({
         sourceEn: "",
         scheduleMode: "default",
         dayOfWeek: "",
+        daysOfWeek: [],
         hijriMonth: "",
         hijriDay: "",
         isEnabled: true,
@@ -90,6 +92,7 @@ const AddHighlightModal: React.FC<AddHighlightModalProps> = ({
           register={register}
           errors={errors}
           watch={watch}
+          setValue={setValue}
           audioSection={
             <FileUploadField
               label="Audio snippet (optional, max 50MB)"

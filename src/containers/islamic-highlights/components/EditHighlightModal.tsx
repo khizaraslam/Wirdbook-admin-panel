@@ -6,7 +6,7 @@ import HighlightFormFields, {
   HighlightFormInputs,
 } from "./HighlightFormFields";
 import FileUploadField from "./FileUploadField";
-import { appendHighlightFormData } from "@/utils/helpers/islamic-highlights/helpers";
+import { appendHighlightFormData, getSelectedDaysOfWeek } from "@/utils/helpers/islamic-highlights/helpers";
 import type { IslamicHighlightDTO } from "@/utils/helpers/models/islamic-highlights/islamic-highlight.dto";
 
 interface EditHighlightModalProps {
@@ -46,6 +46,7 @@ const EditHighlightModal: React.FC<EditHighlightModalProps> = ({
       sourceEn: "",
       scheduleMode: "default",
       dayOfWeek: "",
+      daysOfWeek: [],
       hijriMonth: "",
       hijriDay: "",
       isEnabled: true,
@@ -66,8 +67,8 @@ const EditHighlightModal: React.FC<EditHighlightModalProps> = ({
         sourceAr: highlight.source.ar,
         sourceEn: highlight.source.en,
         scheduleMode: s.mode,
-        dayOfWeek:
-          s.dayOfWeek !== null ? String(s.dayOfWeek) : "",
+        dayOfWeek: s.dayOfWeek !== null ? String(s.dayOfWeek) : "",
+        daysOfWeek: getSelectedDaysOfWeek(s),
         hijriMonth:
           s.hijriMonth !== null ? String(s.hijriMonth) : "",
         hijriDay: s.hijriDay !== null ? String(s.hijriDay) : "",
@@ -119,6 +120,7 @@ const EditHighlightModal: React.FC<EditHighlightModalProps> = ({
           register={register}
           errors={errors}
           watch={watch}
+          setValue={setValue}
           audioSection={
             <FileUploadField
               label="Audio snippet"
