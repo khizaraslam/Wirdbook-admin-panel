@@ -46,10 +46,37 @@ const useSyncModules = () => {
     return null;
   };
 
+  const downloadModule = async (idOrName: string, fallbackName: string) => {
+    try {
+      const { blob, filename } = await SyncModules_APIS.downloadModule(
+        idOrName,
+        fallbackName,
+      );
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      return true;
+    } catch (error: any) {
+      const status = error?.response?.status;
+      errorToaster(
+        status === 404
+          ? "JSON file has not been uploaded yet"
+          : "Failed to download JSON file",
+      );
+      return false;
+    }
+  };
+
   return {
     getAllModules,
     updateModuleTime,
     deleteModule,
+    downloadModule,
   };
 };
 

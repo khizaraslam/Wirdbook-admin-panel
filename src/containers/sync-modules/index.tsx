@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { RefreshCcw, Trash2, Database, Upload, ExternalLink } from "lucide-react";
+import { RefreshCcw, Trash2, Database, Upload, Download } from "lucide-react";
 import Button from "@/components/ui/Button";
 import CustomMessageDisplay from "@/components/data-not-found";
 import useStore from "@/hooks/useStore";
@@ -9,10 +9,8 @@ import {
 } from "@/utils/helpers/common/alert-service";
 import {
   SyncModuleDTO,
-  getSyncContentUrl,
-  getSyncModuleFilenameHint,
+  canDownloadSyncModule,
   getSyncModuleLabel,
-  SYNC_MODULE_CONTENT_PATHS,
   supportsJsonUpload,
 } from "@/utils/helpers/models/sync/sync-module.dto";
 import useSyncModules from "./useHooks";
@@ -26,7 +24,8 @@ const formatSyncTime = (syncTime: string | null) => {
 
 const SyncModules = () => {
   const { isLoading } = useStore();
-  const { getAllModules, updateModuleTime, deleteModule } = useSyncModules();
+  const { getAllModules, updateModuleTime, deleteModule, downloadModule } =
+    useSyncModules();
   const [data, setData] = useState<SyncModuleDTO[]>([]);
   const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -104,6 +103,12 @@ const SyncModules = () => {
     setModuleLoading(moduleId, false);
   };
 
+  const handleDownload = async (module: SyncModuleDTO) => {
+    setModuleLoading(module.id, true);
+    await downloadModule(module.id, module.name);
+    setModuleLoading(module.id, false);
+  };
+
   const handleDelete = async (moduleId: string) => {
     const result = await confirmationPopup(
       "Are you sure you want to delete this sync module?",
@@ -161,15 +166,7 @@ const SyncModules = () => {
             <div className="col-span-5">Last Sync Time</div>
             <div className="col-span-4 text-right">Actions</div>
           </div>
-          {data.map((module) => {
-            const filenameHint = getSyncModuleFilenameHint(module.name);
-            const contentPath =
-              module.content_path ?? SYNC_MODULE_CONTENT_PATHS[module.name];
-            const contentUrl = contentPath
-              ? getSyncContentUrl(contentPath)
-              : null;
-
-            return (
+          {data.map((module) => (
             <div
               key={module.id}
               className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-gray-50 last:border-b-0 items-center"
@@ -179,25 +176,9 @@ const SyncModules = () => {
                   {getSyncModuleLabel(module.name)}
                 </p>
                 <p className="text-xs text-muted mt-0.5">{module.name}</p>
-                {filenameHint && (
-                  <p className="text-xs text-primary/70 mt-1">
-                    Expected file: {filenameHint}
-                  </p>
-                )}
               </div>
               <div className="col-span-5 text-sm text-muted">
-                <p>{formatSyncTime(module.sync_time)}</p>
-                {contentUrl && (
-                  <a
-                    href={contentUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-1"
-                  >
-                    <ExternalLink size={12} />
-                    Preview / download JSON
-                  </a>
-                )}
+                {formatSyncTime(module.sync_time)}
               </div>
               <div className="col-span-4 flex flex-wrap justify-end gap-2">
                 <Button
@@ -211,6 +192,19 @@ const SyncModules = () => {
                 >
                   Sync
                 </Button>
+                {canDownloadSyncModule(module) && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    leftIcon={<Download size={14} />}
+                    isLoading={!!actionLoading[module.id]}
+                    className="rounded-md"
+                    onClick={() => handleDownload(module)}
+                  >
+                    Download
+                  </Button>
+                )}
                 {supportsJsonUpload(module.name) && (
                   <Button
                     type="button"
@@ -220,11 +214,6 @@ const SyncModules = () => {
                     isLoading={!!actionLoading[module.id]}
                     onClick={() => handleUploadClick(module.id)}
                     className="rounded-md"
-                    title={
-                      filenameHint
-                        ? `Upload ${filenameHint}`
-                        : "Upload JSON file"
-                    }
                   >
                     Upload JSON
                   </Button>
@@ -242,8 +231,7 @@ const SyncModules = () => {
                 </Button>
               </div>
             </div>
-            );
-          })}
+          ))}
         </div>
       ) : (
         <CustomMessageDisplay
