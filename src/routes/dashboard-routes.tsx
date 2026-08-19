@@ -9,6 +9,8 @@ import IslamicHighlights from "@/containers/islamic-highlights";
 import HijriEvents from "@/containers/hijri-events";
 import SyncModules from "@/containers/sync-modules";
 import Qasidas from "@/containers/qasidas";
+import Communities from "@/containers/communities";
+import DhikrTypes from "@/containers/dhikr-types";
 import { siteRoutes } from "@/utils/helpers/enums/routes.enum";
 
 const DashboardRoutes = () => {
@@ -28,6 +30,11 @@ const DashboardRoutes = () => {
         <Route path={siteRoutes.hijriEvents} element={<HijriEvents />} />
         <Route path={siteRoutes.syncModules} element={<SyncModules />} />
         <Route path={`${siteRoutes.qasidas}/*`} element={<Qasidas />} />
+        <Route
+          path={`${siteRoutes.communities}/*`}
+          element={<Communities />}
+        />
+        <Route path={siteRoutes.dhikrTypes} element={<DhikrTypes />} />
         <Route path="*" element={<Navigate to={siteRoutes.dashboard} replace />} />
       </Routes>
     </MainLayout>

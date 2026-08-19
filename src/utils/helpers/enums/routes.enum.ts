@@ -10,4 +10,6 @@ export enum siteRoutes {
   hijriEvents = "/hijri-events",
   syncModules = "/sync-modules",
   qasidas = "/qasidas",
+  communities = "/communities",
+  dhikrTypes = "/dhikr-types",
 }

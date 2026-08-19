@@ -13,6 +13,7 @@ import {
   Calendar,
   RefreshCcw,
   Music2,
+  Users,
 } from "lucide-react";
 
 interface LayoutProps {
@@ -78,6 +79,16 @@ const MainLayout: React.FC<LayoutProps> = ({ children }) => {
       path: "/qasidas",
       icon: <Music2 size={20} />,
     },
+    {
+      text: "Communities",
+      path: "/communities",
+      icon: <Users size={20} />,
+    },
+    {
+      text: "Dhikr Types",
+      path: "/dhikr-types",
+      icon: <Sparkles size={20} />,
+    },
   ];
 
   const isActive = (path: string) => {
@@ -86,6 +97,9 @@ const MainLayout: React.FC<LayoutProps> = ({ children }) => {
     }
     if (path === "/qasidas") {
       return location.pathname.startsWith("/qasidas");
+    }
+    if (path === "/communities") {
+      return location.pathname.startsWith("/communities");
     }
     return location.pathname === path;
   };
