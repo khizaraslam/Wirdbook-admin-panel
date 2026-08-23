@@ -116,19 +116,25 @@ const QaItemsTable: React.FC<QaItemsTableProps> = ({
                           <HelpCircle size={18} />
                         </div>
                         <div className="min-w-0">
-                          <p
-                            className="font-semibold text-gray-900 text-sm truncate"
+                          <button
+                            type="button"
+                            onClick={() => onEdit(item)}
+                            className="block w-full text-left font-semibold text-primary text-sm truncate hover:underline cursor-pointer"
                             dir="ltr"
+                            title="Open to edit / answer"
                           >
                             {item.questionEn || item.questionAr || "—"}
-                          </p>
+                          </button>
                           {item.questionAr && item.questionEn && (
-                            <p
-                              className="text-xs text-gray-500 mt-1 truncate"
+                            <button
+                              type="button"
+                              onClick={() => onEdit(item)}
+                              className="block w-full text-left text-xs text-gray-500 mt-1 truncate hover:underline hover:text-primary cursor-pointer"
                               dir="rtl"
+                              title="Open to edit / answer"
                             >
                               {item.questionAr}
-                            </p>
+                            </button>
                           )}
                           {needsAnswer(item) && (
                             <span className="inline-flex mt-2 px-2 py-0.5 rounded-md bg-orange-50 text-orange-700 text-[10px] font-bold uppercase tracking-wider">
