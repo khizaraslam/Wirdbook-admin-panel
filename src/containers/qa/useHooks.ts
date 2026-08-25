@@ -33,13 +33,17 @@ const handleTagMutationResponse = (
     error?: string;
     statusCode?: number;
     errors?: QaFieldError[];
+    data?: Partial<QaTagDTO> | null;
   } | null,
   fallbackError: string,
   successMessage: string,
 ): QaTagMutationResult => {
   if (response?.success) {
     successToaster(response.message || successMessage);
-    return { success: true };
+    return {
+      success: true,
+      tag: response.data ? new QaTagDTO(response.data) : undefined,
+    };
   }
 
   const fieldErrors = parseTagFieldErrors(response?.errors);
@@ -199,10 +203,12 @@ const useQa = () => {
     const response = await Qa_APIS.getTags();
     const { success = false, data = null } = response || {};
     if (success && Array.isArray(data)) {
-      setData(data.map((tag) => new QaTagDTO(tag)));
-    } else {
-      setData([]);
+      const mapped = data.map((tag) => new QaTagDTO(tag));
+      setData(mapped);
+      return mapped;
     }
+    setData([]);
+    return [] as QaTagDTO[];
   }, []);
 
   const createTag = useCallback(async (body: CreateQaTagDTO) => {

@@ -6,6 +6,7 @@ import Textarea from "@/components/ui/Textarea";
 import Button from "@/components/ui/Button";
 import { QaItemDTO } from "@/utils/helpers/models/qa/qa-item.dto";
 import { QaTagDTO } from "@/utils/helpers/models/qa/qa-tag.dto";
+import { CreateQaTagDTO } from "@/utils/helpers/models/qa/create-qa-tag.dto";
 import { UpdateQaItemDTO } from "@/utils/helpers/models/qa/update-qa-item.dto";
 import type { QaVisibility } from "@/utils/helpers/models/qa/qa.enums";
 import { QA_VISIBILITY_FORM_OPTIONS } from "@/utils/helpers/models/qa/qa.enums";
@@ -22,7 +23,9 @@ import {
   QA_SOURCE_STYLES,
   QA_STATUS_STYLES,
   QA_VISIBILITY_STYLES,
+  type QaTagMutationResult,
 } from "@/utils/helpers/qa/helpers";
+import InlineCreateTag from "./InlineCreateTag";
 
 interface EditQaItemModalProps {
   isOpen: boolean;
@@ -33,6 +36,8 @@ interface EditQaItemModalProps {
   onReject: (id: string) => Promise<boolean>;
   onUnpublish: (id: string) => Promise<boolean>;
   tags: QaTagDTO[];
+  createTag: (body: CreateQaTagDTO) => Promise<QaTagMutationResult>;
+  onTagsRefresh: () => Promise<QaTagDTO[]> | void;
 }
 
 type EditQaFormValues = {
@@ -54,12 +59,15 @@ const EditQaItemModal: React.FC<EditQaItemModalProps> = ({
   onReject,
   onUnpublish,
   tags,
+  createTag,
+  onTagsRefresh,
 }) => {
   const {
     register,
     handleSubmit,
     reset,
     watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<EditQaFormValues>();
 
@@ -232,6 +240,22 @@ const EditQaItemModal: React.FC<EditQaItemModalProps> = ({
                   </option>
                 ))}
               </select>
+              <InlineCreateTag
+                createTag={createTag}
+                onCreated={async (tag) => {
+                  const refreshed = await onTagsRefresh();
+                  const selectedId =
+                    tag.id ||
+                    refreshed?.find(
+                      (t) =>
+                        t.slug === tag.slug || t.labelEn === tag.labelEn,
+                    )?.id ||
+                    "";
+                  if (selectedId) {
+                    setValue("tagId", selectedId, { shouldDirty: true });
+                  }
+                }}
+              />
             </div>
             <Input
               label="Display order"

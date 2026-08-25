@@ -1,5 +1,8 @@
 import { useCallback } from "react";
-import { errorToaster, successToaster } from "@/utils/helpers/common/alert-service";
+import {
+  errorToaster,
+  successToaster,
+} from "@/utils/helpers/common/alert-service";
 import { Lectures_APIS } from "@/libs/apis/lectures.api";
 
 const useLectures = () => {

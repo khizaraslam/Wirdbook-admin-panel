@@ -1,4 +1,5 @@
 import { QaItemDTO } from "@/utils/helpers/models/qa/qa-item.dto";
+import { QaTagDTO } from "@/utils/helpers/models/qa/qa-tag.dto";
 import type { QaSource, QaStatus, QaVisibility } from "@/utils/helpers/models/qa/qa.enums";
 
 export const QA_TAG_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -22,7 +23,7 @@ export interface QaFieldError {
 }
 
 export type QaTagMutationResult =
-  | { success: true }
+  | { success: true; tag?: QaTagDTO }
   | { success: false; fieldErrors?: Record<string, string>; message?: string };
 
 const hasText = (value: string | null | undefined): boolean =>

@@ -486,6 +486,8 @@ const Qa = () => {
         }}
         tags={tags}
         defaultIndexOrder={maxOrder}
+        createTag={createTag}
+        onTagsRefresh={() => getAllTags(setTags)}
       />
 
       <EditQaItemModal
@@ -513,6 +515,8 @@ const Qa = () => {
           return ok;
         }}
         tags={tags}
+        createTag={createTag}
+        onTagsRefresh={() => getAllTags(setTags)}
       />
 
       <ManageTagsModal
