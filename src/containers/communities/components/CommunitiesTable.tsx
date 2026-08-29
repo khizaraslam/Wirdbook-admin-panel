@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import Button from "@/components/ui/Button";
 import type { CommunityDTO } from "@/utils/helpers/models/communities/community.dto";
+import { getCommunityImageUrl } from "@/utils/helpers/communities/helpers";
 import { siteRoutes } from "@/utils/helpers/enums/routes.enum";
 
 interface CommunitiesTableProps {
@@ -34,7 +35,7 @@ const CommunitiesTable: React.FC<CommunitiesTableProps> = ({
   onToggleStatus,
   onAssignAdmin,
 }) => {
-  const columns = ["Name", "Admin", "Members", "Status", "Created", "Actions"];
+  const columns = ["Image", "Name", "Admin", "Members", "Status", "Created", "Actions"];
 
   return (
     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mt-6 overflow-hidden">
@@ -66,6 +67,19 @@ const CommunitiesTable: React.FC<CommunitiesTableProps> = ({
                 key={community.id}
                 className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors"
               >
+                <td className="py-4 px-4">
+                  {community.imageUrl ? (
+                    <img
+                      src={getCommunityImageUrl(community.imageUrl)}
+                      alt={community.name}
+                      className="w-10 h-10 rounded-lg object-cover border border-gray-100"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 text-xs">
+                      —
+                    </div>
+                  )}
+                </td>
                 <td className="py-4 px-4">
                   <span className="font-medium text-gray-900">
                     {community.name}

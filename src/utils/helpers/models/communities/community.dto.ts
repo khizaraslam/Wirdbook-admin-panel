@@ -7,7 +7,13 @@ export interface CommunityDTO {
   memberCount: number;
   adminUserId: string | null;
   adminName: string | null;
+  imageId: string | null;
+  imageUrl: string | null;
   createdAt: string;
+}
+
+export interface CommunityDetailDTO extends CommunityDTO {
+  members: CommunityMemberDTO[];
 }
 
 export interface CommunityMemberDTO {

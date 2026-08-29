@@ -1,4 +1,5 @@
 import {
+  deleteRequest,
   getRequest,
   patchRequest,
   postRequest,
@@ -9,9 +10,8 @@ import type { CreateDhikrAssignmentBody } from "../../utils/helpers/models/commu
 export const Communities_APIS = {
   getAll: () => getRequest("/api/admin/communities"),
   getOne: (id: string) => getRequest(`/api/admin/communities/${id}`),
-  create: (body: { name: string }) =>
-    postRequest("/api/admin/communities", body),
-  update: (id: string, body: { name: string }) =>
+  create: (body: FormData) => postRequest("/api/admin/communities", body),
+  update: (id: string, body: FormData) =>
     patchRequest(`/api/admin/communities/${id}`, body),
   updateStatus: (id: string, body: { status: "active" | "inactive" }) =>
     patchRequest(`/api/admin/communities/${id}/status`, body),
@@ -31,4 +31,17 @@ export const Communities_APIS = {
       `/api/admin/communities/${communityId}/dhikr/report${query}`,
     );
   },
+  updateNoticeboardPost: (
+    communityId: string,
+    postId: string,
+    body: FormData,
+  ) =>
+    patchRequest(
+      `/api/admin/communities/${communityId}/noticeboard/${postId}`,
+      body,
+    ),
+  deleteNoticeboardPost: (communityId: string, postId: string) =>
+    deleteRequest(
+      `/api/admin/communities/${communityId}/noticeboard/${postId}`,
+    ),
 };

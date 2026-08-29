@@ -5,45 +5,41 @@ import Button from "@/components/ui/Button";
 import CustomMessageDisplay from "@/components/data-not-found";
 import useStore from "@/hooks/useStore";
 import useCommunities from "../useHooks";
+import type { CommunityFormPayload } from "../useHooks";
 import MembersTable from "../components/MembersTable";
 import AssignAdminModal from "../components/AssignAdminModal";
 import CommunityFormModal from "../components/CommunityFormModal";
-import type {
-  CommunityDTO,
-  CommunityMemberDTO,
-} from "@/utils/helpers/models/communities/community.dto";
+import type { CommunityDetailDTO } from "@/utils/helpers/models/communities/community.dto";
+import { getCommunityImageUrl } from "@/utils/helpers/communities/helpers";
 import { siteRoutes } from "@/utils/helpers/enums/routes.enum";
 import { confirmationPopup } from "@/utils/helpers/common/alert-service";
 import CommunityDhikrTab from "../components/CommunityDhikrTab";
+import NoticeboardModerationTab from "../components/NoticeboardModerationTab";
+
+type DetailTab = "members" | "dhikr" | "noticeboard";
 
 const CommunityDetailPage = () => {
   const { id = "" } = useParams<{ id: string }>();
-  const { getOne, getMembers, update, updateStatus, assignAdmin } =
-    useCommunities();
+  const { getOne, update, updateStatus, assignAdmin } = useCommunities();
   const { isLoading } = useStore();
-  const [community, setCommunity] = useState<CommunityDTO | null>(null);
-  const [members, setMembers] = useState<CommunityMemberDTO[]>([]);
+  const [community, setCommunity] = useState<CommunityDetailDTO | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isAssignOpen, setIsAssignOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"members" | "dhikr">("members");
+  const [activeTab, setActiveTab] = useState<DetailTab>("members");
 
   const loadData = useCallback(async () => {
     if (!id) return;
-    const [communityData, membersData] = await Promise.all([
-      getOne(id),
-      getMembers(id),
-    ]);
+    const communityData = await getOne(id);
     setCommunity(communityData);
-    setMembers(membersData);
-  }, [id, getOne, getMembers]);
+  }, [id, getOne]);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
 
-  const handleUpdate = async (name: string) => {
+  const handleUpdate = async (payload: CommunityFormPayload) => {
     if (!community) return false;
-    const ok = await update(community.id, name);
+    const ok = await update(community.id, payload);
     if (ok) {
       setIsEditOpen(false);
       await loadData();
@@ -90,6 +86,9 @@ const CommunityDetailPage = () => {
     );
   }
 
+  const members = community?.members ?? [];
+  const imageUrl = community ? getCommunityImageUrl(community.imageUrl) : "";
+
   return (
     <div className="p-6">
       <Link
@@ -102,85 +101,99 @@ const CommunityDetailPage = () => {
 
       {community && (
         <>
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
-            <div>
-              <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold text-gray-900">
-                  {community.name}
-                </h1>
-                <span
-                  className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${
-                    community.status === "active"
-                      ? "bg-emerald-50 text-emerald-700"
-                      : "bg-gray-100 text-gray-600"
-                  }`}
-                >
-                  {community.status}
-                </span>
+          <div className="flex flex-col lg:flex-row lg:items-start gap-6 mb-6">
+            {imageUrl ? (
+              <img
+                src={imageUrl}
+                alt={community.name}
+                className="w-full lg:w-48 h-48 rounded-2xl object-cover border border-gray-100 shrink-0"
+              />
+            ) : (
+              <div className="w-full lg:w-48 h-48 rounded-2xl bg-gray-100 border border-gray-100 flex items-center justify-center text-gray-400 shrink-0">
+                No image
               </div>
-              <p className="text-gray-500 mt-1">
-                Admin:{" "}
-                {community.adminName || (
-                  <span className="italic">Unassigned</span>
-                )}{" "}
-                · {community.memberCount} members
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Button variant="secondary" onClick={() => setIsEditOpen(true)}>
-                Edit name
-              </Button>
-              <Button variant="secondary" onClick={() => setIsAssignOpen(true)}>
-                <UserPlus size={16} className="mr-2" />
-                Assign admin
-              </Button>
-              <Button variant="secondary" onClick={handleToggleStatus}>
-                {community.status === "active" ? (
-                  <>
-                    <ToggleRight size={16} className="mr-2 text-emerald-600" />
-                    Deactivate
-                  </>
-                ) : (
-                  <>
-                    <ToggleLeft size={16} className="mr-2" />
-                    Activate
-                  </>
-                )}
-              </Button>
+            )}
+
+            <div className="flex-1 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-3">
+                  <h1 className="text-2xl font-bold text-gray-900">
+                    {community.name}
+                  </h1>
+                  <span
+                    className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${
+                      community.status === "active"
+                        ? "bg-emerald-50 text-emerald-700"
+                        : "bg-gray-100 text-gray-600"
+                    }`}
+                  >
+                    {community.status}
+                  </span>
+                </div>
+                <p className="text-gray-500 mt-1">
+                  Admin:{" "}
+                  {community.adminName || (
+                    <span className="italic">Unassigned</span>
+                  )}{" "}
+                  · {community.memberCount} members
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button variant="secondary" onClick={() => setIsEditOpen(true)}>
+                  Edit community
+                </Button>
+                <Button variant="secondary" onClick={() => setIsAssignOpen(true)}>
+                  <UserPlus size={16} className="mr-2" />
+                  Assign admin
+                </Button>
+                <Button variant="secondary" onClick={handleToggleStatus}>
+                  {community.status === "active" ? (
+                    <>
+                      <ToggleRight size={16} className="mr-2 text-emerald-600" />
+                      Deactivate
+                    </>
+                  ) : (
+                    <>
+                      <ToggleLeft size={16} className="mr-2" />
+                      Activate
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
 
           <div className="mb-4 border-b border-gray-100">
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setActiveTab("members")}
-                className={`px-4 py-2.5 text-sm font-semibold rounded-t-lg transition-colors ${
-                  activeTab === "members"
-                    ? "text-primary border-b-2 border-primary bg-primary/5"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                Members
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab("dhikr")}
-                className={`px-4 py-2.5 text-sm font-semibold rounded-t-lg transition-colors ${
-                  activeTab === "dhikr"
-                    ? "text-primary border-b-2 border-primary bg-primary/5"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                Dhikr
-              </button>
+            <div className="flex items-center gap-2 overflow-x-auto">
+              {(
+                [
+                  ["members", "Members"],
+                  ["dhikr", "Dhikr"],
+                  ["noticeboard", "Noticeboard"],
+                ] as const
+              ).map(([tab, label]) => (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => setActiveTab(tab)}
+                  className={`px-4 py-2.5 text-sm font-semibold rounded-t-lg transition-colors whitespace-nowrap ${
+                    activeTab === tab
+                      ? "text-primary border-b-2 border-primary bg-primary/5"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
           </div>
 
-          {activeTab === "members" ? (
-            <MembersTable members={members} />
-          ) : (
+          {activeTab === "members" && <MembersTable members={members} />}
+          {activeTab === "dhikr" && (
             <CommunityDhikrTab communityId={community.id} />
+          )}
+          {activeTab === "noticeboard" && (
+            <NoticeboardModerationTab communityId={community.id} />
           )}
 
           <CommunityFormModal
@@ -188,6 +201,7 @@ const CommunityDetailPage = () => {
             onClose={() => setIsEditOpen(false)}
             onSubmit={handleUpdate}
             initialName={community.name}
+            initialImageUrl={community.imageUrl}
             title="Edit community"
             submitLabel="Save"
           />

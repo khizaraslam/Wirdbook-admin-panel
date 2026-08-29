@@ -8,6 +8,7 @@ import CommunitiesTable from "../components/CommunitiesTable";
 import CommunityFormModal from "../components/CommunityFormModal";
 import AssignAdminModal from "../components/AssignAdminModal";
 import type { CommunityDTO } from "@/utils/helpers/models/communities/community.dto";
+import type { CommunityFormPayload } from "../useHooks";
 import { confirmationPopup } from "@/utils/helpers/common/alert-service";
 
 const CommunitiesListPage = () => {
@@ -31,17 +32,17 @@ const CommunitiesListPage = () => {
     loadCommunities();
   }, [loadCommunities]);
 
-  const handleCreate = async (name: string) => {
-    const ok = await create(name);
+  const handleCreate = async (payload: CommunityFormPayload) => {
+    const ok = await create(payload);
     if (ok) {
       await loadCommunities();
     }
     return ok;
   };
 
-  const handleUpdate = async (name: string) => {
+  const handleUpdate = async (payload: CommunityFormPayload) => {
     if (!editingCommunity) return false;
-    const ok = await update(editingCommunity.id, name);
+    const ok = await update(editingCommunity.id, payload);
     if (ok) {
       setEditingCommunity(null);
       await loadCommunities();
@@ -118,6 +119,7 @@ const CommunitiesListPage = () => {
         onClose={() => setEditingCommunity(null)}
         onSubmit={handleUpdate}
         initialName={editingCommunity?.name ?? ""}
+        initialImageUrl={editingCommunity?.imageUrl}
         title="Edit community"
         submitLabel="Save"
       />
