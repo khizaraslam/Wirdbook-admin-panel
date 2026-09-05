@@ -10,7 +10,10 @@ const useSyncModules = () => {
     const response = await SyncModules_APIS.getAllModules();
     const { success = false, data = null } = response || {};
     if (success) {
-      setData(data || []);
+      const modules = (data || []).filter(
+        (module: SyncModuleDTO) => module.name !== "books",
+      );
+      setData(modules);
     }
   };
 

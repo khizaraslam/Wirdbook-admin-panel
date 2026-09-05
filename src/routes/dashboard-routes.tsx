@@ -8,6 +8,7 @@ import Banners from "@/containers/banners";
 import IslamicHighlights from "@/containers/islamic-highlights";
 import HijriEvents from "@/containers/hijri-events";
 import SyncModules from "@/containers/sync-modules";
+import Books from "@/containers/books";
 import Qasidas from "@/containers/qasidas";
 import Communities from "@/containers/communities";
 import DhikrTypes from "@/containers/dhikr-types";
@@ -29,6 +30,7 @@ const DashboardRoutes = () => {
         />
         <Route path={siteRoutes.hijriEvents} element={<HijriEvents />} />
         <Route path={siteRoutes.syncModules} element={<SyncModules />} />
+        <Route path={siteRoutes.books} element={<Books />} />
         <Route path={`${siteRoutes.qasidas}/*`} element={<Qasidas />} />
         <Route
           path={`${siteRoutes.communities}/*`}

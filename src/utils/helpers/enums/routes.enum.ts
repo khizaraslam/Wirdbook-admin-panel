@@ -9,6 +9,7 @@ export enum siteRoutes {
   islamicHighlights = "/islamic-highlights",
   hijriEvents = "/hijri-events",
   syncModules = "/sync-modules",
+  books = "/books",
   qasidas = "/qasidas",
   communities = "/communities",
   dhikrTypes = "/dhikr-types",

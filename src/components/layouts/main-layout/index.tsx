@@ -12,6 +12,7 @@ import {
   Sparkles,
   Calendar,
   RefreshCcw,
+  Library,
   Music2,
   Users,
 } from "lucide-react";
@@ -73,6 +74,11 @@ const MainLayout: React.FC<LayoutProps> = ({ children }) => {
       text: "Sync Modules",
       path: "/sync-modules",
       icon: <RefreshCcw size={20} />,
+    },
+    {
+      text: "Books",
+      path: "/books",
+      icon: <Library size={20} />,
     },
     {
       text: "Qasidas",

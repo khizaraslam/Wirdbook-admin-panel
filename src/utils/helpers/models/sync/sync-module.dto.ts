@@ -8,7 +8,6 @@ export interface SyncModuleDTO {
 }
 
 export const UPLOADABLE_SYNC_MODULES = new Set([
-  "books",
   "blessed_wird",
   "prayer_wird",
   "qasidas",
@@ -24,7 +23,6 @@ export const canDownloadSyncModule = (module: SyncModuleDTO) =>
   Boolean(module.has_content ?? module.download_url ?? module.content_path);
 
 export const SYNC_MODULE_LABELS: Record<string, string> = {
-  books: "Books",
   blessed_wird: "Blessed Wird",
   prayer_wird: "Prayer Wird",
   qasidas: "Qasidas",
