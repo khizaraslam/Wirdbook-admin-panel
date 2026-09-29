@@ -15,6 +15,7 @@ export const Qasidas_APIS = {
     infoEn?: string;
     infoAr?: string;
   }) => putRequest("/api/admin/qasidas/settings", body),
+  getFieldOptions: () => getRequest("/api/admin/qasidas/field-options"),
 
   list: (params?: { page?: number; limit?: number; search?: string }) =>
     getRequest("/api/admin/qasidas", params),

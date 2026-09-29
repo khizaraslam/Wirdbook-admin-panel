@@ -11,6 +11,9 @@ import useQasidas from "../useHooks";
 import { siteRoutes } from "@/utils/helpers/enums/routes.enum";
 import { ArrowLeft } from "lucide-react";
 import type { Qasida } from "@/utils/helpers/models/qasidas/qasida.dto";
+import type { ReciterAudioDraft } from "../components/ReciterAudiosEditor";
+import ReciterAudiosPlayer from "../components/ReciterAudiosPlayer";
+import { getQasidaPlayableAudios } from "@/utils/helpers/qasidas/helpers";
 
 type TabId = "details" | "wirds";
 
@@ -27,11 +30,18 @@ const qasidaToFormValues = (q: Qasida): QasidaFormValues => ({
   singerAr: q.singer?.ar || "",
   infoEn: q.info?.en || "",
   infoAr: q.info?.ar || "",
-  audioDuration: q.audioDuration != null ? String(q.audioDuration) : "",
   isEnabled: q.isEnabled,
   indexOrder: String(q.indexOrder ?? 0),
-  audio: null,
 });
+
+const audiosToDrafts = (q: Qasida): ReciterAudioDraft[] =>
+  getQasidaPlayableAudios(q).map((item) => ({
+    reciter_name: item.reciter_name || "",
+    audio_link: item.audio_link || "",
+    audio_duration: item.audio_duration != null ? String(item.audio_duration) : "",
+    audio_key: item.audio_key || "",
+    file: null,
+  }));
 
 const QasidaEditPage = () => {
   const { id = "" } = useParams<{ id: string }>();
@@ -41,21 +51,19 @@ const QasidaEditPage = () => {
   const [tab, setTab] = useState<TabId>(
     (location.state as { tab?: TabId })?.tab === "wirds" ? "wirds" : "details",
   );
-  const [removeAudio, setRemoveAudio] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [reciters, setReciters] = useState<ReciterAudioDraft[]>([]);
 
   const {
     register,
     handleSubmit,
     reset,
-    watch,
     setValue,
+    watch,
     formState: { errors, isValid },
   } = useForm<QasidaFormValues>({
     mode: "onChange",
   });
-
-  const watchAudio = watch("audio");
 
   useEffect(() => {
     if (!id) return;
@@ -66,7 +74,7 @@ const QasidaEditPage = () => {
       if (cancelled || !data) return;
       setQasida(data);
       reset(qasidaToFormValues(data));
-      setRemoveAudio(false);
+      setReciters(audiosToDrafts(data));
     });
 
     return () => {
@@ -74,17 +82,11 @@ const QasidaEditPage = () => {
     };
   }, [id, getQasida, reset]);
 
-  useEffect(() => {
-    if (watchAudio && watchAudio.length > 0) {
-      setRemoveAudio(false);
-    }
-  }, [watchAudio]);
-
   const onSubmit = async (data: QasidaFormValues) => {
     setSubmitting(true);
     const ok = await updateQasida(
       id,
-      buildQasidaFormData(data, { removeAudio, includeEmpty: true }),
+      buildQasidaFormData(data, reciters, { includeEmpty: true }),
     );
     setSubmitting(false);
     if (ok) {
@@ -92,7 +94,7 @@ const QasidaEditPage = () => {
       if (refreshed) {
         setQasida(refreshed);
         reset(qasidaToFormValues(refreshed));
-        setRemoveAudio(false);
+        setReciters(audiosToDrafts(refreshed));
       }
     }
   };
@@ -115,7 +117,14 @@ const QasidaEditPage = () => {
       <h1 className="text-3xl font-bold text-primary">
         {qasida.title.en || qasida.title.ar}
       </h1>
-      <p className="text-muted mt-1">{qasida.totalWirds} wirds</p>
+      <p className="text-muted mt-1">
+        {qasida.totalWirds} wirds
+        {qasida.sourceId != null ? ` · source #${qasida.sourceId}` : ""}
+      </p>
+
+      <div className="mt-6 max-w-3xl">
+        <ReciterAudiosPlayer qasida={qasida} />
+      </div>
 
       <div className="flex gap-2 mt-6 border-b border-gray-200">
         {(["details", "wirds"] as TabId[]).map((t) => (
@@ -143,18 +152,10 @@ const QasidaEditPage = () => {
             <QasidaDetailsFields
               register={register}
               errors={errors}
-              watchAudio={watchAudio}
-              onClearAudio={() =>
-                setValue("audio", null as unknown as FileList, {
-                  shouldValidate: true,
-                })
-              }
-              currentAudioUrl={qasida.audioUrl}
-              removeCurrentAudio={removeAudio}
-              onRemoveCurrentAudio={() => {
-                setValue("audio", null as unknown as FileList);
-                setRemoveAudio(true);
-              }}
+              setValue={setValue}
+              watch={watch}
+              reciters={reciters}
+              onRecitersChange={setReciters}
             />
             <div className="flex justify-end">
               <Button
