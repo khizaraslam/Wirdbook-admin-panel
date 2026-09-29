@@ -7,6 +7,7 @@ import { Qasidas_APIS } from "@/libs/apis/qasidas.api";
 import type {
   Pagination,
   Qasida,
+  QasidaFieldOptions,
   QasidaSettings,
   QasidaWird,
   WirdFormBody,
@@ -17,6 +18,15 @@ const useQasidas = () => {
     const response = await Qasidas_APIS.getSettings();
     const { success = false, data = null } = response || {};
     return success ? (data as QasidaSettings) : null;
+  }, []);
+
+  const getFieldOptions = useCallback(async (): Promise<QasidaFieldOptions> => {
+    const response = await Qasidas_APIS.getFieldOptions();
+    const { success = false, data = null } = response || {};
+    if (success && data) {
+      return data as QasidaFieldOptions;
+    }
+    return { authors: [], singers: [] };
   }, []);
 
   const updateSettings = useCallback(
@@ -173,6 +183,7 @@ const useQasidas = () => {
   return {
     getSettings,
     updateSettings,
+    getFieldOptions,
     listQasidas,
     getQasida,
     createQasida,

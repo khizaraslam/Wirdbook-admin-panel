@@ -1,8 +1,22 @@
-import React from "react";
-import { UseFormRegister, FieldErrors } from "react-hook-form";
+import React, { useEffect, useState } from "react";
+import {
+  UseFormRegister,
+  FieldErrors,
+  UseFormSetValue,
+  UseFormWatch,
+} from "react-hook-form";
 import Input from "@/components/ui/Input";
-import { UploadCloud, X, Music } from "lucide-react";
-import { getQasidaAudioUrl } from "@/utils/helpers/qasidas/helpers";
+import ReciterAudiosEditor, {
+  ReciterAudioDraft,
+} from "./ReciterAudiosEditor";
+import SuggestPairInput from "./SuggestPairInput";
+import LocalizedSelect from "./LocalizedSelect";
+import useQasidas from "../useHooks";
+import type { LocalizedText } from "@/utils/helpers/models/qasidas/qasida.dto";
+import {
+  QASIDA_MODE_OPTIONS,
+  QASIDA_TYPE_OPTIONS,
+} from "@/utils/helpers/qasidas/field-options";
 
 export interface QasidaFormValues {
   titleEn: string;
@@ -17,25 +31,23 @@ export interface QasidaFormValues {
   singerAr: string;
   infoEn: string;
   infoAr: string;
-  audioDuration: string;
   isEnabled: boolean;
   indexOrder: string;
-  audio: FileList | null;
 }
 
 interface QasidaDetailsFieldsProps {
   register: UseFormRegister<QasidaFormValues>;
   errors: FieldErrors<QasidaFormValues>;
-  watchAudio: FileList | null | undefined;
-  onClearAudio: () => void;
-  currentAudioUrl?: string | null;
-  removeCurrentAudio?: boolean;
-  onRemoveCurrentAudio?: () => void;
+  setValue: UseFormSetValue<QasidaFormValues>;
+  watch: UseFormWatch<QasidaFormValues>;
+  reciters: ReciterAudioDraft[];
+  onRecitersChange: (items: ReciterAudioDraft[]) => void;
 }
 
 export const buildQasidaFormData = (
   data: QasidaFormValues,
-  options?: { removeAudio?: boolean; includeEmpty?: boolean },
+  reciters: ReciterAudioDraft[],
+  options?: { includeEmpty?: boolean },
 ) => {
   const formData = new FormData();
   formData.append("titleEn", data.titleEn.trim());
@@ -61,19 +73,33 @@ export const buildQasidaFormData = (
     }
   });
 
-  if (data.audioDuration?.trim()) {
-    formData.append("audioDuration", data.audioDuration.trim());
-  }
   if (data.indexOrder?.trim()) {
     formData.append("indexOrder", data.indexOrder.trim());
   }
   formData.append("isEnabled", data.isEnabled ? "true" : "false");
 
-  if (options?.removeAudio) {
-    formData.append("audio", "");
-  } else if (data.audio && data.audio.length > 0) {
-    formData.append("audio", data.audio[0]);
-  }
+  const packed = reciters
+    .map((item) => ({
+      reciter_name: item.reciter_name.trim(),
+      audio_link: item.audio_link.trim(),
+      audio_duration: Number(item.audio_duration) || 0,
+      audio_key: item.audio_key.trim(),
+      file: item.file,
+    }))
+    .filter((item) => item.reciter_name || item.audio_link || item.file);
+
+  formData.append(
+    "audios",
+    JSON.stringify(
+      packed.map(({ file: _file, ...rest }) => rest),
+    ),
+  );
+
+  packed.forEach((item, index) => {
+    if (item.file) {
+      formData.append(`reciterAudio_${index}`, item.file);
+    }
+  });
 
   return formData;
 };
@@ -81,16 +107,35 @@ export const buildQasidaFormData = (
 const QasidaDetailsFields: React.FC<QasidaDetailsFieldsProps> = ({
   register,
   errors,
-  watchAudio,
-  onClearAudio,
-  currentAudioUrl,
-  removeCurrentAudio,
-  onRemoveCurrentAudio,
+  setValue,
+  watch,
+  reciters,
+  onRecitersChange,
 }) => {
-  const previewUrl =
-    !removeCurrentAudio && currentAudioUrl
-      ? getQasidaAudioUrl(currentAudioUrl)
-      : null;
+  const { getFieldOptions } = useQasidas();
+  const [authors, setAuthors] = useState<LocalizedText[]>([]);
+  const [singers, setSingers] = useState<LocalizedText[]>([]);
+
+  const authorEn = watch("authorEn");
+  const authorAr = watch("authorAr");
+  const modeEn = watch("modeEn");
+  const modeAr = watch("modeAr");
+  const typeEn = watch("typeEn");
+  const typeAr = watch("typeAr");
+  const singerEn = watch("singerEn");
+  const singerAr = watch("singerAr");
+
+  useEffect(() => {
+    let cancelled = false;
+    getFieldOptions().then((opts) => {
+      if (cancelled) return;
+      setAuthors(opts.authors || []);
+      setSingers(opts.singers || []);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [getFieldOptions]);
 
   return (
     <div className="space-y-5">
@@ -110,43 +155,87 @@ const QasidaDetailsFields: React.FC<QasidaDetailsFieldsProps> = ({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Input label="Author (English)" {...register("authorEn")} />
-        <Input
+        <SuggestPairInput
+          label="Author (English)"
+          lang="en"
+          value={authorEn || ""}
+          options={authors}
+          placeholder="Type to search or add new"
+          hint="Pick an existing author or type a new name"
+          onChange={(v) => setValue("authorEn", v, { shouldDirty: true })}
+          onSelectPair={(pair) => {
+            setValue("authorEn", pair.en || "", { shouldDirty: true });
+            setValue("authorAr", pair.ar || "", { shouldDirty: true });
+          }}
+        />
+        <SuggestPairInput
           label="Author (Arabic)"
+          lang="ar"
+          value={authorAr || ""}
+          options={authors}
+          placeholder="اكتب للبحث أو أضف جديداً"
           className="text-right"
           dir="rtl"
-          {...register("authorAr")}
+          onChange={(v) => setValue("authorAr", v, { shouldDirty: true })}
+          onSelectPair={(pair) => {
+            setValue("authorEn", pair.en || "", { shouldDirty: true });
+            setValue("authorAr", pair.ar || "", { shouldDirty: true });
+          }}
         />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Input label="Mode (English)" placeholder="e.g., Bayat" {...register("modeEn")} />
-        <Input
-          label="Mode (Arabic)"
-          placeholder="e.g., بيات"
-          className="text-right"
-          dir="rtl"
-          {...register("modeAr")}
+        <LocalizedSelect
+          label="Mode"
+          options={QASIDA_MODE_OPTIONS}
+          en={modeEn || ""}
+          ar={modeAr || ""}
+          placeholder="Select mode"
+          onChange={(opt) => {
+            setValue("modeEn", opt?.en || "", { shouldDirty: true });
+            setValue("modeAr", opt?.ar || "", { shouldDirty: true });
+          }}
+        />
+        <LocalizedSelect
+          label="Type"
+          options={QASIDA_TYPE_OPTIONS}
+          en={typeEn || ""}
+          ar={typeAr || ""}
+          placeholder="Select type"
+          onChange={(opt) => {
+            setValue("typeEn", opt?.en || "", { shouldDirty: true });
+            setValue("typeAr", opt?.ar || "", { shouldDirty: true });
+          }}
         />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Input label="Type (English)" {...register("typeEn")} />
-        <Input
-          label="Type (Arabic)"
-          className="text-right"
-          dir="rtl"
-          {...register("typeAr")}
+        <SuggestPairInput
+          label="Singer (English)"
+          lang="en"
+          value={singerEn || ""}
+          options={singers}
+          placeholder="Type to search or add new"
+          hint="Pick an existing singer when available"
+          onChange={(v) => setValue("singerEn", v, { shouldDirty: true })}
+          onSelectPair={(pair) => {
+            setValue("singerEn", pair.en || "", { shouldDirty: true });
+            setValue("singerAr", pair.ar || "", { shouldDirty: true });
+          }}
         />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Input label="Singer (English)" {...register("singerEn")} />
-        <Input
+        <SuggestPairInput
           label="Singer (Arabic)"
+          lang="ar"
+          value={singerAr || ""}
+          options={singers}
+          placeholder="اكتب للبحث أو أضف جديداً"
           className="text-right"
           dir="rtl"
-          {...register("singerAr")}
+          onChange={(v) => setValue("singerAr", v, { shouldDirty: true })}
+          onSelectPair={(pair) => {
+            setValue("singerEn", pair.en || "", { shouldDirty: true });
+            setValue("singerAr", pair.ar || "", { shouldDirty: true });
+          }}
         />
       </div>
 
@@ -174,12 +263,6 @@ const QasidaDetailsFields: React.FC<QasidaDetailsFieldsProps> = ({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Input
-          label="Audio duration (ms)"
-          type="number"
-          placeholder="e.g., 3368000"
-          {...register("audioDuration")}
-        />
-        <Input
           label="Index order"
           type="number"
           min={0}
@@ -199,53 +282,7 @@ const QasidaDetailsFields: React.FC<QasidaDetailsFieldsProps> = ({
         </label>
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <label className="form-label text-sm font-bold text-gray-900">
-          Audio (MP3, max 200MB)
-        </label>
-        {previewUrl ? (
-          <div className="mb-2 space-y-2">
-            <audio controls src={previewUrl} className="w-full max-w-md" />
-            {onRemoveCurrentAudio ? (
-              <button
-                type="button"
-                onClick={onRemoveCurrentAudio}
-                className="text-sm text-red-500 hover:text-red-600"
-              >
-                Remove current audio
-              </button>
-            ) : null}
-          </div>
-        ) : null}
-        {!watchAudio || watchAudio.length === 0 ? (
-          <label className="form-input flex items-center justify-between cursor-pointer py-2.5 bg-white hover:bg-gray-50 transition-colors min-h-[80px]">
-            <span className="text-gray-400 text-sm">Upload MP3</span>
-            <UploadCloud className="w-5 h-5 text-gray-400" />
-            <input
-              type="file"
-              accept="audio/mpeg,audio/mp3,.mp3"
-              className="hidden"
-              {...register("audio")}
-            />
-          </label>
-        ) : (
-          <div className="form-input flex items-center justify-between py-2 bg-gray-50 border-gray-200">
-            <div className="flex items-center gap-2 overflow-hidden">
-              <Music className="w-5 h-5 text-primary shrink-0" />
-              <span className="text-sm font-medium text-gray-700 truncate">
-                {watchAudio[0].name}
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={onClearAudio}
-              className="p-1 hover:bg-red-100 text-gray-400 hover:text-red-500 rounded-lg transition-colors shrink-0"
-            >
-              <X size={16} />
-            </button>
-          </div>
-        )}
-      </div>
+      <ReciterAudiosEditor items={reciters} onChange={onRecitersChange} />
     </div>
   );
 };

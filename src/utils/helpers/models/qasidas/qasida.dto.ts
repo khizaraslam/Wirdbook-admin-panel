@@ -12,6 +12,13 @@ export interface QasidaWird {
   indexOrder: number;
 }
 
+export interface QasidaAudio {
+  audio_link: string;
+  audio_duration: number;
+  audio_key: string;
+  reciter_name: string;
+}
+
 export interface Qasida {
   id: string;
   title: { en: string; ar: string };
@@ -20,7 +27,11 @@ export interface Qasida {
   type: LocalizedText;
   singer: LocalizedText;
   info: LocalizedText;
+  sourceId?: number | null;
   audioUrl: string | null;
+  audioLink?: string | null;
+  audioKey?: string | null;
+  audios?: QasidaAudio[] | null;
   audioDuration: number | null;
   totalWirds: number;
   isEnabled: boolean;
@@ -34,6 +45,11 @@ export interface QasidaSettings {
   title: { en: string; ar: string };
   info: LocalizedText;
   totalQasidas: number;
+}
+
+export interface QasidaFieldOptions {
+  authors: LocalizedText[];
+  singers: LocalizedText[];
 }
 
 export interface Pagination {

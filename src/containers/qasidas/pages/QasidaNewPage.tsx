@@ -9,6 +9,10 @@ import QasidaDetailsFields, {
 import useQasidas from "../useHooks";
 import { siteRoutes } from "@/utils/helpers/enums/routes.enum";
 import { ArrowLeft } from "lucide-react";
+import {
+  emptyReciterDraft,
+  type ReciterAudioDraft,
+} from "../components/ReciterAudiosEditor";
 
 const defaultValues: QasidaFormValues = {
   titleEn: "",
@@ -23,33 +27,32 @@ const defaultValues: QasidaFormValues = {
   singerAr: "",
   infoEn: "",
   infoAr: "",
-  audioDuration: "",
   isEnabled: true,
   indexOrder: "",
-  audio: null,
 };
 
 const QasidaNewPage = () => {
   const navigate = useNavigate();
   const { createQasida } = useQasidas();
   const [submitting, setSubmitting] = useState(false);
+  const [reciters, setReciters] = useState<ReciterAudioDraft[]>([
+    emptyReciterDraft(),
+  ]);
 
   const {
     register,
     handleSubmit,
-    watch,
     setValue,
+    watch,
     formState: { errors, isValid },
   } = useForm<QasidaFormValues>({
     defaultValues,
     mode: "onChange",
   });
 
-  const watchAudio = watch("audio");
-
   const onSubmit = async (data: QasidaFormValues) => {
     setSubmitting(true);
-    const created = await createQasida(buildQasidaFormData(data));
+    const created = await createQasida(buildQasidaFormData(data, reciters));
     setSubmitting(false);
     if (created?.id) {
       navigate(`${siteRoutes.qasidas}/${created.id}/edit`, {
@@ -79,10 +82,10 @@ const QasidaNewPage = () => {
         <QasidaDetailsFields
           register={register}
           errors={errors}
-          watchAudio={watchAudio}
-          onClearAudio={() =>
-            setValue("audio", null as unknown as FileList, { shouldValidate: true })
-          }
+          setValue={setValue}
+          watch={watch}
+          reciters={reciters}
+          onRecitersChange={setReciters}
         />
         <div className="flex justify-end gap-3">
           <Link to={siteRoutes.qasidas}>

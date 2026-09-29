@@ -34,6 +34,7 @@ const QasidasTable: React.FC<QasidasTableProps> = ({
             <tr className="border-b border-gray-100 bg-gray-50/30">
               {[
                 "#",
+                "Source",
                 "Title EN",
                 "Title AR",
                 "Author",
@@ -60,6 +61,9 @@ const QasidasTable: React.FC<QasidasTableProps> = ({
               >
                 <td className="py-3 px-3 text-sm text-gray-500">
                   {item.indexOrder}
+                </td>
+                <td className="py-3 px-3 text-sm text-gray-500">
+                  {item.sourceId ?? "—"}
                 </td>
                 <td className="py-3 px-3 text-sm font-medium text-gray-900 max-w-[140px] truncate">
                   {item.title.en}
