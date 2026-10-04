@@ -13,6 +13,7 @@ export const UPLOADABLE_SYNC_MODULES = new Set([
   "qasidas",
   "salawat_majlis",
   "quran_translation",
+  "user_manual",
 ]);
 
 export const supportsJsonUpload = (moduleName: string) =>
@@ -28,11 +29,24 @@ export const SYNC_MODULE_LABELS: Record<string, string> = {
   qasidas: "Qasidas",
   salawat_majlis: "Salawat Majlis",
   quran_translation: "Quran Translation",
+  user_manual: "User Manual",
   banner: "Banner",
   events: "Events",
   tafseer: "Tafseer",
 };
 
+export const SYNC_MODULE_CONTENT_PATHS: Record<string, string> = {
+  blessed_wird: "uploads/blessed_wird/content/blessed_wird_data_source.json",
+  prayer_wird: "uploads/prayer_wird/content/prayer_data_source.json",
+  qasidas: "uploads/qasidas/content/qasida.json",
+  salawat_majlis: "uploads/salawat_majlis/content/salawat_majlis_data_source.json",
+  quran_translation: "uploads/quran/content/quran_ayah_wise.json",
+  user_manual: "uploads/manaul/content/user_manual.json",
+};
+
 export const getSyncModuleLabel = (name: string): string =>
   SYNC_MODULE_LABELS[name] ??
   name.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
+export const getSyncModuleContentPath = (name: string): string | undefined =>
+  SYNC_MODULE_CONTENT_PATHS[name];

@@ -10,6 +10,7 @@ import {
 import {
   SyncModuleDTO,
   canDownloadSyncModule,
+  getSyncModuleContentPath,
   getSyncModuleLabel,
   supportsJsonUpload,
 } from "@/utils/helpers/models/sync/sync-module.dto";
@@ -166,7 +167,9 @@ const SyncModules = () => {
             <div className="col-span-5">Last Sync Time</div>
             <div className="col-span-4 text-right">Actions</div>
           </div>
-          {data.map((module) => (
+          {data.map((module) => {
+            const contentPath = getSyncModuleContentPath(module.name);
+            return (
             <div
               key={module.id}
               className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-gray-50 last:border-b-0 items-center"
@@ -176,6 +179,11 @@ const SyncModules = () => {
                   {getSyncModuleLabel(module.name)}
                 </p>
                 <p className="text-xs text-muted mt-0.5">{module.name}</p>
+                {contentPath ? (
+                  <p className="text-[11px] text-gray-400 mt-0.5 break-all">
+                    {contentPath}
+                  </p>
+                ) : null}
               </div>
               <div className="col-span-5 text-sm text-muted">
                 {formatSyncTime(module.sync_time)}
@@ -231,7 +239,8 @@ const SyncModules = () => {
                 </Button>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <CustomMessageDisplay
