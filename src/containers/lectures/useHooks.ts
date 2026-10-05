@@ -30,7 +30,7 @@ const useLectures = () => {
           ? Number(data.total)
           : items.length);
 
-      const mapped = items.map((item) => new LecturesDTO(item));
+      const mapped = items.map((item: Partial<LecturesDTO>) => new LecturesDTO(item));
       const sorted = [...mapped].sort((a, b) => {
         const orderA = Number(a?.order ?? 0);
         const orderB = Number(b?.order ?? 0);
