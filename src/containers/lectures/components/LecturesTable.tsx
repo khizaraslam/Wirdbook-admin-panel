@@ -52,6 +52,7 @@ const LecturesTable: React.FC<LecturesTableProps> = ({
   };
 
   const columns: string[] = [
+    "Order",
     "Title",
     "Date",
     "Time",
@@ -94,6 +95,9 @@ const LecturesTable: React.FC<LecturesTableProps> = ({
                     key={lecture.id}
                     className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors group"
                   >
+                    <td className="py-4 px-4 text-sm font-semibold text-gray-900">
+                      {lecture.order ?? 0}
+                    </td>
                     <td className="py-4 px-2">
                       <div className="flex items-center gap-3">
                         <div className="p-2 bg-gray-50 text-gray-400 rounded-lg group-hover:bg-white group-hover:text-primary transition-colors border border-transparent group-hover:border-primary/10">
@@ -162,7 +166,7 @@ const LecturesTable: React.FC<LecturesTableProps> = ({
             ) : (
               <tr>
                 <td
-                  colSpan={7}
+                  colSpan={8}
                   className="py-20 text-center text-gray-400 font-medium"
                 >
                   No lectures found. Add your first lecture to get started.

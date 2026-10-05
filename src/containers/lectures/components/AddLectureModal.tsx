@@ -23,6 +23,7 @@ export interface LectureFormInputs {
   title: string;
   dateTime: string;
   tabId: string;
+  order: number;
   audio: FileList;
   pdf: FileList;
 }
@@ -46,6 +47,7 @@ const AddLectureModal: React.FC<AddLectureModalProps> = ({
       title: "",
       dateTime: formatDateForDateTimeLocal(new Date()),
       tabId: tabs[0]?.id || "",
+      order: 0,
     },
     mode: "onChange",
   });
@@ -73,6 +75,8 @@ const AddLectureModal: React.FC<AddLectureModalProps> = ({
     if (data.tabId) {
       formData.append("tabId", data.tabId);
     }
+
+    formData.append("order", String(data.order ?? 0));
 
     if (data.audio && data.audio.length > 0) {
       formData.append("audio", data.audio[0]);
@@ -202,6 +206,19 @@ const AddLectureModal: React.FC<AddLectureModalProps> = ({
               </p>
             )}
           </div>
+
+          <Input
+            label="Order number *"
+            type="number"
+            min={0}
+            placeholder="e.g., 1"
+            error={errors.order?.message}
+            {...register("order", {
+              required: "Order number is required",
+              valueAsNumber: true,
+              min: { value: 0, message: "Order cannot be negative" },
+            })}
+          />
 
           <div className="flex flex-col gap-1.5">
             <label className="form-label text-sm font-bold text-gray-900">

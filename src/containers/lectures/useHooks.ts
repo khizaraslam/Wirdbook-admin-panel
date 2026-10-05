@@ -4,6 +4,7 @@ import {
   successToaster,
 } from "@/utils/helpers/common/alert-service";
 import { Lectures_APIS } from "@/libs/apis/lectures.api";
+import { LecturesDTO } from "@/utils/helpers/models/lectures/lectures.dto";
 
 const useLectures = () => {
   const getAllLectures = useCallback(
@@ -29,7 +30,17 @@ const useLectures = () => {
           ? Number(data.total)
           : items.length);
 
-      setData(items);
+      const mapped = items.map((item) => new LecturesDTO(item));
+      const sorted = [...mapped].sort((a, b) => {
+        const orderA = Number(a?.order ?? 0);
+        const orderB = Number(b?.order ?? 0);
+        if (orderA !== orderB) return orderA - orderB;
+        const timeA = a?.dateTime ? new Date(a.dateTime).getTime() : 0;
+        const timeB = b?.dateTime ? new Date(b.dateTime).getTime() : 0;
+        return timeB - timeA;
+      });
+
+      setData(sorted);
       setTotalElements?.(total);
     },
     [],
