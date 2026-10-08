@@ -154,7 +154,7 @@ const AddLectureModal: React.FC<AddLectureModalProps> = ({
 
           <div className="flex flex-col gap-1.5">
             <label className="form-label text-sm font-bold text-gray-900">
-              PDF File *
+              PDF File
             </label>
             {!watchPdf || watchPdf.length === 0 ? (
               <label className="form-input flex items-center justify-between cursor-pointer py-2.5 bg-white hover:bg-gray-50 transition-colors">
@@ -164,7 +164,7 @@ const AddLectureModal: React.FC<AddLectureModalProps> = ({
                   type="file"
                   accept="application/pdf"
                   className="hidden"
-                  {...register("pdf", { required: "PDF file is required" })}
+                  {...register("pdf")}
                 />
               </label>
             ) : (

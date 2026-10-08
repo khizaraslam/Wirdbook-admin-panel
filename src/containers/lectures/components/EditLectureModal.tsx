@@ -187,7 +187,7 @@ const EditLectureModal: React.FC<EditLectureModalProps> = ({
 
           <div className="flex flex-col gap-1.5">
             <label className="form-label text-sm font-bold text-gray-900">
-              PDF File *
+              PDF File
             </label>
             {!watchPdf || watchPdf.length === 0 ? (
               lecture?.pdfUrl ? (
@@ -209,12 +209,7 @@ const EditLectureModal: React.FC<EditLectureModalProps> = ({
                       type="file"
                       accept="application/pdf"
                       className="hidden"
-                      {...register("pdf", {
-                        validate: (value) =>
-                          (value && value.length > 0) ||
-                          !!lecture?.pdfUrl ||
-                          "PDF file is required",
-                      })}
+                      {...register("pdf")}
                     />
                   </label>
                 </div>
@@ -226,12 +221,7 @@ const EditLectureModal: React.FC<EditLectureModalProps> = ({
                     type="file"
                     accept="application/pdf"
                     className="hidden"
-                    {...register("pdf", {
-                      validate: (value) =>
-                        (value && value.length > 0) ||
-                        !!lecture?.pdfUrl ||
-                        "PDF file is required",
-                    })}
+                    {...register("pdf")}
                   />
                 </label>
               )
