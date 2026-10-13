@@ -60,7 +60,14 @@ const DhikrTypesTable: React.FC<DhikrTypesTableProps> = ({ items, onEdit }) => {
               >
                 <td className="py-4 px-4 text-gray-600">{item.sortOrder}</td>
                 <td className="py-4 px-4 font-medium text-gray-900">
-                  {item.name}
+                  <span className="inline-flex items-center gap-2">
+                    {item.name}
+                    {item.kind === "khitma" && (
+                      <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary/10 text-primary">
+                        30 juz
+                      </span>
+                    )}
+                  </span>
                 </td>
                 <td className="py-4 px-4 text-gray-800" dir="rtl">
                   {item.nameAr}

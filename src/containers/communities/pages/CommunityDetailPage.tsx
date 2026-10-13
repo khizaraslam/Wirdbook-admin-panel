@@ -211,6 +211,8 @@ const CommunityDetailPage = () => {
             onClose={() => setIsAssignOpen(false)}
             onSubmit={handleAssignAdmin}
             communityName={community.name}
+            currentAdminUserId={community.adminUserId}
+            members={members}
           />
         </>
       )}

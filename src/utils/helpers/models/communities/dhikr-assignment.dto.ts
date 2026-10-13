@@ -8,6 +8,11 @@ export interface DhikrAssignmentDTO {
   id: string;
   dhikrTypeId: string;
   dhikrName?: string;
+  dhikrTypeName?: string;
+  kind?: "standard" | "khitma";
+  unit?: "count" | "juz";
+  takenJuz?: number[] | null;
+  remainingJuz?: number[] | null;
   assignmentType: DhikrAssignmentType;
   totalTarget: number;
   poolRemaining: number;
@@ -35,6 +40,7 @@ export interface DhikrClaimReportDTO {
   userId?: string;
   userName: string;
   claimedQuantity: number;
+  juzNumbers?: number[] | null;
   currentProgress: number;
   remaining: number;
   status: DhikrClaimStatus;

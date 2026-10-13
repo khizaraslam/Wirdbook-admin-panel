@@ -83,10 +83,14 @@ const DhikrAssignmentsTable: React.FC<DhikrAssignmentsTableProps> = ({
                     {formatAssignmentType(item.assignmentType)}
                   </td>
                   <td className="py-4 px-4 text-gray-700">
-                    {item.totalTarget}
+                    {item.kind === "khitma" || item.unit === "juz"
+                      ? `${item.totalTarget} juz`
+                      : item.totalTarget}
                   </td>
                   <td className="py-4 px-4 text-gray-700">
-                    {item.poolRemaining}
+                    {item.kind === "khitma" || item.unit === "juz"
+                      ? `${item.poolRemaining} juz`
+                      : item.poolRemaining}
                   </td>
                   <td className="py-4 px-4 text-gray-700">
                     {item.completedTotal}

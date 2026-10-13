@@ -130,6 +130,7 @@ const CommunitiesListPage = () => {
           onClose={() => setAssigningCommunity(null)}
           onSubmit={handleAssignAdmin}
           communityName={assigningCommunity.name}
+          currentAdminUserId={assigningCommunity.adminUserId}
         />
       )}
     </div>

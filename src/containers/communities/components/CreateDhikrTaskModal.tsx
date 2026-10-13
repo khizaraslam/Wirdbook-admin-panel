@@ -51,8 +51,11 @@ const CreateDhikrTaskModal: React.FC<CreateDhikrTaskModalProps> = ({
   });
 
   const assignmentType = watch("assignmentType");
+  const selectedTypeId = watch("dhikrTypeId");
   const periodStart = watch("periodStart");
   const isWeekly = assignmentType === "weekly";
+  const selectedType = activeTypes.find((type) => type.id === selectedTypeId);
+  const isKhitma = selectedType?.kind === "khitma";
 
   useEffect(() => {
     if (isOpen) {
@@ -104,7 +107,7 @@ const CreateDhikrTaskModal: React.FC<CreateDhikrTaskModalProps> = ({
     const body: CreateDhikrAssignmentBody = {
       dhikrTypeId: data.dhikrTypeId,
       assignmentType: data.assignmentType,
-      targetQuantity: Number(data.targetQuantity),
+      targetQuantity: isKhitma ? 30 : Number(data.targetQuantity),
     };
     if (data.assignmentType === "one_time") {
       body.expiresAt = new Date(data.expiresAt).toISOString();
@@ -125,8 +128,9 @@ const CreateDhikrTaskModal: React.FC<CreateDhikrTaskModalProps> = ({
       className="max-w-lg"
     >
       <p className="text-sm text-gray-500 mb-4">
-        Sets a community pool target. Members take portions themselves in the
-        mobile app — nothing is auto-assigned.
+        {isKhitma
+          ? "Khitma is juz 1–30. Members pick numbers (for example 1, 6, 9). The numbers they do not pick stay free."
+          : "Sets a community pool target. Members take portions themselves in the mobile app — nothing is auto-assigned."}
       </p>
       {activeTypes.length === 0 && (
         <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
@@ -154,6 +158,7 @@ const CreateDhikrTaskModal: React.FC<CreateDhikrTaskModalProps> = ({
                 activeTypes.map((type) => (
                   <option key={type.id} value={type.id}>
                     {type.name} ({type.nameAr})
+                    {type.kind === "khitma" ? " — 30 juz" : ""}
                   </option>
                 ))
               )}
@@ -193,19 +198,29 @@ const CreateDhikrTaskModal: React.FC<CreateDhikrTaskModalProps> = ({
             </p>
           </div>
 
-          <Input
-            label="Total target (whole community goal) *"
-            type="number"
-            min={1}
-            placeholder="e.g. 10000"
-            hint="Total for the entire community pool — not per member"
-            error={errors.targetQuantity?.message}
-            {...register("targetQuantity", {
-              required: "Target quantity is required",
-              min: { value: 1, message: "Must be at least 1" },
-              valueAsNumber: true,
-            })}
-          />
+          {isKhitma ? (
+            <div className="rounded-lg border border-primary/20 bg-primary/5 px-3 py-2">
+              <p className="text-sm text-gray-800">
+                This pool is juz <span className="font-semibold">1 to 30</span>.
+                A member takes specific numbers, for example 1, 6 and 9. Those
+                numbers are taken, and every other number stays available.
+              </p>
+            </div>
+          ) : (
+            <Input
+              label="Total target (whole community goal) *"
+              type="number"
+              min={1}
+              placeholder="e.g. 10000"
+              hint="Total for the entire community pool — not per member"
+              error={errors.targetQuantity?.message}
+              {...register("targetQuantity", {
+                required: "Target quantity is required",
+                min: { value: 1, message: "Must be at least 1" },
+                valueAsNumber: true,
+              })}
+            />
+          )}
 
           {!isWeekly && (
             <div>

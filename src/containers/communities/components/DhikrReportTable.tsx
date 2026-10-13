@@ -77,7 +77,9 @@ const DhikrReportTable: React.FC<DhikrReportTableProps> = ({
                     {claim.userName}
                   </td>
                   <td className="py-4 px-4 text-gray-700">
-                    {claim.claimedQuantity}
+                    {claim.juzNumbers?.length
+                      ? claim.juzNumbers.join(", ")
+                      : claim.claimedQuantity}
                   </td>
                   <td className="py-4 px-4 text-gray-700">
                     {claim.currentProgress}

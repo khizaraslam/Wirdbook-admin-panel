@@ -36,6 +36,9 @@ const PoolStatusCard: React.FC<PoolStatusCardProps> = ({ assignment }) => {
     );
   }
 
+  const isKhitma = assignment.kind === "khitma" || assignment.unit === "juz";
+  const juz = (value: number) => (isKhitma ? `${value} juz` : value);
+
   return (
     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
       <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
@@ -71,11 +74,45 @@ const PoolStatusCard: React.FC<PoolStatusCardProps> = ({ assignment }) => {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatItem label="Total target" value={assignment.totalTarget} />
-        <StatItem label="Available in pool" value={assignment.poolRemaining} />
-        <StatItem label="Taken by members" value={assignment.claimedTotal} />
-        <StatItem label="Completed" value={assignment.completedTotal} />
+        <StatItem
+          label={isKhitma ? "Total juz" : "Total target"}
+          value={juz(assignment.totalTarget)}
+        />
+        <StatItem
+          label={isKhitma ? "Juz left" : "Available in pool"}
+          value={juz(assignment.poolRemaining)}
+        />
+        <StatItem
+          label={isKhitma ? "Juz taken" : "Taken by members"}
+          value={juz(assignment.claimedTotal)}
+        />
+        <StatItem label="Completed" value={juz(assignment.completedTotal)} />
       </div>
+
+      {isKhitma && (
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              Taken numbers
+            </p>
+            <p className="text-sm font-medium text-gray-900 mt-1 break-words">
+              {assignment.takenJuz?.length
+                ? assignment.takenJuz.join(", ")
+                : "None yet"}
+            </p>
+          </div>
+          <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              Left
+            </p>
+            <p className="text-sm font-medium text-gray-900 mt-1 break-words">
+              {assignment.remainingJuz?.length
+                ? assignment.remainingJuz.join(", ")
+                : "None"}
+            </p>
+          </div>
+        </div>
+      )}
 
       {(assignment.periodStart || assignment.periodEnd) && (
         <p className="text-sm text-gray-500 mt-4">
