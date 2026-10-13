@@ -19,6 +19,7 @@ export interface CommunityDetailDTO extends CommunityDTO {
 export interface CommunityMemberDTO {
   userId: string;
   name: string;
+  phone?: string | null;
   role: "member" | "admin";
   joinedAt: string;
 }

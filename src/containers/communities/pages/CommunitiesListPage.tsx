@@ -129,6 +129,7 @@ const CommunitiesListPage = () => {
           isOpen={!!assigningCommunity}
           onClose={() => setAssigningCommunity(null)}
           onSubmit={handleAssignAdmin}
+          communityId={assigningCommunity.id}
           communityName={assigningCommunity.name}
           currentAdminUserId={assigningCommunity.adminUserId}
         />

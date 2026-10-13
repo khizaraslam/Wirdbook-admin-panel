@@ -1,13 +1,14 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
-import { AppUsers_APIS, type AppUserOption } from "@/libs/apis/app-users.api";
+import { Communities_APIS } from "@/libs/apis/communities.api";
 import type { CommunityMemberDTO } from "@/utils/helpers/models/communities/community.dto";
 
 interface AssignAdminModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (userId: string) => Promise<boolean>;
+  communityId: string;
   communityName: string;
   currentAdminUserId?: string | null;
   members?: CommunityMemberDTO[];
@@ -16,37 +17,17 @@ interface AssignAdminModalProps {
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-const parseUsers = (response: unknown): AppUserOption[] => {
-  const payload = (response as { success?: boolean; data?: unknown }) || {};
-  const data = payload.data;
-  const list = Array.isArray(data)
-    ? data
-    : Array.isArray((data as { items?: unknown })?.items)
-      ? (data as { items: unknown[] }).items
-      : [];
-  return list
-    .map((row) => {
-      const item = row as Partial<AppUserOption>;
-      if (!item?.id) return null;
-      return {
-        id: String(item.id),
-        name: item.name?.trim() || "Unnamed user",
-        phone: item.phone ?? null,
-      };
-    })
-    .filter((row): row is AppUserOption => Boolean(row));
-};
-
 const AssignAdminModal: React.FC<AssignAdminModalProps> = ({
   isOpen,
   onClose,
   onSubmit,
+  communityId,
   communityName,
   currentAdminUserId,
-  members = [],
+  members: initialMembers = [],
 }) => {
-  const [users, setUsers] = useState<AppUserOption[]>([]);
-  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [members, setMembers] = useState<CommunityMemberDTO[]>(initialMembers);
+  const [loadingMembers, setLoadingMembers] = useState(false);
   const [query, setQuery] = useState("");
   const [selectedUserId, setSelectedUserId] = useState("");
   const [uuidInput, setUuidInput] = useState("");
@@ -59,63 +40,45 @@ const AssignAdminModal: React.FC<AssignAdminModalProps> = ({
     setQuery("");
     setUuidInput("");
     setError("");
+    setMembers(initialMembers);
     let cancelled = false;
-    setLoadingUsers(true);
-    AppUsers_APIS.list()
+    setLoadingMembers(true);
+    Communities_APIS.getMembers(communityId)
       .then((response) => {
         if (cancelled) return;
-        setUsers(parseUsers(response));
+        const data =
+          response?.success && Array.isArray(response.data) ? response.data : [];
+        setMembers(data as CommunityMemberDTO[]);
       })
       .finally(() => {
-        if (!cancelled) setLoadingUsers(false);
+        if (!cancelled) setLoadingMembers(false);
       });
     return () => {
       cancelled = true;
     };
-  }, [isOpen, currentAdminUserId]);
-
-  const mergedUsers = useMemo(() => {
-    const byId = new Map<string, AppUserOption>();
-    members.forEach((member) => {
-      if (!member.userId) return;
-      byId.set(member.userId, {
-        id: member.userId,
-        name: member.name || "Unnamed user",
-        phone: null,
-      });
-    });
-    users.forEach((user) => {
-      const existing = byId.get(user.id);
-      byId.set(user.id, {
-        id: user.id,
-        name: user.name || existing?.name || "Unnamed user",
-        phone: user.phone ?? existing?.phone ?? null,
-      });
-    });
-    return Array.from(byId.values()).sort((a, b) =>
-      a.name.localeCompare(b.name),
-    );
-  }, [users, members]);
+  }, [isOpen, communityId, currentAdminUserId]);
 
   const filtered = useMemo(() => {
     const term = query.trim().toLowerCase();
-    if (!term) return mergedUsers;
-    return mergedUsers.filter((user) => {
-      const name = user.name?.toLowerCase() ?? "";
-      const phone = user.phone?.toLowerCase() ?? "";
-      const id = user.id.toLowerCase();
+    if (!term) return members;
+    return members.filter((member) => {
+      const name = member.name?.toLowerCase() ?? "";
+      const phone = member.phone?.toLowerCase() ?? "";
+      const id = member.userId.toLowerCase();
       return name.includes(term) || phone.includes(term) || id.includes(term);
     });
-  }, [mergedUsers, query]);
+  }, [members, query]);
 
-  const selectedUser = mergedUsers.find((user) => user.id === selectedUserId);
+  const selectedMember = members.find(
+    (member) => member.userId === selectedUserId,
+  );
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     const fromUuid = uuidInput.trim();
     const userId = selectedUserId || (UUID_RE.test(fromUuid) ? fromUuid : "");
     if (!userId) {
-      setError("Select a user from the list, or paste a valid user UUID.");
+      setError("Select a community member, or paste a valid user UUID.");
       return;
     }
     setError("");
@@ -138,13 +101,7 @@ const AssignAdminModal: React.FC<AssignAdminModalProps> = ({
       <form onSubmit={submit} noValidate>
         <div className="mb-4 rounded-lg border border-gray-100 bg-gray-50 px-3 py-3 text-sm text-gray-700 space-y-2">
           <p>
-            <span className="font-semibold">Member:</span> can join, see the
-            community, post on the noticeboard, and take dhikr or Khitma juz.
-          </p>
-          <p>
-            <span className="font-semibold">Admin:</span> can do everything a
-            member can, and also remove members, create the community dhikr
-            task, and delete other people&apos;s comments.
+            Only members of this community are listed here.
           </p>
           <p className="text-gray-500">
             Assigning a new admin makes the previous admin a normal member.
@@ -152,7 +109,7 @@ const AssignAdminModal: React.FC<AssignAdminModalProps> = ({
         </div>
 
         <label className="block text-sm font-medium text-gray-700 mb-1.5">
-          Search users
+          Search members
         </label>
         <input
           type="search"
@@ -162,25 +119,30 @@ const AssignAdminModal: React.FC<AssignAdminModalProps> = ({
           className="w-full px-3 py-2 mb-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
         />
 
-        <p className="text-sm font-medium text-gray-700 mb-1.5">Select user *</p>
+        <p className="text-sm font-medium text-gray-700 mb-1.5">
+          Community members ({members.length})
+        </p>
         <div className="max-h-56 overflow-y-auto rounded-lg border border-gray-200 divide-y divide-gray-50">
-          {loadingUsers ? (
-            <p className="px-3 py-4 text-sm text-gray-500">Loading users...</p>
+          {loadingMembers ? (
+            <p className="px-3 py-4 text-sm text-gray-500">
+              Loading members...
+            </p>
           ) : filtered.length === 0 ? (
             <p className="px-3 py-4 text-sm text-gray-500">
-              No users match that search.
+              {members.length === 0
+                ? "This community has no members yet. Paste a user UUID below."
+                : "No members match that search."}
             </p>
           ) : (
-            filtered.map((user) => {
-              const isSelected = user.id === selectedUserId;
-              const isCurrent = user.id === currentAdminUserId;
-              const isMember = members.some((member) => member.userId === user.id);
+            filtered.map((member) => {
+              const isSelected = member.userId === selectedUserId;
+              const isCurrent = member.userId === currentAdminUserId;
               return (
                 <button
-                  key={user.id}
+                  key={member.userId}
                   type="button"
                   onClick={() => {
-                    setSelectedUserId(user.id);
+                    setSelectedUserId(member.userId);
                     setUuidInput("");
                     setError("");
                   }}
@@ -189,12 +151,12 @@ const AssignAdminModal: React.FC<AssignAdminModalProps> = ({
                   }`}
                 >
                   <span className="block text-sm font-semibold text-gray-900">
-                    {user.name}
+                    {member.name}
                     {isCurrent ? " (current admin)" : ""}
-                    {isMember && !isCurrent ? " · member" : ""}
                   </span>
                   <span className="block text-xs text-gray-500 mt-0.5">
-                    {user.phone || "No phone"}
+                    {member.phone || "No phone"}
+                    {member.role === "admin" ? " · admin" : " · member"}
                   </span>
                 </button>
               );
@@ -202,10 +164,11 @@ const AssignAdminModal: React.FC<AssignAdminModalProps> = ({
           )}
         </div>
 
-        {selectedUser && (
+        {selectedMember && (
           <p className="text-xs text-gray-600 mt-2">
-            Selected: <span className="font-semibold">{selectedUser.name}</span>
-            {selectedUser.phone ? ` · ${selectedUser.phone}` : ""}
+            Selected:{" "}
+            <span className="font-semibold">{selectedMember.name}</span>
+            {selectedMember.phone ? ` · ${selectedMember.phone}` : ""}
           </p>
         )}
 
