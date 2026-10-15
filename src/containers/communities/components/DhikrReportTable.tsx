@@ -11,11 +11,14 @@ const DhikrReportTable: React.FC<DhikrReportTableProps> = ({
   report,
   isLoading,
 }) => {
+  const isKhitma = report?.claims.some(
+    (claim) => claim.juzNumbers?.length || claim.completedJuz || claim.pendingJuz,
+  );
   const columns = [
     "Member",
     "Taken",
-    "Progress",
-    "Remaining",
+    isKhitma ? "Read" : "Progress",
+    isKhitma ? "Left" : "Remaining",
     "Status",
   ];
 
@@ -82,10 +85,18 @@ const DhikrReportTable: React.FC<DhikrReportTableProps> = ({
                       : claim.claimedQuantity}
                   </td>
                   <td className="py-4 px-4 text-gray-700">
-                    {claim.currentProgress}
+                    {claim.completedJuz
+                      ? claim.completedJuz.length
+                        ? claim.completedJuz.join(", ")
+                        : "—"
+                      : claim.currentProgress}
                   </td>
                   <td className="py-4 px-4 text-gray-700">
-                    {claim.remaining}
+                    {claim.pendingJuz
+                      ? claim.pendingJuz.length
+                        ? claim.pendingJuz.join(", ")
+                        : "—"
+                      : claim.remaining}
                   </td>
                   <td className="py-4 px-4">
                     <span

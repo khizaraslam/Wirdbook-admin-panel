@@ -41,6 +41,8 @@ export interface DhikrClaimReportDTO {
   userName: string;
   claimedQuantity: number;
   juzNumbers?: number[] | null;
+  completedJuz?: number[] | null;
+  pendingJuz?: number[] | null;
   currentProgress: number;
   remaining: number;
   status: DhikrClaimStatus;
