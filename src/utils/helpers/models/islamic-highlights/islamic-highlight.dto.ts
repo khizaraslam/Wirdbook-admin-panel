@@ -15,12 +15,22 @@ export interface IslamicHighlightSchedule {
   daysOfWeek: number[] | null;
 }
 
+export interface IslamicHighlightTag {
+  id: string;
+  slug: string;
+  labelEn: string;
+  labelAr: string;
+  indexOrder: number;
+}
+
 export interface IslamicHighlightDTO {
   id: string;
   messageType: IslamicHighlightMessageType;
   timeSlot: IslamicHighlightTimeSlot;
   message: BilingualText;
   source: BilingualText;
+  tagId: string | null;
+  tag: IslamicHighlightTag | null;
   schedule: IslamicHighlightSchedule;
   audioUrl: string | null;
   imageUrl: string | null;
@@ -50,6 +60,7 @@ export const normalizeIslamicHighlight = (
     sourceAr?: string;
     sourceEn?: string;
     time_slot?: string;
+    tag_id?: string | null;
   },
 ): IslamicHighlightDTO => {
   const message =
@@ -78,6 +89,16 @@ export const normalizeIslamicHighlight = (
     ? schedule.daysOfWeek.filter((day) => Number.isInteger(day))
     : null;
 
+  const tag = raw.tag
+    ? {
+        id: raw.tag.id ?? "",
+        slug: raw.tag.slug ?? "",
+        labelEn: raw.tag.labelEn ?? "",
+        labelAr: raw.tag.labelAr ?? "",
+        indexOrder: raw.tag.indexOrder ?? 0,
+      }
+    : null;
+
   return {
     id: raw.id ?? "",
     messageType: (raw.messageType as IslamicHighlightMessageType) ?? "verse",
@@ -87,6 +108,8 @@ export const normalizeIslamicHighlight = (
       ar: source.ar ?? "",
       en: source.en ?? "",
     },
+    tagId: raw.tagId ?? raw.tag_id ?? tag?.id ?? null,
+    tag,
     schedule: {
       mode: schedule.mode ?? "default",
       hijriMonth: schedule.hijriMonth ?? null,

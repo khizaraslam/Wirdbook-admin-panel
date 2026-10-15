@@ -14,13 +14,15 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { Plus, Sparkles } from "lucide-react";
+import { Plus, Sparkles, Tag } from "lucide-react";
 import Button from "@/components/ui/Button";
 import SortableHighlightItem from "./components/SortableHighlightItem";
 import AddHighlightModal from "./components/AddHighlightModal";
 import EditHighlightModal from "./components/EditHighlightModal";
 import HighlightPreviewModal from "./components/HighlightPreviewModal";
+import ManageHighlightTagsModal from "./components/ManageHighlightTagsModal";
 import useIslamicHighlights from "./useHooks";
+import type { IslamicHighlightTagDTO } from "@/utils/helpers/models/islamic-highlights/islamic-highlight-tag.dto";
 import type { IslamicHighlightDTO, IslamicHighlightTimeSlot } from "@/utils/helpers/models/islamic-highlights/islamic-highlight.dto";
 import { confirmationPopup } from "@/utils/helpers/common/alert-service";
 import CustomMessageDisplay from "@/components/data-not-found";
@@ -42,12 +44,19 @@ const IslamicHighlights = () => {
     updateHighlight,
     reorderHighlights,
     deleteHighlight,
+    getAllTags,
+    createTag,
+    updateTag,
+    deleteTag,
   } = useIslamicHighlights();
   const { isLoading } = useStore();
 
   const [data, setData] = useState<IslamicHighlightDTO[]>([]);
+  const [tags, setTags] = useState<IslamicHighlightTagDTO[]>([]);
   const [timeSlotFilter, setTimeSlotFilter] = useState<TimeSlotFilter>("all");
+  const [tagFilter, setTagFilter] = useState<string>("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isTagsModalOpen, setIsTagsModalOpen] = useState(false);
   const [editing, setEditing] = useState<IslamicHighlightDTO | null>(null);
   const [previewing, setPreviewing] = useState<IslamicHighlightDTO | null>(
     null,
@@ -61,15 +70,20 @@ const IslamicHighlights = () => {
   );
 
   const refreshList = () => getAllHighlights(setData);
+  const refreshTags = () => getAllTags(setTags);
 
   useEffect(() => {
     refreshList();
+    refreshTags();
   }, []);
 
-  const filteredData =
-    timeSlotFilter === "all"
-      ? data
-      : data.filter((item) => item.timeSlot === timeSlotFilter);
+  const filteredData = data.filter((item) => {
+    if (timeSlotFilter !== "all" && item.timeSlot !== timeSlotFilter) {
+      return false;
+    }
+    if (tagFilter !== "all" && item.tagId !== tagFilter) return false;
+    return true;
+  });
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
@@ -84,8 +98,10 @@ const IslamicHighlights = () => {
 
     let visibleIndex = 0;
     const newItems = data.map((item) => {
-      const isInFilter =
+      const matchesTime =
         timeSlotFilter === "all" || item.timeSlot === timeSlotFilter;
+      const matchesTag = tagFilter === "all" || item.tagId === tagFilter;
+      const isInFilter = matchesTime && matchesTag;
       if (!isInFilter) return item;
       const next = reorderedVisible[visibleIndex++];
       return { ...next, indexOrder: visibleIndex - 1 };
@@ -120,21 +136,31 @@ const IslamicHighlights = () => {
 
   return (
     <div>
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
           <h1 className="text-4xl font-bold text-primary">Islamic Highlights</h1>
           <p className="text-muted mt-2">
             Schedule verses, hadith, or wisdom with optional audio and images
           </p>
         </div>
-        <Button
-          variant="primary"
-          leftIcon={<Plus size={20} />}
-          className="rounded-md px-5 py-2.5 btn-primary"
-          onClick={() => setIsModalOpen(true)}
-        >
-          Add Highlight
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="secondary"
+            leftIcon={<Tag size={18} />}
+            className="rounded-md px-4 py-2.5"
+            onClick={() => setIsTagsModalOpen(true)}
+          >
+            Manage Tags
+          </Button>
+          <Button
+            variant="primary"
+            leftIcon={<Plus size={20} />}
+            className="rounded-md px-5 py-2.5 btn-primary"
+            onClick={() => setIsModalOpen(true)}
+          >
+            Add Highlight
+          </Button>
+        </div>
       </div>
 
       <div className="bg-primary-light rounded-2xl p-8 mt-10 shadow-sm">
@@ -161,7 +187,20 @@ const IslamicHighlights = () => {
           <h2 className="text-2xl font-bold text-gray-900">All Highlights</h2>
           <p className="text-muted">Drag and drop to change display order</p>
         </div>
-        <div className="flex rounded-lg border border-gray-200 bg-white p-1 w-fit">
+        <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+          <select
+            className="form-input w-full sm:w-48"
+            value={tagFilter}
+            onChange={(event) => setTagFilter(event.target.value)}
+          >
+            <option value="all">All tags</option>
+            {tags.map((tag) => (
+              <option key={tag.id} value={tag.id}>
+                {tag.labelEn}
+              </option>
+            ))}
+          </select>
+          <div className="flex rounded-lg border border-gray-200 bg-white p-1 w-fit">
           {TIME_SLOT_FILTERS.map((tab) => (
             <button
               key={tab.value}
@@ -176,6 +215,7 @@ const IslamicHighlights = () => {
               {tab.label}
             </button>
           ))}
+          </div>
         </div>
       </div>
 
@@ -227,6 +267,9 @@ const IslamicHighlights = () => {
           return ok;
         }}
         defaultOrder={maxOrder}
+        tags={tags}
+        createTag={createTag}
+        onTagsRefresh={refreshTags}
       />
 
       <EditHighlightModal
@@ -238,6 +281,19 @@ const IslamicHighlights = () => {
           if (ok) refreshList();
           return ok;
         }}
+        tags={tags}
+        createTag={createTag}
+        onTagsRefresh={refreshTags}
+      />
+
+      <ManageHighlightTagsModal
+        isOpen={isTagsModalOpen}
+        onClose={() => setIsTagsModalOpen(false)}
+        tags={tags}
+        onRefresh={refreshTags}
+        createTag={createTag}
+        updateTag={updateTag}
+        deleteTag={deleteTag}
       />
 
       <HighlightPreviewModal

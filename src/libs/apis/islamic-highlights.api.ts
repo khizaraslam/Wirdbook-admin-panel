@@ -1,3 +1,4 @@
+import { CreateIslamicHighlightTagDTO } from "@/utils/helpers/models/islamic-highlights/create-islamic-highlight-tag.dto";
 import {
   deleteRequest,
   getRequest,
@@ -17,4 +18,12 @@ export const IslamicHighlights_APIS = {
   reorder: (body: { highlightIds: string[] }) =>
     patchRequest("/api/admin/islamic-highlights/reorder", body),
   delete: (id: string) => deleteRequest(`/api/admin/islamic-highlights/${id}`),
+
+  getTags: () => getRequest("/api/admin/islamic-highlights/tags"),
+  createTag: (body: CreateIslamicHighlightTagDTO) =>
+    postRequest("/api/admin/islamic-highlights/tags", body),
+  updateTag: (id: string, body: CreateIslamicHighlightTagDTO) =>
+    putRequest(`/api/admin/islamic-highlights/tags/${id}`, body),
+  deleteTag: (id: string) =>
+    deleteRequest(`/api/admin/islamic-highlights/tags/${id}`),
 };

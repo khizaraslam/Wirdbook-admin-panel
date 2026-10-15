@@ -8,6 +8,9 @@ import HighlightFormFields, {
 import FileUploadField from "./FileUploadField";
 import { appendHighlightFormData, getSelectedDaysOfWeek } from "@/utils/helpers/islamic-highlights/helpers";
 import type { IslamicHighlightDTO } from "@/utils/helpers/models/islamic-highlights/islamic-highlight.dto";
+import type { IslamicHighlightTagDTO } from "@/utils/helpers/models/islamic-highlights/islamic-highlight-tag.dto";
+import type { CreateIslamicHighlightTagDTO } from "@/utils/helpers/models/islamic-highlights/create-islamic-highlight-tag.dto";
+import type { HighlightTagMutationResult } from "@/utils/helpers/islamic-highlights/helpers";
 
 interface EditHighlightModalProps {
   isOpen: boolean;
@@ -18,6 +21,11 @@ interface EditHighlightModalProps {
     method?: "put" | "patch",
   ) => Promise<boolean>;
   highlight: IslamicHighlightDTO | null;
+  tags: IslamicHighlightTagDTO[];
+  createTag: (
+    body: CreateIslamicHighlightTagDTO,
+  ) => Promise<HighlightTagMutationResult>;
+  onTagsRefresh: () => Promise<IslamicHighlightTagDTO[]>;
 }
 
 const EditHighlightModal: React.FC<EditHighlightModalProps> = ({
@@ -25,6 +33,9 @@ const EditHighlightModal: React.FC<EditHighlightModalProps> = ({
   onClose,
   onSave,
   highlight,
+  tags,
+  createTag,
+  onTagsRefresh,
 }) => {
   const [removeAudio, setRemoveAudio] = useState(false);
   const [removeImage, setRemoveImage] = useState(false);
@@ -44,6 +55,7 @@ const EditHighlightModal: React.FC<EditHighlightModalProps> = ({
       messageEn: "",
       sourceAr: "",
       sourceEn: "",
+      tagId: "",
       scheduleMode: "default",
       dayOfWeek: "",
       daysOfWeek: [],
@@ -66,6 +78,7 @@ const EditHighlightModal: React.FC<EditHighlightModalProps> = ({
         messageEn: highlight.message.en,
         sourceAr: highlight.source.ar,
         sourceEn: highlight.source.en,
+        tagId: highlight.tagId ?? "",
         scheduleMode: s.mode,
         dayOfWeek: s.dayOfWeek !== null ? String(s.dayOfWeek) : "",
         daysOfWeek: getSelectedDaysOfWeek(s),
@@ -121,6 +134,9 @@ const EditHighlightModal: React.FC<EditHighlightModalProps> = ({
           errors={errors}
           watch={watch}
           setValue={setValue}
+          tags={tags}
+          createTag={createTag}
+          onTagsRefresh={onTagsRefresh}
           audioSection={
             <FileUploadField
               label="Audio snippet"

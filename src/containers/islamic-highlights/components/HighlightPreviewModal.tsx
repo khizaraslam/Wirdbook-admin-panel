@@ -73,6 +73,12 @@ const HighlightPreviewModal: React.FC<HighlightPreviewModalProps> = ({
           <span className="text-xs font-bold px-3 py-1 rounded-md bg-primary/10 text-primary uppercase">
             {typeLabel}
           </span>
+          {highlight.tag && (
+            <span className="text-xs font-medium px-3 py-1 rounded-md bg-violet-50 text-violet-700">
+              {highlight.tag.labelEn}
+              {highlight.tag.labelAr ? ` / ${highlight.tag.labelAr}` : ""}
+            </span>
+          )}
           <span className="text-xs font-medium px-3 py-1 rounded-md bg-slate-100 text-slate-700">
             {formatScheduleLabel(highlight.schedule)}
           </span>

@@ -3,6 +3,7 @@ import type {
   IslamicHighlightScheduleMode,
   IslamicHighlightTimeSlot,
 } from "@/utils/helpers/models/islamic-highlights/islamic-highlight.dto";
+import type { IslamicHighlightTagDTO } from "@/utils/helpers/models/islamic-highlights/islamic-highlight-tag.dto";
 
 export const HIGHLIGHT_TIME_SLOTS = [
   { value: "whole_day" as const, labelEn: "Whole day", labelAr: "طوال اليوم" },
@@ -104,6 +105,30 @@ export const formatScheduleLabel = (
   return "Every day";
 };
 
+export const HIGHLIGHT_TAG_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+export const HIGHLIGHT_TAG_SLUG_VALIDATION_MESSAGE =
+  "slug must be lowercase letters, numbers, and hyphens only";
+
+export const toHighlightTagSlug = (value: string): string =>
+  value
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+
+export interface HighlightTagFieldError {
+  code: string;
+  field: string | null;
+  message: string;
+}
+
+export type HighlightTagMutationResult =
+  | { success: true; tag?: IslamicHighlightTagDTO }
+  | { success: false; fieldErrors?: Record<string, string>; message?: string };
+
 export interface HighlightFormValues {
   timeSlot: IslamicHighlightTimeSlot;
   messageType: string;
@@ -111,6 +136,7 @@ export interface HighlightFormValues {
   messageEn: string;
   sourceAr: string;
   sourceEn: string;
+  tagId: string;
   scheduleMode: IslamicHighlightScheduleMode;
   dayOfWeek: string;
   daysOfWeek: number[];
@@ -136,6 +162,7 @@ export const appendHighlightFormData = (
   formData.append("messageEn", values.messageEn.trim());
   if (values.sourceAr.trim()) formData.append("sourceAr", values.sourceAr.trim());
   if (values.sourceEn.trim()) formData.append("sourceEn", values.sourceEn.trim());
+  formData.append("tagId", values.tagId?.trim() ? values.tagId.trim() : "null");
 
   formData.append("scheduleMode", values.scheduleMode);
   if (values.scheduleMode === "weekly") {

@@ -102,6 +102,11 @@ const SortableHighlightItem: React.FC<SortableHighlightItemProps> = ({
             <span className="text-xs font-medium px-2 py-0.5 rounded-md bg-primary/10 text-primary shrink-0">
               {typeLabel}
             </span>
+            {highlight.tag && (
+              <span className="text-xs font-medium px-2 py-0.5 rounded-md bg-violet-50 text-violet-700 shrink-0">
+                {highlight.tag.labelEn}
+              </span>
+            )}
             <span className="text-xs font-medium px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 shrink-0">
               {formatScheduleLabel(highlight.schedule)}
             </span>

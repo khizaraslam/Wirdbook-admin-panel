@@ -14,7 +14,13 @@ import {
   DAY_OF_WEEK_OPTIONS,
   HIJRI_MONTHS,
 } from "@/utils/helpers/islamic-highlights/helpers";
-import type { HighlightFormValues } from "@/utils/helpers/islamic-highlights/helpers";
+import type {
+  HighlightFormValues,
+  HighlightTagMutationResult,
+} from "@/utils/helpers/islamic-highlights/helpers";
+import type { IslamicHighlightTagDTO } from "@/utils/helpers/models/islamic-highlights/islamic-highlight-tag.dto";
+import type { CreateIslamicHighlightTagDTO } from "@/utils/helpers/models/islamic-highlights/create-islamic-highlight-tag.dto";
+import InlineCreateHighlightTag from "./InlineCreateHighlightTag";
 
 export interface HighlightFormInputs extends HighlightFormValues {
   audio: FileList | null;
@@ -27,6 +33,11 @@ interface HighlightFormFieldsProps {
   watch: UseFormWatch<HighlightFormInputs>;
   setValue: UseFormSetValue<HighlightFormInputs>;
   showOrder?: boolean;
+  tags: IslamicHighlightTagDTO[];
+  createTag: (
+    body: CreateIslamicHighlightTagDTO,
+  ) => Promise<HighlightTagMutationResult>;
+  onTagsRefresh: () => Promise<IslamicHighlightTagDTO[]>;
   audioSection?: React.ReactNode;
   imageSection?: React.ReactNode;
 }
@@ -37,6 +48,9 @@ const HighlightFormFields: React.FC<HighlightFormFieldsProps> = ({
   watch,
   setValue,
   showOrder = true,
+  tags,
+  createTag,
+  onTagsRefresh,
   audioSection,
   imageSection,
 }) => {
@@ -157,6 +171,34 @@ const HighlightFormFields: React.FC<HighlightFormFieldsProps> = ({
             <p className="text-[11px] text-red-500">{errors.timeSlot.message}</p>
           )}
         </div>
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <label className="form-label">Tag</label>
+        <select className="form-input" {...register("tagId")}>
+          <option value="">No tag</option>
+          {tags.map((tag) => (
+            <option key={tag.id} value={tag.id}>
+              {tag.labelEn}
+              {tag.labelAr ? ` / ${tag.labelAr}` : ""}
+            </option>
+          ))}
+        </select>
+        <InlineCreateHighlightTag
+          createTag={createTag}
+          onCreated={async (tag) => {
+            const refreshed = await onTagsRefresh();
+            const selectedId =
+              tag.id ||
+              refreshed.find(
+                (item) => item.slug === tag.slug || item.labelEn === tag.labelEn,
+              )?.id ||
+              "";
+            if (selectedId) {
+              setValue("tagId", selectedId, { shouldDirty: true });
+            }
+          }}
+        />
       </div>
 
       <div className="flex flex-col gap-1.5">

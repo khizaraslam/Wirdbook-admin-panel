@@ -7,12 +7,20 @@ import HighlightFormFields, {
 } from "./HighlightFormFields";
 import FileUploadField from "./FileUploadField";
 import { appendHighlightFormData } from "@/utils/helpers/islamic-highlights/helpers";
+import type { IslamicHighlightTagDTO } from "@/utils/helpers/models/islamic-highlights/islamic-highlight-tag.dto";
+import type { CreateIslamicHighlightTagDTO } from "@/utils/helpers/models/islamic-highlights/create-islamic-highlight-tag.dto";
+import type { HighlightTagMutationResult } from "@/utils/helpers/islamic-highlights/helpers";
 
 interface AddHighlightModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAdd: (data: FormData) => Promise<boolean>;
   defaultOrder: number;
+  tags: IslamicHighlightTagDTO[];
+  createTag: (
+    body: CreateIslamicHighlightTagDTO,
+  ) => Promise<HighlightTagMutationResult>;
+  onTagsRefresh: () => Promise<IslamicHighlightTagDTO[]>;
 }
 
 const AddHighlightModal: React.FC<AddHighlightModalProps> = ({
@@ -20,6 +28,9 @@ const AddHighlightModal: React.FC<AddHighlightModalProps> = ({
   onClose,
   onAdd,
   defaultOrder,
+  tags,
+  createTag,
+  onTagsRefresh,
 }) => {
   const {
     register,
@@ -36,6 +47,7 @@ const AddHighlightModal: React.FC<AddHighlightModalProps> = ({
       messageEn: "",
       sourceAr: "",
       sourceEn: "",
+      tagId: "",
       scheduleMode: "default",
       dayOfWeek: "",
       daysOfWeek: [],
@@ -57,6 +69,7 @@ const AddHighlightModal: React.FC<AddHighlightModalProps> = ({
         messageEn: "",
         sourceAr: "",
         sourceEn: "",
+        tagId: "",
         scheduleMode: "default",
         dayOfWeek: "",
         daysOfWeek: [],
@@ -93,6 +106,9 @@ const AddHighlightModal: React.FC<AddHighlightModalProps> = ({
           errors={errors}
           watch={watch}
           setValue={setValue}
+          tags={tags}
+          createTag={createTag}
+          onTagsRefresh={onTagsRefresh}
           audioSection={
             <FileUploadField
               label="Audio snippet (optional, max 50MB)"
