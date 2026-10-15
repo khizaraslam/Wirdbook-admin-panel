@@ -126,6 +126,23 @@ const useCommunities = () => {
     [],
   );
 
+  const getNoticeboardPosts = useCallback(
+    async (
+      communityId: string,
+    ): Promise<NoticeboardPostDTO[]> => {
+      const response = await Communities_APIS.getNoticeboardPosts(communityId, {
+        page: 1,
+        limit: 50,
+      });
+      const { success = false, data = null } = response || {};
+      if (!success) return [];
+      if (Array.isArray(data)) return data as NoticeboardPostDTO[];
+      if (Array.isArray(data?.items)) return data.items as NoticeboardPostDTO[];
+      return [];
+    },
+    [],
+  );
+
   const updateNoticeboardPost = useCallback(
     async (
       communityId: string,
@@ -190,6 +207,7 @@ const useCommunities = () => {
     updateStatus,
     assignAdmin,
     getMembers,
+    getNoticeboardPosts,
     updateNoticeboardPost,
     deleteNoticeboardPost,
   };

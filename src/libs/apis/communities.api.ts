@@ -31,6 +31,11 @@ export const Communities_APIS = {
       `/api/admin/communities/${communityId}/dhikr/report${query}`,
     );
   },
+  getNoticeboardPosts: (
+    communityId: string,
+    params: Record<string, string | number> = {},
+  ) =>
+    getRequest(`/api/admin/communities/${communityId}/noticeboard`, params),
   updateNoticeboardPost: (
     communityId: string,
     postId: string,
