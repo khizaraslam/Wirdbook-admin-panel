@@ -193,8 +193,8 @@ const CreateDhikrTaskModal: React.FC<CreateDhikrTaskModalProps> = ({
               </label>
             </div>
             <p className="text-xs text-gray-500 mt-1">
-              One time: requires expiry date/time. Weekly: requires start/end
-              dates. Weekly auto-repeat backend khud handle karta hai.
+              One time: requires an expiry date and time. Weekly: requires
+              start and end dates. Weekly auto-repeat is handled automatically.
             </p>
           </div>
 

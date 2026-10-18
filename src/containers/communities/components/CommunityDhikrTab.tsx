@@ -109,8 +109,8 @@ const CommunityDhikrTab: React.FC<CommunityDhikrTabProps> = ({
       {!hasActiveDhikrTypes && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
           <p className="text-sm text-amber-800">
-            Dhikr task create karne se pehle kam az kam 1 active dhikr type
-            zaroori hai. Pehle `Dhikr Types` page se type add/activate karein.
+            Create at least one active dhikr type before creating a dhikr
+            task. Add or activate a type on the Dhikr Types page first.
           </p>
         </div>
       )}
