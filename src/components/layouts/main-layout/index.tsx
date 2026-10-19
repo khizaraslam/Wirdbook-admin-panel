@@ -15,6 +15,7 @@ import {
   Library,
   Music2,
   Users,
+  Bell,
 } from "lucide-react";
 
 interface LayoutProps {
@@ -94,6 +95,11 @@ const MainLayout: React.FC<LayoutProps> = ({ children }) => {
       text: "Dhikr Types",
       path: "/dhikr-types",
       icon: <Sparkles size={20} />,
+    },
+    {
+      text: "Notifications",
+      path: "/notifications",
+      icon: <Bell size={20} />,
     },
   ];
 

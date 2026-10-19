@@ -13,4 +13,5 @@ export enum siteRoutes {
   qasidas = "/qasidas",
   communities = "/communities",
   dhikrTypes = "/dhikr-types",
+  notifications = "/notifications",
 }

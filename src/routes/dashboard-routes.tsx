@@ -12,6 +12,7 @@ import Books from "@/containers/books";
 import Qasidas from "@/containers/qasidas";
 import Communities from "@/containers/communities";
 import DhikrTypes from "@/containers/dhikr-types";
+import Notifications from "@/containers/notifications";
 import { siteRoutes } from "@/utils/helpers/enums/routes.enum";
 
 const DashboardRoutes = () => {
@@ -37,6 +38,7 @@ const DashboardRoutes = () => {
           element={<Communities />}
         />
         <Route path={siteRoutes.dhikrTypes} element={<DhikrTypes />} />
+        <Route path={siteRoutes.notifications} element={<Notifications />} />
         <Route path="*" element={<Navigate to={siteRoutes.dashboard} replace />} />
       </Routes>
     </MainLayout>
