@@ -16,7 +16,7 @@ const formatDate = (value: string) => {
 };
 
 const MembersTable: React.FC<MembersTableProps> = ({ members }) => {
-  const columns = ["Name", "User ID", "Role", "Joined"];
+  const columns = ["Name", "Mobile", "Role", "Joined"];
 
   return (
     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -61,8 +61,8 @@ const MembersTable: React.FC<MembersTableProps> = ({ members }) => {
                   <td className="py-4 px-4 font-medium text-gray-900">
                     {member.name}
                   </td>
-                  <td className="py-4 px-4 text-gray-500 text-sm font-mono">
-                    {member.userId}
+                  <td className="py-4 px-4 text-gray-600 text-sm">
+                    {member.phone || "—"}
                   </td>
                   <td className="py-4 px-4">
                     <span
