@@ -4,8 +4,10 @@ import { Trash2, UploadCloud, X, Pencil } from "lucide-react";
 import Textarea from "@/components/ui/Textarea";
 import Button from "@/components/ui/Button";
 import type {
+  NoticeboardCommentDTO,
   NoticeboardPostCategory,
   NoticeboardPostDTO,
+  NoticeboardReportPostDTO,
 } from "@/utils/helpers/models/communities/noticeboard-post.dto";
 import { getCommunityImageUrl } from "@/utils/helpers/communities/helpers";
 import useCommunities from "../useHooks";
@@ -32,9 +34,9 @@ const formatDate = (value: string) => {
 const NoticeboardModerationTab: React.FC<NoticeboardModerationTabProps> = ({
   communityId,
 }) => {
-  const { getNoticeboardPosts, updateNoticeboardPost, deleteNoticeboardPost } =
+  const { getNoticeboardReport, updateNoticeboardPost, deleteNoticeboardPost } =
     useCommunities();
-  const [posts, setPosts] = useState<NoticeboardPostDTO[]>([]);
+  const [posts, setPosts] = useState<NoticeboardReportPostDTO[]>([]);
   const [loading, setLoading] = useState(false);
   const [editingPost, setEditingPost] = useState<NoticeboardPostDTO | null>(
     null,
@@ -59,10 +61,10 @@ const NoticeboardModerationTab: React.FC<NoticeboardModerationTabProps> = ({
 
   const loadPosts = useCallback(async () => {
     setLoading(true);
-    const items = await getNoticeboardPosts(communityId);
+    const items = await getNoticeboardReport(communityId);
     setPosts(items);
     setLoading(false);
-  }, [communityId, getNoticeboardPosts]);
+  }, [communityId, getNoticeboardReport]);
 
   useEffect(() => {
     loadPosts();
@@ -128,10 +130,12 @@ const NoticeboardModerationTab: React.FC<NoticeboardModerationTabProps> = ({
     <div className="space-y-6">
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <h2 className="text-lg font-bold text-gray-900 tracking-tight mb-1">
-          Noticeboard posts
+          Noticeboard report
         </h2>
         <p className="text-gray-400 text-sm font-medium mb-6">
-          {loading ? "Loading posts..." : `${posts.length} posts`}
+          {loading
+            ? "Loading posts..."
+            : `${posts.length} posts, with likes and comments`}
         </p>
 
         {posts.length === 0 && !loading ? (
@@ -174,6 +178,7 @@ const NoticeboardModerationTab: React.FC<NoticeboardModerationTabProps> = ({
                     {post.likeCount} likes · {post.commentCount} comments ·{" "}
                     {formatDate(post.createdAt)}
                   </p>
+                  <PostEngagement post={post} />
                 </div>
                 <div className="flex items-start gap-1 shrink-0">
                   <button
@@ -319,5 +324,55 @@ const NoticeboardModerationTab: React.FC<NoticeboardModerationTabProps> = ({
     </div>
   );
 };
+
+const personLabel = (name: string, phone: string | null) =>
+  phone ? `${name} · ${phone}` : name;
+
+const CommentLine: React.FC<{ comment: NoticeboardCommentDTO; reply?: boolean }> = ({
+  comment,
+  reply = false,
+}) => (
+  <div className={reply ? "ml-4 mt-2 border-l border-gray-100 pl-3" : "mt-2"}>
+    <p className="text-xs font-medium text-gray-800">
+      {personLabel(comment.authorName, comment.authorPhone)}
+    </p>
+    <p className="text-sm text-gray-700">{comment.content}</p>
+    <p className="text-[11px] text-gray-400">{formatDate(comment.createdAt)}</p>
+    {comment.replies?.map((item) => (
+      <CommentLine key={item.id} comment={item} reply />
+    ))}
+  </div>
+);
+
+const PostEngagement: React.FC<{ post: NoticeboardReportPostDTO }> = ({
+  post,
+}) => (
+  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+    <div className="rounded-lg bg-gray-50 px-3 py-2">
+      <p className="text-xs font-semibold text-gray-500">Likes</p>
+      {post.likes.length === 0 ? (
+        <p className="text-xs text-gray-400 mt-1">No likes</p>
+      ) : (
+        <ul className="mt-1 space-y-1">
+          {post.likes.map((like) => (
+            <li key={like.userId} className="text-xs text-gray-700">
+              {personLabel(like.name, like.phone)}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+    <div className="rounded-lg bg-gray-50 px-3 py-2">
+      <p className="text-xs font-semibold text-gray-500">Comments</p>
+      {post.comments.length === 0 ? (
+        <p className="text-xs text-gray-400 mt-1">No comments</p>
+      ) : (
+        post.comments.map((comment) => (
+          <CommentLine key={comment.id} comment={comment} />
+        ))
+      )}
+    </div>
+  </div>
+);
 
 export default NoticeboardModerationTab;

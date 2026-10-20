@@ -12,6 +12,7 @@ import type {
 } from "@/utils/helpers/models/communities/community.dto";
 import type {
   NoticeboardPostDTO,
+  NoticeboardReportPostDTO,
   UpdateNoticeboardPostPayload,
 } from "@/utils/helpers/models/communities/noticeboard-post.dto";
 
@@ -126,6 +127,16 @@ const useCommunities = () => {
     [],
   );
 
+  const getNoticeboardReport = useCallback(
+    async (communityId: string): Promise<NoticeboardReportPostDTO[]> => {
+      const response = await Communities_APIS.getNoticeboardReport(communityId);
+      const { success = false, data = null } = response || {};
+      if (!success || !Array.isArray(data?.posts)) return [];
+      return data.posts as NoticeboardReportPostDTO[];
+    },
+    [],
+  );
+
   const getNoticeboardPosts = useCallback(
     async (
       communityId: string,
@@ -207,6 +218,7 @@ const useCommunities = () => {
     updateStatus,
     assignAdmin,
     getMembers,
+    getNoticeboardReport,
     getNoticeboardPosts,
     updateNoticeboardPost,
     deleteNoticeboardPost,
