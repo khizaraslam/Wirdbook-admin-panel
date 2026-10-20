@@ -11,10 +11,24 @@ import type {
   CommunityMemberDTO,
 } from "@/utils/helpers/models/communities/community.dto";
 import type {
+  NoticeboardCommentListItemDTO,
+  NoticeboardLikeDTO,
   NoticeboardPostDTO,
   NoticeboardReportPostDTO,
   UpdateNoticeboardPostPayload,
 } from "@/utils/helpers/models/communities/noticeboard-post.dto";
+
+interface ListPage<T> {
+  items: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+}
 
 export interface CommunityFormPayload {
   name: string;
@@ -127,6 +141,61 @@ const useCommunities = () => {
     [],
   );
 
+  const emptyPage = {
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 1,
+    hasNext: false,
+    hasPrev: false,
+  };
+
+  const getNoticeboardLikes = useCallback(
+    async (
+      communityId: string,
+      postId: string,
+      page = 1,
+    ): Promise<ListPage<NoticeboardLikeDTO>> => {
+      const response = await Communities_APIS.getNoticeboardLikes(
+        communityId,
+        postId,
+        page,
+      );
+      const { success = false, data = [], pagination = emptyPage } =
+        response || {};
+      if (!success) return { items: [], pagination: emptyPage };
+      return {
+        items: (Array.isArray(data) ? data : []) as NoticeboardLikeDTO[],
+        pagination,
+      };
+    },
+    [],
+  );
+
+  const getNoticeboardComments = useCallback(
+    async (
+      communityId: string,
+      postId: string,
+      page = 1,
+    ): Promise<ListPage<NoticeboardCommentListItemDTO>> => {
+      const response = await Communities_APIS.getNoticeboardComments(
+        communityId,
+        postId,
+        page,
+      );
+      const { success = false, data = [], pagination = emptyPage } =
+        response || {};
+      if (!success) return { items: [], pagination: emptyPage };
+      return {
+        items: (Array.isArray(data)
+          ? data
+          : []) as NoticeboardCommentListItemDTO[],
+        pagination,
+      };
+    },
+    [],
+  );
+
   const getNoticeboardReport = useCallback(
     async (communityId: string): Promise<NoticeboardReportPostDTO[]> => {
       const response = await Communities_APIS.getNoticeboardReport(communityId);
@@ -218,6 +287,8 @@ const useCommunities = () => {
     updateStatus,
     assignAdmin,
     getMembers,
+    getNoticeboardLikes,
+    getNoticeboardComments,
     getNoticeboardReport,
     getNoticeboardPosts,
     updateNoticeboardPost,

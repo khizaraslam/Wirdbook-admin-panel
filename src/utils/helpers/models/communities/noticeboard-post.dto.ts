@@ -7,6 +7,16 @@ export interface NoticeboardLikeDTO {
   createdAt: string;
 }
 
+export interface NoticeboardCommentListItemDTO {
+  id: string;
+  authorId: string;
+  authorName: string;
+  authorPhone: string | null;
+  parentCommentId: string | null;
+  content: string;
+  createdAt: string;
+}
+
 export interface NoticeboardCommentDTO {
   id: string;
   authorId: string;

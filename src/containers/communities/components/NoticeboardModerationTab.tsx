@@ -3,11 +3,13 @@ import { useForm } from "react-hook-form";
 import { Trash2, UploadCloud, X, Pencil } from "lucide-react";
 import Textarea from "@/components/ui/Textarea";
 import Button from "@/components/ui/Button";
+import Modal from "@/components/ui/Modal";
+import Pagination from "@/components/ui/Pagination";
 import type {
-  NoticeboardCommentDTO,
+  NoticeboardCommentListItemDTO,
+  NoticeboardLikeDTO,
   NoticeboardPostCategory,
   NoticeboardPostDTO,
-  NoticeboardReportPostDTO,
 } from "@/utils/helpers/models/communities/noticeboard-post.dto";
 import { getCommunityImageUrl } from "@/utils/helpers/communities/helpers";
 import useCommunities from "../useHooks";
@@ -31,13 +33,44 @@ const formatDate = (value: string) => {
   }
 };
 
+type ListKind = "likes" | "comments";
+
+interface PageMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+}
+
+const emptyMeta: PageMeta = {
+  page: 1,
+  limit: 10,
+  total: 0,
+  totalPages: 1,
+  hasNext: false,
+  hasPrev: false,
+};
+
 const NoticeboardModerationTab: React.FC<NoticeboardModerationTabProps> = ({
   communityId,
 }) => {
-  const { getNoticeboardReport, updateNoticeboardPost, deleteNoticeboardPost } =
-    useCommunities();
-  const [posts, setPosts] = useState<NoticeboardReportPostDTO[]>([]);
+  const {
+    getNoticeboardPosts,
+    getNoticeboardLikes,
+    getNoticeboardComments,
+    updateNoticeboardPost,
+    deleteNoticeboardPost,
+  } = useCommunities();
+  const [posts, setPosts] = useState<NoticeboardPostDTO[]>([]);
   const [loading, setLoading] = useState(false);
+  const [listPost, setListPost] = useState<NoticeboardPostDTO | null>(null);
+  const [listKind, setListKind] = useState<ListKind>("likes");
+  const [likes, setLikes] = useState<NoticeboardLikeDTO[]>([]);
+  const [comments, setComments] = useState<NoticeboardCommentListItemDTO[]>([]);
+  const [listMeta, setListMeta] = useState<PageMeta>(emptyMeta);
+  const [listLoading, setListLoading] = useState(false);
   const [editingPost, setEditingPost] = useState<NoticeboardPostDTO | null>(
     null,
   );
@@ -61,10 +94,10 @@ const NoticeboardModerationTab: React.FC<NoticeboardModerationTabProps> = ({
 
   const loadPosts = useCallback(async () => {
     setLoading(true);
-    const items = await getNoticeboardReport(communityId);
+    const items = await getNoticeboardPosts(communityId);
     setPosts(items);
     setLoading(false);
-  }, [communityId, getNoticeboardReport]);
+  }, [communityId, getNoticeboardPosts]);
 
   useEffect(() => {
     loadPosts();
@@ -81,6 +114,24 @@ const NoticeboardModerationTab: React.FC<NoticeboardModerationTabProps> = ({
       if (previewUrl.startsWith("blob:")) URL.revokeObjectURL(previewUrl);
     };
   }, [previewUrl]);
+
+  const openList = async (post: NoticeboardPostDTO, kind: ListKind, page = 1) => {
+    setListPost(post);
+    setListKind(kind);
+    setListLoading(true);
+    if (kind === "likes") {
+      const result = await getNoticeboardLikes(communityId, post.id, page);
+      setLikes(result.items);
+      setComments([]);
+      setListMeta(result.pagination);
+    } else {
+      const result = await getNoticeboardComments(communityId, post.id, page);
+      setComments(result.items);
+      setLikes([]);
+      setListMeta(result.pagination);
+    }
+    setListLoading(false);
+  };
 
   const startEdit = (post: NoticeboardPostDTO) => {
     setEditingPost(post);
@@ -135,7 +186,7 @@ const NoticeboardModerationTab: React.FC<NoticeboardModerationTabProps> = ({
         <p className="text-gray-400 text-sm font-medium mb-6">
           {loading
             ? "Loading posts..."
-            : `${posts.length} posts, with likes and comments`}
+            : `${posts.length} posts. Open likes or comments from a post.`}
         </p>
 
         {posts.length === 0 && !loading ? (
@@ -175,10 +226,24 @@ const NoticeboardModerationTab: React.FC<NoticeboardModerationTabProps> = ({
                     </p>
                   )}
                   <p className="text-xs text-gray-400 mt-1">
-                    {post.likeCount} likes · {post.commentCount} comments ·{" "}
                     {formatDate(post.createdAt)}
                   </p>
-                  <PostEngagement post={post} />
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    <button
+                      type="button"
+                      onClick={() => openList(post, "likes")}
+                      className="px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-200 text-gray-700 hover:bg-gray-50"
+                    >
+                      Likes ({post.likeCount})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => openList(post, "comments")}
+                      className="px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-200 text-gray-700 hover:bg-gray-50"
+                    >
+                      Comments ({post.commentCount})
+                    </button>
+                  </div>
                 </div>
                 <div className="flex items-start gap-1 shrink-0">
                   <button
@@ -321,58 +386,71 @@ const NoticeboardModerationTab: React.FC<NoticeboardModerationTabProps> = ({
           </form>
         </div>
       )}
+
+      <Modal
+        isOpen={!!listPost}
+        onClose={() => setListPost(null)}
+        title={listKind === "likes" ? "Likes" : "Comments"}
+        className="max-w-lg"
+      >
+        <p className="text-sm text-gray-500 mb-4">
+          {listPost?.authorName}
+          {listPost?.content ? ` · ${listPost.content}` : ""}
+        </p>
+        {listLoading ? (
+          <p className="text-sm text-gray-400 py-6 text-center">Loading...</p>
+        ) : listKind === "likes" ? (
+          likes.length === 0 ? (
+            <p className="text-sm text-gray-400 py-6 text-center">No likes</p>
+          ) : (
+            <ul className="divide-y divide-gray-100">
+              {likes.map((like) => (
+                <li key={like.userId} className="py-3">
+                  <p className="text-sm font-medium text-gray-900">
+                    {personLabel(like.name, like.phone)}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {formatDate(like.createdAt)}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )
+        ) : comments.length === 0 ? (
+          <p className="text-sm text-gray-400 py-6 text-center">No comments</p>
+        ) : (
+          <ul className="divide-y divide-gray-100">
+            {comments.map((comment) => (
+              <li key={comment.id} className="py-3">
+                <p className="text-sm font-medium text-gray-900">
+                  {personLabel(comment.authorName, comment.authorPhone)}
+                  {comment.parentCommentId ? (
+                    <span className="ml-2 text-xs font-normal text-gray-400">
+                      Reply
+                    </span>
+                  ) : null}
+                </p>
+                <p className="text-sm text-gray-700 mt-1">{comment.content}</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  {formatDate(comment.createdAt)}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+        {listMeta.totalPages > 1 && listPost ? (
+          <Pagination
+            meta={listMeta}
+            onPageChange={(page) => openList(listPost, listKind, page)}
+            className="mt-4"
+          />
+        ) : null}
+      </Modal>
     </div>
   );
 };
 
 const personLabel = (name: string, phone: string | null) =>
   phone ? `${name} · ${phone}` : name;
-
-const CommentLine: React.FC<{ comment: NoticeboardCommentDTO; reply?: boolean }> = ({
-  comment,
-  reply = false,
-}) => (
-  <div className={reply ? "ml-4 mt-2 border-l border-gray-100 pl-3" : "mt-2"}>
-    <p className="text-xs font-medium text-gray-800">
-      {personLabel(comment.authorName, comment.authorPhone)}
-    </p>
-    <p className="text-sm text-gray-700">{comment.content}</p>
-    <p className="text-[11px] text-gray-400">{formatDate(comment.createdAt)}</p>
-    {comment.replies?.map((item) => (
-      <CommentLine key={item.id} comment={item} reply />
-    ))}
-  </div>
-);
-
-const PostEngagement: React.FC<{ post: NoticeboardReportPostDTO }> = ({
-  post,
-}) => (
-  <div className="mt-3 grid gap-3 sm:grid-cols-2">
-    <div className="rounded-lg bg-gray-50 px-3 py-2">
-      <p className="text-xs font-semibold text-gray-500">Likes</p>
-      {post.likes.length === 0 ? (
-        <p className="text-xs text-gray-400 mt-1">No likes</p>
-      ) : (
-        <ul className="mt-1 space-y-1">
-          {post.likes.map((like) => (
-            <li key={like.userId} className="text-xs text-gray-700">
-              {personLabel(like.name, like.phone)}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-    <div className="rounded-lg bg-gray-50 px-3 py-2">
-      <p className="text-xs font-semibold text-gray-500">Comments</p>
-      {post.comments.length === 0 ? (
-        <p className="text-xs text-gray-400 mt-1">No comments</p>
-      ) : (
-        post.comments.map((comment) => (
-          <CommentLine key={comment.id} comment={comment} />
-        ))
-      )}
-    </div>
-  </div>
-);
 
 export default NoticeboardModerationTab;
