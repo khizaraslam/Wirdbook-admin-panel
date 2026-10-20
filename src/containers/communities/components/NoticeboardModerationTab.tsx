@@ -154,6 +154,12 @@ const NoticeboardModerationTab: React.FC<NoticeboardModerationTabProps> = ({
     });
   };
 
+  const closeEdit = () => {
+    setEditingPost(null);
+    setRemoveImage(false);
+    reset({ category: "general", content: "", image: null });
+  };
+
   const onEditSubmit = async (data: FormValues) => {
     if (!editingPost) return;
 
@@ -167,9 +173,7 @@ const NoticeboardModerationTab: React.FC<NoticeboardModerationTabProps> = ({
     });
 
     if (result) {
-      setEditingPost(null);
-      setRemoveImage(false);
-      reset({ category: "general", content: "", image: null });
+      closeEdit();
       await loadPosts();
     }
   };
@@ -180,9 +184,7 @@ const NoticeboardModerationTab: React.FC<NoticeboardModerationTabProps> = ({
     setIsDeleting(false);
     if (ok) {
       if (editingPost?.id === postId) {
-        setEditingPost(null);
-        reset({ category: "general", content: "", image: null });
-        setRemoveImage(false);
+        closeEdit();
       }
       await loadPosts();
     }
@@ -288,12 +290,15 @@ const NoticeboardModerationTab: React.FC<NoticeboardModerationTabProps> = ({
         )}
       </div>
 
-      {editingPost && (
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <h2 className="text-lg font-bold text-gray-900 tracking-tight mb-1">
-            Edit post
-          </h2>
-          <p className="text-gray-400 text-sm font-medium mb-6">
+      <Modal
+        isOpen={!!editingPost}
+        onClose={closeEdit}
+        title="Edit post"
+        className="max-w-lg"
+      >
+        {editingPost && (
+          <>
+          <p className="text-gray-500 text-sm mb-6">
             {editingPost.authorName} · {formatDate(editingPost.createdAt)}
           </p>
 
@@ -392,18 +397,15 @@ const NoticeboardModerationTab: React.FC<NoticeboardModerationTabProps> = ({
               <Button
                 type="button"
                 variant="secondary"
-                onClick={() => {
-                  setEditingPost(null);
-                  setRemoveImage(false);
-                  reset({ category: "general", content: "", image: null });
-                }}
+                onClick={closeEdit}
               >
                 Cancel
               </Button>
             </div>
           </form>
-        </div>
-      )}
+          </>
+        )}
+      </Modal>
 
       <Modal
         isOpen={!!listPost}
