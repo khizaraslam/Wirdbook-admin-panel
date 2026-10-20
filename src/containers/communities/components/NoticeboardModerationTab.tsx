@@ -10,6 +10,7 @@ import type {
   NoticeboardLikeDTO,
   NoticeboardPostCategory,
   NoticeboardPostDTO,
+  NoticeboardReportItemDTO,
 } from "@/utils/helpers/models/communities/noticeboard-post.dto";
 import { getCommunityImageUrl } from "@/utils/helpers/communities/helpers";
 import useCommunities from "../useHooks";
@@ -33,7 +34,7 @@ const formatDate = (value: string) => {
   }
 };
 
-type ListKind = "likes" | "comments";
+type ListKind = "likes" | "comments" | "reports";
 
 interface PageMeta {
   page: number;
@@ -60,6 +61,7 @@ const NoticeboardModerationTab: React.FC<NoticeboardModerationTabProps> = ({
     getNoticeboardPosts,
     getNoticeboardLikes,
     getNoticeboardComments,
+    getNoticeboardPostReports,
     updateNoticeboardPost,
     deleteNoticeboardPost,
   } = useCommunities();
@@ -69,6 +71,7 @@ const NoticeboardModerationTab: React.FC<NoticeboardModerationTabProps> = ({
   const [listKind, setListKind] = useState<ListKind>("likes");
   const [likes, setLikes] = useState<NoticeboardLikeDTO[]>([]);
   const [comments, setComments] = useState<NoticeboardCommentListItemDTO[]>([]);
+  const [reports, setReports] = useState<NoticeboardReportItemDTO[]>([]);
   const [listMeta, setListMeta] = useState<PageMeta>(emptyMeta);
   const [listLoading, setListLoading] = useState(false);
   const [editingPost, setEditingPost] = useState<NoticeboardPostDTO | null>(
@@ -123,11 +126,19 @@ const NoticeboardModerationTab: React.FC<NoticeboardModerationTabProps> = ({
       const result = await getNoticeboardLikes(communityId, post.id, page);
       setLikes(result.items);
       setComments([]);
+      setReports([]);
       setListMeta(result.pagination);
-    } else {
+    } else if (kind === "comments") {
       const result = await getNoticeboardComments(communityId, post.id, page);
       setComments(result.items);
       setLikes([]);
+      setReports([]);
+      setListMeta(result.pagination);
+    } else {
+      const result = await getNoticeboardPostReports(communityId, post.id, page);
+      setReports(result.items);
+      setLikes([]);
+      setComments([]);
       setListMeta(result.pagination);
     }
     setListLoading(false);
@@ -242,6 +253,13 @@ const NoticeboardModerationTab: React.FC<NoticeboardModerationTabProps> = ({
                       className="px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-200 text-gray-700 hover:bg-gray-50"
                     >
                       Comments ({post.commentCount})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => openList(post, "reports")}
+                      className="px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-200 text-gray-700 hover:bg-gray-50"
+                    >
+                      Reports
                     </button>
                   </div>
                 </div>
@@ -390,7 +408,13 @@ const NoticeboardModerationTab: React.FC<NoticeboardModerationTabProps> = ({
       <Modal
         isOpen={!!listPost}
         onClose={() => setListPost(null)}
-        title={listKind === "likes" ? "Likes" : "Comments"}
+        title={
+          listKind === "likes"
+            ? "Likes"
+            : listKind === "comments"
+              ? "Comments"
+              : "Reports"
+        }
         className="max-w-lg"
       >
         <p className="text-sm text-gray-500 mb-4">
@@ -416,7 +440,8 @@ const NoticeboardModerationTab: React.FC<NoticeboardModerationTabProps> = ({
               ))}
             </ul>
           )
-        ) : comments.length === 0 ? (
+        ) : listKind === "comments" ? (
+          comments.length === 0 ? (
           <p className="text-sm text-gray-400 py-6 text-center">No comments</p>
         ) : (
           <ul className="divide-y divide-gray-100">
@@ -433,6 +458,28 @@ const NoticeboardModerationTab: React.FC<NoticeboardModerationTabProps> = ({
                 <p className="text-sm text-gray-700 mt-1">{comment.content}</p>
                 <p className="text-xs text-gray-400 mt-1">
                   {formatDate(comment.createdAt)}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )
+        ) : reports.length === 0 ? (
+          <p className="text-sm text-gray-400 py-6 text-center">No reports</p>
+        ) : (
+          <ul className="divide-y divide-gray-100">
+            {reports.map((report) => (
+              <li key={report.id} className="py-3">
+                <p className="text-sm font-medium text-gray-900">
+                  {personLabel(report.reporterName, report.reporterPhone)}
+                  <span className="ml-2 text-xs font-normal capitalize text-gray-400">
+                    {report.status}
+                  </span>
+                </p>
+                <p className="text-sm text-gray-700 mt-1">
+                  {report.reason || "No reason given"}
+                </p>
+                <p className="text-xs text-gray-400 mt-1">
+                  {formatDate(report.createdAt)}
                 </p>
               </li>
             ))}

@@ -1,5 +1,16 @@
 export type NoticeboardPostCategory = "announcement" | "general";
 
+export interface NoticeboardReportItemDTO {
+  id: string;
+  postId: string;
+  reporterId: string;
+  reporterName: string;
+  reporterPhone: string | null;
+  reason: string | null;
+  status: string;
+  createdAt: string;
+}
+
 export interface NoticeboardLikeDTO {
   userId: string;
   name: string;

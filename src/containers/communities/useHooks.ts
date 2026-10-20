@@ -13,6 +13,7 @@ import type {
 import type {
   NoticeboardCommentListItemDTO,
   NoticeboardLikeDTO,
+  NoticeboardReportItemDTO,
   NoticeboardPostDTO,
   NoticeboardReportPostDTO,
   UpdateNoticeboardPostPayload,
@@ -149,6 +150,28 @@ const useCommunities = () => {
     hasNext: false,
     hasPrev: false,
   };
+
+  const getNoticeboardPostReports = useCallback(
+    async (
+      communityId: string,
+      postId: string,
+      page = 1,
+    ): Promise<ListPage<NoticeboardReportItemDTO>> => {
+      const response = await Communities_APIS.getNoticeboardPostReports(
+        communityId,
+        postId,
+        page,
+      );
+      const { success = false, data = [], pagination = emptyPage } =
+        response || {};
+      if (!success) return { items: [], pagination: emptyPage };
+      return {
+        items: (Array.isArray(data) ? data : []) as NoticeboardReportItemDTO[],
+        pagination,
+      };
+    },
+    [],
+  );
 
   const getNoticeboardLikes = useCallback(
     async (
@@ -287,6 +310,7 @@ const useCommunities = () => {
     updateStatus,
     assignAdmin,
     getMembers,
+    getNoticeboardPostReports,
     getNoticeboardLikes,
     getNoticeboardComments,
     getNoticeboardReport,

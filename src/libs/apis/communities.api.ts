@@ -37,6 +37,16 @@ export const Communities_APIS = {
       `/api/admin/communities/${communityId}/noticeboard/report${query}`,
     );
   },
+  getNoticeboardPostReports: (
+    communityId: string,
+    postId: string,
+    page = 1,
+    limit = 10,
+  ) =>
+    getRequest(
+      `/api/admin/communities/${communityId}/noticeboard/${postId}/report`,
+      { page, limit },
+    ),
   getNoticeboardLikes: (
     communityId: string,
     postId: string,
