@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import Button from "@/components/ui/Button";
+import Modal from "@/components/ui/Modal";
 import useCommunityDhikr from "../useDhikrHooks";
 import useDhikrTypes from "@/containers/dhikr-types/useHooks";
 import CreateDhikrTaskModal from "./CreateDhikrTaskModal";
@@ -61,11 +62,7 @@ const CommunityDhikrTab: React.FC<CommunityDhikrTabProps> = ({
   const handleCreate = async (body: CreateDhikrAssignmentBody) => {
     const ok = await createAssignment(communityId, body);
     if (ok) {
-      const updated = await loadAssignments();
-      if (updated[0]) {
-        setSelectedAssignment(updated[0]);
-        await loadReport(updated[0].id);
-      }
+      await loadAssignments();
     }
     return ok;
   };
@@ -123,9 +120,21 @@ const CommunityDhikrTab: React.FC<CommunityDhikrTabProps> = ({
         onViewReport={handleViewReport}
       />
 
-      {(selectedAssignment || reportLoading) && (
+      <Modal
+        isOpen={!!selectedAssignment}
+        onClose={() => {
+          setSelectedAssignment(null);
+          setReport(null);
+        }}
+        title={
+          selectedAssignment
+            ? `Member report — ${selectedAssignment.dhikrName || "Dhikr"}`
+            : "Member report"
+        }
+        className="max-w-4xl"
+      >
         <DhikrReportTable report={report} isLoading={reportLoading} />
-      )}
+      </Modal>
 
       <CreateDhikrTaskModal
         isOpen={isCreateOpen}
