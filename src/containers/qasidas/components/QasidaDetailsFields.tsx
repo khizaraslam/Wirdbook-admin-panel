@@ -136,7 +136,20 @@ const QasidaDetailsFields: React.FC<QasidaDetailsFieldsProps> = ({
     getFieldOptions().then((opts) => {
       if (cancelled) return;
       setAuthors(opts.authors || []);
-      setVocalists(opts.vocalists || opts.singers || []);
+      const raw = opts.vocalists || opts.singers || [];
+      const seen = new Set<string>();
+      const unique: LocalizedText[] = [];
+      for (const v of raw) {
+        const key = (v.en || v.ar || "")
+          .trim()
+          .toLowerCase()
+          .replace(/[-_]+/g, " ")
+          .replace(/\s+/g, " ");
+        if (!key || seen.has(key)) continue;
+        seen.add(key);
+        unique.push(v);
+      }
+      setVocalists(unique);
     });
     return () => {
       cancelled = true;
