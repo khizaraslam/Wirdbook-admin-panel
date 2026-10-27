@@ -50,6 +50,8 @@ export interface QasidaSettings {
 export interface QasidaFieldOptions {
   authors: LocalizedText[];
   singers: LocalizedText[];
+  /** Unified list: singers + distinct audios[].reciter_name */
+  vocalists?: LocalizedText[];
 }
 
 export interface Pagination {

@@ -17,7 +17,7 @@ const ReciterAudiosPlayer: React.FC<ReciterAudiosPlayerProps> = ({ qasida }) => 
   if (tracks.length === 0) {
     return (
       <p className="text-sm text-muted bg-white rounded-2xl border border-gray-100 px-5 py-4">
-        No playable audio yet. Upload a primary file or add a reciter track.
+        No playable audio yet. Upload a primary file or add a vocalist track.
       </p>
     );
   }
@@ -29,7 +29,7 @@ const ReciterAudiosPlayer: React.FC<ReciterAudiosPlayerProps> = ({ qasida }) => 
         <p className="text-xs text-muted mt-0.5">
           {usingFallback
             ? "audios[] is empty — using audioUrl / audioLink"
-            : `${tracks.length} reciter ${tracks.length === 1 ? "track" : "tracks"}`}
+            : `${tracks.length} vocalist ${tracks.length === 1 ? "track" : "tracks"}`}
         </p>
       </div>
       <div className="space-y-3">

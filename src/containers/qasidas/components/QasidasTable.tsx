@@ -39,7 +39,7 @@ const QasidasTable: React.FC<QasidasTableProps> = ({
                 "Title AR",
                 "Author",
                 "Mode",
-                "Wirds",
+                "Text",
                 "Duration",
                 "Enabled",
                 "Actions",

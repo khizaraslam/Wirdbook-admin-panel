@@ -124,10 +124,10 @@ const useQasidas = () => {
     const response = await Qasidas_APIS.createWird(qasidaId, body);
     const { success = false, message = "" } = response || {};
     if (success) {
-      successToaster(message || "Wird added successfully");
+      successToaster(message || "Text added successfully");
       return true;
     }
-    errorToaster(message || "Failed to add wird");
+    errorToaster(message || "Failed to add text");
     return false;
   }, []);
 
@@ -136,10 +136,10 @@ const useQasidas = () => {
       const response = await Qasidas_APIS.updateWird(qasidaId, wirdId, body);
       const { success = false, message = "" } = response || {};
       if (success) {
-        successToaster(message || "Wird updated successfully");
+        successToaster(message || "Text updated successfully");
         return true;
       }
-      errorToaster(message || "Failed to update wird");
+      errorToaster(message || "Failed to update text");
       return false;
     },
     [],
@@ -149,10 +149,10 @@ const useQasidas = () => {
     const response = await Qasidas_APIS.removeWird(qasidaId, wirdId);
     const { success = false, message = "" } = response || {};
     if (success) {
-      successToaster(message || "Wird deleted successfully");
+      successToaster(message || "Text deleted successfully");
       return true;
     }
-    errorToaster(message || "Failed to delete wird");
+    errorToaster(message || "Failed to delete text");
     return false;
   }, []);
 
@@ -169,12 +169,12 @@ const useQasidas = () => {
         successToaster(
           message ||
             (created != null
-              ? `${created} wirds imported successfully.`
-              : "Wirds imported successfully"),
+              ? `${created} text lines imported successfully.`
+              : "Text imported successfully"),
         );
         return true;
       }
-      errorToaster(message || "Failed to import wirds");
+      errorToaster(message || "Failed to import text");
       return false;
     },
     [],

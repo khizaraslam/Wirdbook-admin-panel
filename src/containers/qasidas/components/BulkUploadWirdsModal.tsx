@@ -34,8 +34,8 @@ const BulkUploadWirdsModal: React.FC<BulkUploadWirdsModalProps> = ({
 
     if (replace) {
       const result = await confirmationPopup(
-        "Replace all existing wirds?",
-        "This will delete every wird on this qasida before importing the JSON file. This cannot be undone.",
+        "Replace all existing text lines?",
+        "This will delete every text line on this qasida before importing the JSON file. This cannot be undone.",
       );
       if (!result.isConfirmed) return;
     }
@@ -78,9 +78,9 @@ const BulkUploadWirdsModal: React.FC<BulkUploadWirdsModalProps> = ({
             onChange={(e) => setReplace(e.target.checked)}
           />
           <label htmlFor="bulk-replace-wirds" className="text-sm text-gray-700">
-            <span className="font-medium">Replace existing wirds</span>
+            <span className="font-medium">Replace existing text</span>
             <span className="block text-muted text-xs mt-0.5">
-              Delete all current wirds before importing (append if unchecked).
+              Delete all current text lines before importing (append if unchecked).
             </span>
           </label>
         </div>

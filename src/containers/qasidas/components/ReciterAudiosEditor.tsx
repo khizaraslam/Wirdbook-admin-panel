@@ -2,6 +2,8 @@ import React from "react";
 import { Plus, Trash2, UploadCloud, X, Music } from "lucide-react";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import SuggestPairInput from "./SuggestPairInput";
+import type { LocalizedText } from "@/utils/helpers/models/qasidas/qasida.dto";
 
 export interface ReciterAudioDraft {
   reciter_name: string;
@@ -11,8 +13,10 @@ export interface ReciterAudioDraft {
   file: File | null;
 }
 
-export const emptyReciterDraft = (): ReciterAudioDraft => ({
-  reciter_name: "",
+export const emptyReciterDraft = (
+  defaultName = "",
+): ReciterAudioDraft => ({
+  reciter_name: defaultName,
   audio_link: "",
   audio_duration: "",
   audio_key: "",
@@ -22,11 +26,15 @@ export const emptyReciterDraft = (): ReciterAudioDraft => ({
 interface ReciterAudiosEditorProps {
   items: ReciterAudioDraft[];
   onChange: (items: ReciterAudioDraft[]) => void;
+  vocalistOptions?: LocalizedText[];
+  defaultVocalistName?: string;
 }
 
 const ReciterAudiosEditor: React.FC<ReciterAudiosEditorProps> = ({
   items,
   onChange,
+  vocalistOptions = [],
+  defaultVocalistName = "",
 }) => {
   const updateItem = (index: number, patch: Partial<ReciterAudioDraft>) => {
     onChange(items.map((item, i) => (i === index ? { ...item, ...patch } : item)));
@@ -36,10 +44,10 @@ const ReciterAudiosEditor: React.FC<ReciterAudiosEditorProps> = ({
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h3 className="text-sm font-bold text-gray-900">Reciter audios</h3>
+          <h3 className="text-sm font-bold text-gray-900">Vocalist audios</h3>
           <p className="text-xs text-muted mt-0.5">
-            JSON array: reciter_name, audio file or audio_link, duration. Files
-            go as reciterAudio_0, reciterAudio_1, …
+            Pick an existing vocalist when available, or type a new name. Each
+            row is one audio track.
           </p>
         </div>
         <Button
@@ -47,15 +55,17 @@ const ReciterAudiosEditor: React.FC<ReciterAudiosEditorProps> = ({
           variant="secondary"
           size="sm"
           leftIcon={<Plus size={14} />}
-          onClick={() => onChange([...items, emptyReciterDraft()])}
+          onClick={() =>
+            onChange([...items, emptyReciterDraft(defaultVocalistName.trim())])
+          }
         >
-          Add reciter
+          Add vocalist
         </Button>
       </div>
 
       {items.length === 0 ? (
         <p className="text-sm text-muted bg-gray-50 rounded-xl px-4 py-3">
-          No reciter tracks yet. Click Add reciter to attach audio.
+          No vocalist tracks yet. Click Add vocalist to attach audio.
         </p>
       ) : (
         <div className="space-y-3">
@@ -66,23 +76,30 @@ const ReciterAudiosEditor: React.FC<ReciterAudiosEditorProps> = ({
             >
               <div className="flex items-center justify-between">
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
-                  Reciter {index + 1}
+                  Vocalist {index + 1}
                 </p>
                 <button
                   type="button"
                   onClick={() => onChange(items.filter((_, i) => i !== index))}
                   className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"
-                  aria-label="Remove reciter"
+                  aria-label="Remove vocalist"
                 >
                   <Trash2 size={14} />
                 </button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <Input
-                  label="Reciter name"
+                <SuggestPairInput
+                  label="Vocalist"
+                  lang="en"
                   value={item.reciter_name}
-                  onChange={(e) =>
-                    updateItem(index, { reciter_name: e.target.value })
+                  options={vocalistOptions}
+                  placeholder="Type to search or add new"
+                  hint="Pick an existing vocalist or type a new name"
+                  onChange={(v) => updateItem(index, { reciter_name: v })}
+                  onSelectPair={(pair) =>
+                    updateItem(index, {
+                      reciter_name: pair.en || pair.ar || "",
+                    })
                   }
                 />
                 <Input
@@ -107,7 +124,7 @@ const ReciterAudiosEditor: React.FC<ReciterAudiosEditorProps> = ({
               {!item.file ? (
                 <label className="form-input flex items-center justify-between cursor-pointer py-2.5 bg-white hover:bg-gray-50 min-h-[64px]">
                   <span className="text-gray-400 text-sm">
-                    Upload reciter MP3
+                    Upload vocalist MP3
                   </span>
                   <UploadCloud className="w-5 h-5 text-gray-400" />
                   <input

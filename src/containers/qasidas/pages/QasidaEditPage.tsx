@@ -118,7 +118,7 @@ const QasidaEditPage = () => {
         {qasida.title.en || qasida.title.ar}
       </h1>
       <p className="text-muted mt-1">
-        {qasida.totalWirds} wirds
+        {qasida.totalWirds} text lines
         {qasida.sourceId != null ? ` · source #${qasida.sourceId}` : ""}
       </p>
 
@@ -132,13 +132,13 @@ const QasidaEditPage = () => {
             key={t}
             type="button"
             onClick={() => setTab(t)}
-            className={`px-4 py-2 text-sm font-semibold border-b-2 -mb-px capitalize ${
+            className={`px-4 py-2 text-sm font-semibold border-b-2 -mb-px ${
               tab === t
                 ? "border-primary text-primary"
                 : "border-transparent text-muted hover:text-gray-700"
             }`}
           >
-            {t}
+            {t === "wirds" ? "Text" : "Details"}
           </button>
         ))}
       </div>

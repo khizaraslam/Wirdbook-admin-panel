@@ -88,6 +88,12 @@ export const buildQasidaFormData = (
     }))
     .filter((item) => item.reciter_name || item.audio_link || item.file);
 
+  // Keep qasida-level singer in sync with primary vocalist when empty.
+  const primaryVocalist = packed[0]?.reciter_name?.trim() || "";
+  if (primaryVocalist && !(data.singerEn || "").trim()) {
+    formData.set("singerEn", primaryVocalist);
+  }
+
   formData.append(
     "audios",
     JSON.stringify(
@@ -114,7 +120,7 @@ const QasidaDetailsFields: React.FC<QasidaDetailsFieldsProps> = ({
 }) => {
   const { getFieldOptions } = useQasidas();
   const [authors, setAuthors] = useState<LocalizedText[]>([]);
-  const [singers, setSingers] = useState<LocalizedText[]>([]);
+  const [vocalists, setVocalists] = useState<LocalizedText[]>([]);
 
   const authorEn = watch("authorEn");
   const authorAr = watch("authorAr");
@@ -130,7 +136,7 @@ const QasidaDetailsFields: React.FC<QasidaDetailsFieldsProps> = ({
     getFieldOptions().then((opts) => {
       if (cancelled) return;
       setAuthors(opts.authors || []);
-      setSingers(opts.singers || []);
+      setVocalists(opts.vocalists || opts.singers || []);
     });
     return () => {
       cancelled = true;
@@ -211,12 +217,12 @@ const QasidaDetailsFields: React.FC<QasidaDetailsFieldsProps> = ({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <SuggestPairInput
-          label="Singer (English)"
+          label="Vocalist (English)"
           lang="en"
           value={singerEn || ""}
-          options={singers}
+          options={vocalists}
           placeholder="Type to search or add new"
-          hint="Pick an existing singer when available"
+          hint="Pick an existing vocalist when available"
           onChange={(v) => setValue("singerEn", v, { shouldDirty: true })}
           onSelectPair={(pair) => {
             setValue("singerEn", pair.en || "", { shouldDirty: true });
@@ -224,10 +230,10 @@ const QasidaDetailsFields: React.FC<QasidaDetailsFieldsProps> = ({
           }}
         />
         <SuggestPairInput
-          label="Singer (Arabic)"
+          label="Vocalist (Arabic)"
           lang="ar"
           value={singerAr || ""}
-          options={singers}
+          options={vocalists}
           placeholder="اكتب للبحث أو أضف جديداً"
           className="text-right"
           dir="rtl"
@@ -282,7 +288,12 @@ const QasidaDetailsFields: React.FC<QasidaDetailsFieldsProps> = ({
         </label>
       </div>
 
-      <ReciterAudiosEditor items={reciters} onChange={onRecitersChange} />
+      <ReciterAudiosEditor
+        items={reciters}
+        onChange={onRecitersChange}
+        vocalistOptions={vocalists}
+        defaultVocalistName={singerEn || ""}
+      />
     </div>
   );
 };

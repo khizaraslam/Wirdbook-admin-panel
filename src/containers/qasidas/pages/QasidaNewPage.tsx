@@ -72,7 +72,7 @@ const QasidaNewPage = () => {
       </Link>
       <h1 className="text-4xl font-bold text-primary">Add Qasida</h1>
       <p className="text-muted mt-2">
-        Required: title in English and Arabic. After save you can add wirds.
+        Required: title in English and Arabic. After save you can add text.
       </p>
 
       <form
