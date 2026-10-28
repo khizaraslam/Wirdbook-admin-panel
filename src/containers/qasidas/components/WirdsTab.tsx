@@ -72,7 +72,7 @@ const WirdsTab: React.FC<WirdsTabProps> = ({ qasidaId }) => {
   };
 
   const handleDelete = async (wirdId: string) => {
-    const result = await confirmationPopup("Delete this text line?");
+    const result = await confirmationPopup("Delete this verse?");
     if (result.isConfirmed) {
       const ok = await deleteWird(qasidaId, wirdId);
       if (ok) load(pagination.page);
@@ -89,7 +89,7 @@ const WirdsTab: React.FC<WirdsTabProps> = ({ qasidaId }) => {
     <div>
       <div className="flex justify-between items-center mb-4">
         <p className="text-sm text-muted">
-          Paginated text lines for this qasida ({pagination.total} total)
+          Paginated verses for this qasida ({pagination.total} total)
         </p>
         <div className="flex gap-2">
           <Button
@@ -109,7 +109,7 @@ const WirdsTab: React.FC<WirdsTabProps> = ({ qasidaId }) => {
               setModalOpen(true);
             }}
           >
-            Add Text
+            Add verse
           </Button>
         </div>
       </div>

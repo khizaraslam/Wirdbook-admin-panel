@@ -118,7 +118,7 @@ const QasidaEditPage = () => {
         {qasida.title.en || qasida.title.ar}
       </h1>
       <p className="text-muted mt-1">
-        {qasida.totalWirds} text lines
+        {qasida.totalWirds} verses
         {qasida.sourceId != null ? ` · source #${qasida.sourceId}` : ""}
       </p>
 
@@ -138,7 +138,7 @@ const QasidaEditPage = () => {
                 : "border-transparent text-muted hover:text-gray-700"
             }`}
           >
-            {t === "wirds" ? "Text" : "Details"}
+            {t === "wirds" ? "Verses" : "Details"}
           </button>
         ))}
       </div>

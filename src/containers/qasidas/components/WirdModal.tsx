@@ -63,7 +63,7 @@ const WirdModal: React.FC<WirdModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={wird ? "Edit Text" : "Add Text"}
+      title={wird ? "Edit verse" : "Add verse"}
       className="max-h-[90vh]"
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

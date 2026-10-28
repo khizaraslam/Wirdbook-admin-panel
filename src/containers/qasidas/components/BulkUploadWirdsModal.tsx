@@ -34,8 +34,8 @@ const BulkUploadWirdsModal: React.FC<BulkUploadWirdsModalProps> = ({
 
     if (replace) {
       const result = await confirmationPopup(
-        "Replace all existing text lines?",
-        "This will delete every text line on this qasida before importing the JSON file. This cannot be undone.",
+        "Replace all existing verses?",
+        "This will delete every verse on this qasida before importing the JSON file. This cannot be undone.",
       );
       if (!result.isConfirmed) return;
     }
@@ -64,7 +64,7 @@ const BulkUploadWirdsModal: React.FC<BulkUploadWirdsModalProps> = ({
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
           />
           <p className="text-xs text-muted mt-2">
-            Accepts qasida.json format (array or wrapped with &quot;wirds&quot;).
+            Accepts qasida.json format (array or wrapped with &quot;wirds&quot; / verses).
             Max 10 MB.
           </p>
         </div>
@@ -78,9 +78,9 @@ const BulkUploadWirdsModal: React.FC<BulkUploadWirdsModalProps> = ({
             onChange={(e) => setReplace(e.target.checked)}
           />
           <label htmlFor="bulk-replace-wirds" className="text-sm text-gray-700">
-            <span className="font-medium">Replace existing text</span>
+            <span className="font-medium">Replace existing verses</span>
             <span className="block text-muted text-xs mt-0.5">
-              Delete all current text lines before importing (append if unchecked).
+              Delete all current verses before importing (append if unchecked).
             </span>
           </label>
         </div>

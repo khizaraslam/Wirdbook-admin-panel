@@ -124,10 +124,10 @@ const useQasidas = () => {
     const response = await Qasidas_APIS.createWird(qasidaId, body);
     const { success = false, message = "" } = response || {};
     if (success) {
-      successToaster(message || "Text added successfully");
+      successToaster(message || "Verse added successfully");
       return true;
     }
-    errorToaster(message || "Failed to add text");
+    errorToaster(message || "Failed to add verse");
     return false;
   }, []);
 
@@ -136,10 +136,10 @@ const useQasidas = () => {
       const response = await Qasidas_APIS.updateWird(qasidaId, wirdId, body);
       const { success = false, message = "" } = response || {};
       if (success) {
-        successToaster(message || "Text updated successfully");
+        successToaster(message || "Verse updated successfully");
         return true;
       }
-      errorToaster(message || "Failed to update text");
+      errorToaster(message || "Failed to update verse");
       return false;
     },
     [],
@@ -149,10 +149,10 @@ const useQasidas = () => {
     const response = await Qasidas_APIS.removeWird(qasidaId, wirdId);
     const { success = false, message = "" } = response || {};
     if (success) {
-      successToaster(message || "Text deleted successfully");
+      successToaster(message || "Verse deleted successfully");
       return true;
     }
-    errorToaster(message || "Failed to delete text");
+    errorToaster(message || "Failed to delete verse");
     return false;
   }, []);
 
@@ -169,12 +169,12 @@ const useQasidas = () => {
         successToaster(
           message ||
             (created != null
-              ? `${created} text lines imported successfully.`
-              : "Text imported successfully"),
+              ? `${created} verses imported successfully.`
+              : "Verses imported successfully"),
         );
         return true;
       }
-      errorToaster(message || "Failed to import text");
+      errorToaster(message || "Failed to import verses");
       return false;
     },
     [],

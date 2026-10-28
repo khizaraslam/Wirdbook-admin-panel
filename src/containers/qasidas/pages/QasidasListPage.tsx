@@ -58,7 +58,7 @@ const QasidasListPage = () => {
 
   const handleDelete = async (id: string) => {
     const result = await confirmationPopup(
-      "Delete this qasida? All text lines and audio will be removed.",
+      "Delete this qasida? All verses and audio will be removed.",
     );
     if (result.isConfirmed) {
       const ok = await deleteQasida(id);
@@ -71,7 +71,7 @@ const QasidasListPage = () => {
       <div className="flex flex-wrap justify-between items-center gap-4">
         <div>
           <h1 className="text-4xl font-bold text-primary">Qasidas</h1>
-          <p className="text-muted mt-2">Manage qasidas, audio, and text</p>
+          <p className="text-muted mt-2">Manage qasidas, audio, and verses</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Link to={`${siteRoutes.qasidas}/settings`}>

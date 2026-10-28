@@ -90,8 +90,8 @@ const SuggestPairInput: React.FC<SuggestPairInputProps> = ({
             className="absolute z-20 mt-1 max-h-48 w-full overflow-auto rounded-xl border border-gray-200 bg-white py-1 shadow-lg"
             role="listbox"
           >
-            {filtered.map((pair) => {
-              const key = `${pair.en ?? ""}\0${pair.ar ?? ""}`;
+            {filtered.map((pair, index) => {
+              const key = `${pair.en ?? ""}\0${pair.ar ?? ""}\0${index}`;
               const text = labelFor(pair, lang);
               return (
                 <li key={key}>
