@@ -4,7 +4,11 @@ import Modal from "@/components/ui/Modal";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { UploadCloud, X, ImageIcon } from "lucide-react";
-import type { BannerDTO, BannerType } from "@/utils/helpers/models/banners/banner.dto";
+import {
+  BANNER_TYPE_OPTIONS,
+  type BannerDTO,
+  type BannerType,
+} from "@/utils/helpers/models/banners/banner.dto";
 
 const getImageUrl = (imageUrl: string | null) => {
   if (!imageUrl) return "";
@@ -124,22 +128,25 @@ const EditBannerModal: React.FC<EditBannerModalProps> = ({
 
   const fullImageUrl = banner ? getImageUrl(banner.image) : "";
   const isText = watchType === "text";
-  const isBanner = watchType === "banner";
+  const isShaykhImage = watchType === "shaykhimage";
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Edit Banner" className="">
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <div className="space-y-5">
           <p className="text-sm text-muted -mt-3">
-            Banner: image + title only (surah not used). Text: title + optional surah
-            name/reference (AR/EN) and optional image.
+            Change the type, title, or image. General and Shaykh Image keep a
+            title and image. Text also keeps the surah fields.
           </p>
 
           <div className="flex flex-col gap-1.5">
             <label className="form-label text-sm font-bold text-gray-900">Type</label>
             <select className="form-input" {...register("type")}>
-              <option value="banner">Banner — image + title</option>
-              <option value="text">Text — title + surah (+ optional image)</option>
+              {BANNER_TYPE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -208,7 +215,7 @@ const EditBannerModal: React.FC<EditBannerModalProps> = ({
 
           <div className="flex flex-col gap-1.5">
             <label className="form-label text-sm font-bold text-gray-900">
-              {isBanner ? "Banner image" : "Image (optional)"}
+              {isShaykhImage ? "Shaykh image" : "Image"} (optional)
             </label>
             {fullImageUrl && (
               <div className="mb-2">

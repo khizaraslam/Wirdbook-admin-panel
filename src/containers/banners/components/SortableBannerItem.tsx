@@ -2,7 +2,10 @@ import React from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, ImageIcon, Edit2, Trash2, Eye, EyeOff } from "lucide-react";
-import { BannerDTO } from "@/utils/helpers/models/banners/banner.dto";
+import {
+  bannerTypeLabel,
+  BannerDTO,
+} from "@/utils/helpers/models/banners/banner.dto";
 
 const getImageUrl = (image: string | null) => {
   if (!image) return "";
@@ -41,7 +44,6 @@ const SortableBannerItem: React.FC<SortableBannerItemProps> = ({
   };
 
   const fullImageUrl = getImageUrl(banner.image);
-  const isBanner = banner.type === "banner";
   const isText = banner.type === "text";
   const hasSurah =
     isText &&
@@ -93,13 +95,9 @@ const SortableBannerItem: React.FC<SortableBannerItemProps> = ({
               {banner.title?.en_text || banner.title?.ar_text || "—"}
             </h3>
             <span
-              className={`text-xs font-medium px-2 py-0.5 rounded-md shrink-0 ${
-                isBanner
-                  ? "bg-primary/10 text-primary border border-primary/20"
-                  : "bg-slate-100 text-slate-700 border border-slate-200"
-              }`}
+              className="text-xs font-medium px-2 py-0.5 rounded-md shrink-0 bg-primary/10 text-primary border border-primary/20"
             >
-              {isBanner ? "Banner" : "Text"}
+              {bannerTypeLabel(banner.type)}
             </span>
             <span
               className={`text-xs font-medium px-2 py-0.5 rounded-md shrink-0 inline-flex items-center gap-1 ${

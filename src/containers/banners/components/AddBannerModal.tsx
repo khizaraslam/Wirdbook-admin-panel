@@ -4,7 +4,10 @@ import Modal from "@/components/ui/Modal";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { UploadCloud, X, ImageIcon } from "lucide-react";
-import type { BannerType } from "@/utils/helpers/models/banners/banner.dto";
+import {
+  BANNER_TYPE_OPTIONS,
+  type BannerType,
+} from "@/utils/helpers/models/banners/banner.dto";
 
 interface AddBannerModalProps {
   isOpen: boolean;
@@ -104,7 +107,7 @@ const AddBannerModal: React.FC<AddBannerModalProps> = ({
   };
 
   const isText = watchType === "text";
-  const isBanner = watchType === "banner";
+  const isShaykhImage = watchType === "shaykhimage";
 
   return (
     <Modal
@@ -116,8 +119,8 @@ const AddBannerModal: React.FC<AddBannerModalProps> = ({
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <div className="space-y-5">
           <p className="text-sm text-muted -mt-3">
-            Banner: image carousel style (title + image; do not send surah). Text:
-            surah/verse block (title + optional surah fields + optional image).
+            Choose a type now. You can change it later from Edit. General and
+            Shaykh Image use a title and image. Text also has surah fields.
           </p>
 
           <div className="flex flex-col gap-1.5">
@@ -126,8 +129,11 @@ const AddBannerModal: React.FC<AddBannerModalProps> = ({
               className="form-input"
               {...register("type")}
             >
-              <option value="banner">Banner — image + title</option>
-              <option value="text">Text — title + surah (+ optional image)</option>
+              {BANNER_TYPE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -196,8 +202,7 @@ const AddBannerModal: React.FC<AddBannerModalProps> = ({
 
           <div className="flex flex-col gap-1.5">
             <label className="form-label text-sm font-bold text-gray-900">
-              {isBanner ? "Banner image" : "Image (optional)"}{" "}
-              {isBanner ? "(optional)" : ""}
+              {isShaykhImage ? "Shaykh image" : "Image"} (optional)
             </label>
             {!watchImage || watchImage.length === 0 ? (
               <label className="form-input flex items-center justify-between cursor-pointer py-2.5 bg-white hover:bg-gray-50 transition-colors min-h-[120px]">

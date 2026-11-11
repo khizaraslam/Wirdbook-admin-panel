@@ -3,8 +3,18 @@ export interface BannerTitle {
   en_text: string;
 }
 
-/** `banner` = image + title only (surah unused / null). `text` = title + optional surah + optional image. */
-export type BannerType = "text" | "banner";
+/** `banner` and `general` = image + title. `text` = title + optional surah. `shaykhimage` = Shaykh image. */
+export type BannerType = "text" | "banner" | "general" | "shaykhimage";
+
+export const BANNER_TYPE_OPTIONS: { value: BannerType; label: string }[] = [
+  { value: "banner", label: "Banner — image + title" },
+  { value: "text", label: "Text — title + surah (+ optional image)" },
+  { value: "general", label: "General" },
+  { value: "shaykhimage", label: "Shaykh Image" },
+];
+
+export const bannerTypeLabel = (type: BannerType) =>
+  BANNER_TYPE_OPTIONS.find((option) => option.value === type)?.label ?? type;
 
 export interface BannerDTO {
   id: string;
@@ -28,7 +38,13 @@ export const normalizeBanner = (raw: {
   surah_reference?: BannerTitle | null;
   indexOrder?: number;
 }): BannerDTO => {
-  const type: BannerType = raw.type === "text" ? "text" : "banner";
+  const type: BannerType =
+    raw.type === "text" ||
+    raw.type === "banner" ||
+    raw.type === "general" ||
+    raw.type === "shaykhimage"
+      ? raw.type
+      : "banner";
   return {
     id: raw.id,
     type,
