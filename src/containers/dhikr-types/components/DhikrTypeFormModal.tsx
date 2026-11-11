@@ -20,6 +20,7 @@ export type FormValues = {
   description: string;
   sortOrder: number;
   status: "active" | "inactive";
+  defaultCount: number;
 };
 
 const DhikrTypeFormModal: React.FC<DhikrTypeFormModalProps> = ({
@@ -31,6 +32,7 @@ const DhikrTypeFormModal: React.FC<DhikrTypeFormModalProps> = ({
   submitLabel,
 }) => {
   const isEdit = !!initial;
+  const isKhitma = initial?.kind === "khitma";
   const {
     register,
     handleSubmit,
@@ -43,6 +45,7 @@ const DhikrTypeFormModal: React.FC<DhikrTypeFormModalProps> = ({
       description: "",
       sortOrder: 0,
       status: "active",
+      defaultCount: 0,
     },
   });
 
@@ -54,6 +57,8 @@ const DhikrTypeFormModal: React.FC<DhikrTypeFormModalProps> = ({
         description: initial?.description ?? "",
         sortOrder: initial?.sortOrder ?? 0,
         status: initial?.status ?? "active",
+        defaultCount:
+          initial?.kind === "khitma" ? 30 : (initial?.defaultCount ?? 0),
       });
     }
   }, [isOpen, initial, reset]);
@@ -65,6 +70,7 @@ const DhikrTypeFormModal: React.FC<DhikrTypeFormModalProps> = ({
       nameAr: data.nameAr.trim(),
       description: data.description.trim(),
       sortOrder: Number(data.sortOrder) || 0,
+      defaultCount: isKhitma ? 30 : Math.max(0, Number(data.defaultCount) || 0),
     });
     if (ok) onClose();
   };
@@ -90,6 +96,21 @@ const DhikrTypeFormModal: React.FC<DhikrTypeFormModalProps> = ({
             label="Description"
             placeholder="Optional description"
             {...register("description")}
+          />
+          <Input
+            label="Default count"
+            type="number"
+            min={0}
+            disabled={isKhitma}
+            hint={
+              isKhitma
+                ? "Khitma is always 30 juz."
+                : "Example: Surat Yaseen 41, Surat Ikhlas 70,000, La Ilaha Illa Allah 70,000."
+            }
+            {...register("defaultCount", {
+              valueAsNumber: true,
+              min: { value: 0, message: "Must be 0 or more" },
+            })}
           />
           <Input
             label="Sort order"

@@ -25,6 +25,7 @@ import QaItemsTable from "./components/QaItemsTable";
 import AddQaItemModal from "./components/AddQaItemModal";
 import EditQaItemModal from "./components/EditQaItemModal";
 import ManageTagsModal from "./components/ManageTagsModal";
+import CommunitiesSectionTabs from "@/containers/communities/components/CommunitiesSectionTabs";
 
 const Qa = () => {
   const {
@@ -194,6 +195,10 @@ const Qa = () => {
             Add Q&A
           </Button>
         </div>
+      </div>
+
+      <div className="mt-6">
+        <CommunitiesSectionTabs />
       </div>
 
       <div className="bg-primary-light rounded-2xl p-6 mt-8 shadow-sm">

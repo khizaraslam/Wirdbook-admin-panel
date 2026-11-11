@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, UserPlus, ToggleLeft, ToggleRight } from "lucide-react";
+import { ArrowLeft, Edit2 } from "lucide-react";
 import Button from "@/components/ui/Button";
 import CustomMessageDisplay from "@/components/data-not-found";
 import useStore from "@/hooks/useStore";
@@ -9,7 +9,10 @@ import type { CommunityFormPayload } from "../useHooks";
 import MembersTable from "../components/MembersTable";
 import AssignAdminModal from "../components/AssignAdminModal";
 import CommunityFormModal from "../components/CommunityFormModal";
-import type { CommunityDetailDTO } from "@/utils/helpers/models/communities/community.dto";
+import type {
+  CommunityDetailDTO,
+  CommunityMemberDTO,
+} from "@/utils/helpers/models/communities/community.dto";
 import { getCommunityImageUrl } from "@/utils/helpers/communities/helpers";
 import { siteRoutes } from "@/utils/helpers/enums/routes.enum";
 import { confirmationPopup } from "@/utils/helpers/common/alert-service";
@@ -20,12 +23,14 @@ type DetailTab = "members" | "dhikr" | "noticeboard";
 
 const CommunityDetailPage = () => {
   const { id = "" } = useParams<{ id: string }>();
-  const { getOne, update, updateStatus, assignAdmin } = useCommunities();
+  const { getOne, update, updateStatus, assignAdmin, removeMember } =
+    useCommunities();
   const { isLoading } = useStore();
   const [community, setCommunity] = useState<CommunityDetailDTO | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isAssignOpen, setIsAssignOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<DetailTab>("members");
+  const [removingUserId, setRemovingUserId] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     if (!id) return;
@@ -52,11 +57,11 @@ const CommunityDetailPage = () => {
     const nextStatus =
       community.status === "active" ? "inactive" : "active";
     const action = nextStatus === "active" ? "activate" : "deactivate";
-    const confirmed = await confirmationPopup(
+    const result = await confirmationPopup(
       `${action.charAt(0).toUpperCase() + action.slice(1)} community?`,
       `This will ${action} "${community.name}".`,
     );
-    if (!confirmed) return;
+    if (!result.isConfirmed) return;
     const ok = await updateStatus(community.id, nextStatus);
     if (ok) await loadData();
   };
@@ -69,6 +74,19 @@ const CommunityDetailPage = () => {
       await loadData();
     }
     return ok;
+  };
+
+  const handleRemoveMember = async (member: CommunityMemberDTO) => {
+    if (!community || removingUserId) return;
+    const result = await confirmationPopup(
+      "Remove member?",
+      `Remove ${member.name} from "${community.name}". They cannot rejoin until an admin approves them.`,
+    );
+    if (!result.isConfirmed) return;
+    setRemovingUserId(member.userId);
+    const ok = await removeMember(community.id, member.userId);
+    setRemovingUserId(null);
+    if (ok) await loadData();
   };
 
   if (!isLoading && !community) {
@@ -114,12 +132,20 @@ const CommunityDetailPage = () => {
               </div>
             )}
 
-            <div className="flex-1 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div className="flex-1">
               <div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   <h1 className="text-2xl font-bold text-gray-900">
                     {community.name}
                   </h1>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsEditOpen(true)}
+                    title="Edit"
+                  >
+                    <Edit2 size={18} />
+                  </Button>
                   <span
                     className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${
                       community.status === "active"
@@ -137,28 +163,6 @@ const CommunityDetailPage = () => {
                   )}{" "}
                   · {community.memberCount} members
                 </p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Button variant="secondary" onClick={() => setIsEditOpen(true)}>
-                  Edit community
-                </Button>
-                <Button variant="secondary" onClick={() => setIsAssignOpen(true)}>
-                  <UserPlus size={16} className="mr-2" />
-                  Assign admin
-                </Button>
-                <Button variant="secondary" onClick={handleToggleStatus}>
-                  {community.status === "active" ? (
-                    <>
-                      <ToggleRight size={16} className="mr-2 text-emerald-600" />
-                      Deactivate
-                    </>
-                  ) : (
-                    <>
-                      <ToggleLeft size={16} className="mr-2" />
-                      Activate
-                    </>
-                  )}
-                </Button>
               </div>
             </div>
           </div>
@@ -188,7 +192,13 @@ const CommunityDetailPage = () => {
             </div>
           </div>
 
-          {activeTab === "members" && <MembersTable members={members} />}
+          {activeTab === "members" && (
+            <MembersTable
+              members={members}
+              onRemove={handleRemoveMember}
+              removingUserId={removingUserId}
+            />
+          )}
           {activeTab === "dhikr" && (
             <CommunityDhikrTab communityId={community.id} />
           )}
@@ -204,6 +214,9 @@ const CommunityDetailPage = () => {
             initialImageUrl={community.imageUrl}
             title="Edit community"
             submitLabel="Save"
+            status={community.status}
+            onToggleStatus={handleToggleStatus}
+            onAssignAdmin={() => setIsAssignOpen(true)}
           />
 
           <AssignAdminModal

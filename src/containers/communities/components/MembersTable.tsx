@@ -1,9 +1,12 @@
 import React from "react";
-import { Shield, User } from "lucide-react";
+import { Shield, User, UserMinus } from "lucide-react";
+import Button from "@/components/ui/Button";
 import type { CommunityMemberDTO } from "@/utils/helpers/models/communities/community.dto";
 
 interface MembersTableProps {
   members: CommunityMemberDTO[];
+  onRemove?: (member: CommunityMemberDTO) => void;
+  removingUserId?: string | null;
 }
 
 const formatDate = (value: string) => {
@@ -15,8 +18,12 @@ const formatDate = (value: string) => {
   }
 };
 
-const MembersTable: React.FC<MembersTableProps> = ({ members }) => {
-  const columns = ["Name", "Mobile", "Role", "Joined"];
+const MembersTable: React.FC<MembersTableProps> = ({
+  members,
+  onRemove,
+  removingUserId,
+}) => {
+  const columns = ["Name", "Mobile", "Role", "Joined", ...(onRemove ? ["Actions"] : [])];
 
   return (
     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -83,6 +90,19 @@ const MembersTable: React.FC<MembersTableProps> = ({ members }) => {
                   <td className="py-4 px-4 text-gray-500 text-sm">
                     {formatDate(member.joinedAt)}
                   </td>
+                  {onRemove && (
+                    <td className="py-4 px-4">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        title="Remove from community"
+                        disabled={removingUserId === member.userId}
+                        onClick={() => onRemove(member)}
+                      >
+                        <UserMinus size={16} className="text-red-600" />
+                      </Button>
+                    </td>
+                  )}
                 </tr>
               ))
             )}

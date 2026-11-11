@@ -1,6 +1,6 @@
 import React from "react";
 import { useForm } from "react-hook-form";
-import { ImageIcon, UploadCloud, X } from "lucide-react";
+import { ImageIcon, UploadCloud, UserPlus, X } from "lucide-react";
 import Modal from "@/components/ui/Modal";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
@@ -15,6 +15,9 @@ interface CommunityFormModalProps {
   initialImageUrl?: string | null;
   title: string;
   submitLabel: string;
+  status?: "active" | "inactive";
+  onToggleStatus?: () => void;
+  onAssignAdmin?: () => void;
 }
 
 type FormValues = {
@@ -30,6 +33,9 @@ const CommunityFormModal: React.FC<CommunityFormModalProps> = ({
   initialImageUrl = null,
   title,
   submitLabel,
+  status,
+  onToggleStatus,
+  onAssignAdmin,
 }) => {
   const {
     register,
@@ -148,6 +154,26 @@ const CommunityFormModal: React.FC<CommunityFormModalProps> = ({
             </label>
           )}
         </div>
+
+        {(onToggleStatus || onAssignAdmin) && (
+          <div className="flex flex-wrap gap-2 pt-4 mt-4 border-t border-gray-100">
+            {onAssignAdmin && (
+              <Button type="button" variant="secondary" onClick={onAssignAdmin}>
+                <UserPlus size={16} className="mr-2" />
+                Admin
+              </Button>
+            )}
+            {onToggleStatus && status && (
+              <Button
+                type="button"
+                variant={status === "active" ? "danger" : "secondary"}
+                onClick={onToggleStatus}
+              >
+                {status === "active" ? "Deactivate" : "Activate"}
+              </Button>
+            )}
+          </div>
+        )}
 
         <div className="flex justify-end gap-3 pt-4 mt-4 border-t border-gray-100">
           <Button type="button" variant="secondary" onClick={onClose}>

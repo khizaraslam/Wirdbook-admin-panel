@@ -36,6 +36,7 @@ const CreateDhikrTaskModal: React.FC<CreateDhikrTaskModalProps> = ({
     handleSubmit,
     reset,
     watch,
+    setValue,
     setError,
     clearErrors,
     formState: { errors, isSubmitting },
@@ -56,19 +57,31 @@ const CreateDhikrTaskModal: React.FC<CreateDhikrTaskModalProps> = ({
   const isWeekly = assignmentType === "weekly";
   const selectedType = activeTypes.find((type) => type.id === selectedTypeId);
   const isKhitma = selectedType?.kind === "khitma";
+  const defaultTargetFor = (typeId: string) => {
+    const type = activeTypes.find((item) => item.id === typeId);
+    if (!type || type.kind === "khitma") return 10000;
+    return type.defaultCount && type.defaultCount > 0
+      ? type.defaultCount
+      : 10000;
+  };
 
   useEffect(() => {
     if (isOpen) {
       reset({
         dhikrTypeId: firstActiveTypeId,
         assignmentType: "one_time",
-        targetQuantity: 10000,
+        targetQuantity: defaultTargetFor(firstActiveTypeId),
         expiresAt: "",
         periodStart: "",
         periodEnd: "",
       });
     }
   }, [isOpen, firstActiveTypeId, reset]);
+
+  useEffect(() => {
+    if (!isOpen || !selectedTypeId || isKhitma) return;
+    setValue("targetQuantity", defaultTargetFor(selectedTypeId));
+  }, [isOpen, selectedTypeId, isKhitma, setValue]);
 
   const submit = async (data: FormValues) => {
     if (activeTypes.length === 0) {

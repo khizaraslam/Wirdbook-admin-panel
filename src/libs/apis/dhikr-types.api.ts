@@ -11,6 +11,7 @@ export const DhikrTypes_APIS = {
     nameAr: string;
     description?: string;
     sortOrder?: number;
+    defaultCount?: number;
   }) => postRequest("/api/admin/dhikr/types", body),
   update: (
     id: string,
@@ -20,6 +21,7 @@ export const DhikrTypes_APIS = {
       description: string | null;
       status: "active" | "inactive";
       sortOrder: number;
+      defaultCount: number;
     }>,
   ) => patchRequest(`/api/admin/dhikr/types/${id}`, body),
 };

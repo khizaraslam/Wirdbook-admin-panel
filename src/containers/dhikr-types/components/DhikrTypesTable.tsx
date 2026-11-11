@@ -23,6 +23,7 @@ const DhikrTypesTable: React.FC<DhikrTypesTableProps> = ({ items, onEdit }) => {
     "Name",
     "Arabic",
     "Description",
+    "Default count",
     "Status",
     "Created",
     "Actions",
@@ -74,6 +75,11 @@ const DhikrTypesTable: React.FC<DhikrTypesTableProps> = ({ items, onEdit }) => {
                 </td>
                 <td className="py-4 px-4 text-gray-500 text-sm max-w-[200px] truncate">
                   {item.description || "—"}
+                </td>
+                <td className="py-4 px-4 text-gray-700">
+                  {item.kind === "khitma"
+                    ? "30"
+                    : (item.defaultCount ?? 0).toLocaleString()}
                 </td>
                 <td className="py-4 px-4">
                   <span

@@ -9,6 +9,7 @@ import DhikrTypeFormModal, {
   type FormValues,
 } from "./components/DhikrTypeFormModal";
 import type { DhikrTypeDTO } from "@/utils/helpers/models/communities/dhikr-type.dto";
+import CommunitiesSectionTabs from "@/containers/communities/components/CommunitiesSectionTabs";
 
 const DhikrTypes = () => {
   const { getAll, create, update } = useDhikrTypes();
@@ -36,6 +37,7 @@ const DhikrTypes = () => {
       nameAr: values.nameAr,
       description: values.description || undefined,
       sortOrder: values.sortOrder,
+      defaultCount: values.defaultCount,
     });
     if (ok) await loadItems();
     return ok;
@@ -49,6 +51,7 @@ const DhikrTypes = () => {
       description: values.description || null,
       sortOrder: values.sortOrder,
       status: values.status,
+      defaultCount: values.defaultCount,
     });
     if (ok) {
       setEditingItem(null);
@@ -73,6 +76,10 @@ const DhikrTypes = () => {
           <Plus size={18} className="mr-2" />
           Add dhikr type
         </Button>
+      </div>
+
+      <div className="mt-6">
+        <CommunitiesSectionTabs />
       </div>
 
       {!isLoading && items.length === 0 ? (

@@ -7,7 +7,6 @@ import {
   Home,
   LayoutGrid,
   BookOpen,
-  MessageCircleQuestion,
   ImageIcon,
   Sparkles,
   Calendar,
@@ -52,11 +51,6 @@ const MainLayout: React.FC<LayoutProps> = ({ children }) => {
       icon: <BookOpen size={20} />,
     },
     {
-      text: "Q&A",
-      path: "/qa",
-      icon: <MessageCircleQuestion size={20} />,
-    },
-    {
       text: "Banners",
       path: "/banners",
       icon: <ImageIcon size={20} />,
@@ -92,11 +86,6 @@ const MainLayout: React.FC<LayoutProps> = ({ children }) => {
       icon: <Users size={20} />,
     },
     {
-      text: "Dhikr Types",
-      path: "/dhikr-types",
-      icon: <Sparkles size={20} />,
-    },
-    {
       text: "Notifications",
       path: "/notifications",
       icon: <Bell size={20} />,
@@ -111,7 +100,12 @@ const MainLayout: React.FC<LayoutProps> = ({ children }) => {
       return location.pathname.startsWith("/qasidas");
     }
     if (path === "/communities") {
-      return location.pathname.startsWith("/communities");
+      return (
+        location.pathname.startsWith("/communities") ||
+        location.pathname.startsWith("/dhikr-types") ||
+        location.pathname === "/qa" ||
+        location.pathname.startsWith("/qa/")
+      );
     }
     return location.pathname === path;
   };

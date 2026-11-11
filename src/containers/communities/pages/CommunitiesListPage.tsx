@@ -10,6 +10,7 @@ import AssignAdminModal from "../components/AssignAdminModal";
 import type { CommunityDTO } from "@/utils/helpers/models/communities/community.dto";
 import type { CommunityFormPayload } from "../useHooks";
 import { confirmationPopup } from "@/utils/helpers/common/alert-service";
+import CommunitiesSectionTabs from "../components/CommunitiesSectionTabs";
 
 const CommunitiesListPage = () => {
   const { getAll, create, update, updateStatus, assignAdmin } =
@@ -54,13 +55,20 @@ const CommunitiesListPage = () => {
     const nextStatus =
       community.status === "active" ? "inactive" : "active";
     const action = nextStatus === "active" ? "activate" : "deactivate";
-    const confirmed = await confirmationPopup(
+    const result = await confirmationPopup(
       `${action.charAt(0).toUpperCase() + action.slice(1)} community?`,
       `This will ${action} "${community.name}". Inactive communities won't appear in signup/join lists.`,
     );
-    if (!confirmed) return;
+    if (!result.isConfirmed) return;
     const ok = await updateStatus(community.id, nextStatus);
-    if (ok) await loadCommunities();
+    if (ok) {
+      setEditingCommunity((current) =>
+        current?.id === community.id
+          ? { ...current, status: nextStatus }
+          : current,
+      );
+      await loadCommunities();
+    }
   };
 
   const handleAssignAdmin = async (userId: string) => {
@@ -91,6 +99,10 @@ const CommunitiesListPage = () => {
         </Button>
       </div>
 
+      <div className="mt-6">
+        <CommunitiesSectionTabs />
+      </div>
+
       {!isLoading && communities.length === 0 ? (
         <CustomMessageDisplay
           show
@@ -101,8 +113,6 @@ const CommunitiesListPage = () => {
         <CommunitiesTable
           communities={communities}
           onEdit={setEditingCommunity}
-          onToggleStatus={handleToggleStatus}
-          onAssignAdmin={setAssigningCommunity}
         />
       )}
 
@@ -122,6 +132,17 @@ const CommunitiesListPage = () => {
         initialImageUrl={editingCommunity?.imageUrl}
         title="Edit community"
         submitLabel="Save"
+        status={editingCommunity?.status}
+        onToggleStatus={
+          editingCommunity
+            ? () => handleToggleStatus(editingCommunity)
+            : undefined
+        }
+        onAssignAdmin={
+          editingCommunity
+            ? () => setAssigningCommunity(editingCommunity)
+            : undefined
+        }
       />
 
       {assigningCommunity && (

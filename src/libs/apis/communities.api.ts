@@ -19,6 +19,8 @@ export const Communities_APIS = {
     putRequest(`/api/admin/communities/${id}/admin`, body),
   getMembers: (id: string) =>
     getRequest(`/api/admin/communities/${id}/members`),
+  removeMember: (communityId: string, userId: string) =>
+    deleteRequest(`/api/admin/communities/${communityId}/members/${userId}`),
   createDhikrAssignment: (
     communityId: string,
     body: CreateDhikrAssignmentBody,

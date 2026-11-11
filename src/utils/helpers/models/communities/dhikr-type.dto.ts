@@ -10,5 +10,6 @@ export interface DhikrTypeDTO {
   unit?: "count" | "juz";
   juzTotal?: number | null;
   sortOrder: number;
+  defaultCount?: number;
   createdAt: string;
 }

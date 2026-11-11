@@ -1,13 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import {
-  Edit2,
-  UserPlus,
-  Eye,
-  ToggleLeft,
-  ToggleRight,
-  Users,
-} from "lucide-react";
+import { Edit2, Eye, Users } from "lucide-react";
 import Button from "@/components/ui/Button";
 import type { CommunityDTO } from "@/utils/helpers/models/communities/community.dto";
 import { getCommunityImageUrl } from "@/utils/helpers/communities/helpers";
@@ -16,8 +9,6 @@ import { siteRoutes } from "@/utils/helpers/enums/routes.enum";
 interface CommunitiesTableProps {
   communities: CommunityDTO[];
   onEdit: (community: CommunityDTO) => void;
-  onToggleStatus: (community: CommunityDTO) => void;
-  onAssignAdmin: (community: CommunityDTO) => void;
 }
 
 const formatDate = (value: string) => {
@@ -32,8 +23,6 @@ const formatDate = (value: string) => {
 const CommunitiesTable: React.FC<CommunitiesTableProps> = ({
   communities,
   onEdit,
-  onToggleStatus,
-  onAssignAdmin,
 }) => {
   const columns = ["Image", "Name", "Admin", "Members", "Status", "Created", "Actions"];
 
@@ -81,8 +70,16 @@ const CommunitiesTable: React.FC<CommunitiesTableProps> = ({
                   )}
                 </td>
                 <td className="py-4 px-4">
-                  <span className="font-medium text-gray-900">
+                  <span className="inline-flex items-center gap-1 font-medium text-gray-900">
                     {community.name}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onEdit(community)}
+                      title="Edit"
+                    >
+                      <Edit2 size={16} />
+                    </Button>
                   </span>
                 </td>
                 <td className="py-4 px-4 text-gray-600">
@@ -120,38 +117,6 @@ const CommunitiesTable: React.FC<CommunitiesTableProps> = ({
                         <Eye size={16} />
                       </Button>
                     </Link>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onEdit(community)}
-                      title="Edit name"
-                    >
-                      <Edit2 size={16} />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onAssignAdmin(community)}
-                      title="Assign admin"
-                    >
-                      <UserPlus size={16} />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onToggleStatus(community)}
-                      title={
-                        community.status === "active"
-                          ? "Deactivate"
-                          : "Activate"
-                      }
-                    >
-                      {community.status === "active" ? (
-                        <ToggleRight size={16} className="text-emerald-600" />
-                      ) : (
-                        <ToggleLeft size={16} className="text-gray-400" />
-                      )}
-                    </Button>
                   </div>
                 </td>
               </tr>

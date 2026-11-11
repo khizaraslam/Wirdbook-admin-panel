@@ -20,6 +20,7 @@ const useDhikrTypes = () => {
       nameAr: string;
       description?: string;
       sortOrder?: number;
+      defaultCount?: number;
     }) => {
       const response = await DhikrTypes_APIS.create(body);
       const { success = false, message = "" } = response || {};
@@ -42,6 +43,7 @@ const useDhikrTypes = () => {
         description: string | null;
         status: "active" | "inactive";
         sortOrder: number;
+        defaultCount: number;
       }>,
     ) => {
       const response = await DhikrTypes_APIS.update(id, body);

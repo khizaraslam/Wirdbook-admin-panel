@@ -114,6 +114,17 @@ const useCommunities = () => {
     [],
   );
 
+  const removeMember = useCallback(async (id: string, userId: string) => {
+    const response = await Communities_APIS.removeMember(id, userId);
+    const { success = false, message = "" } = response || {};
+    if (success) {
+      successToaster(message || "Member removed");
+      return true;
+    }
+    errorToaster(message || response?.error || "Failed to remove member");
+    return false;
+  }, []);
+
   const assignAdmin = useCallback(async (id: string, userId: string) => {
     const response = await Communities_APIS.assignAdmin(id, { userId });
     const { success = false, message = "" } = response || {};
@@ -309,6 +320,7 @@ const useCommunities = () => {
     update,
     updateStatus,
     assignAdmin,
+    removeMember,
     getMembers,
     getNoticeboardPostReports,
     getNoticeboardLikes,
