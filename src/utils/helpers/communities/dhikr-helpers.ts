@@ -9,6 +9,7 @@ export const ASSIGNMENT_STATUS_STYLES: Record<
 > = {
   open: "bg-blue-50 text-blue-700",
   in_progress: "bg-amber-50 text-amber-700",
+  paused: "bg-orange-50 text-orange-700",
   completed: "bg-emerald-50 text-emerald-700",
   expired: "bg-gray-100 text-gray-600",
 };

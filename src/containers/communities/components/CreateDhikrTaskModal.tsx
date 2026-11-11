@@ -18,6 +18,7 @@ type FormValues = {
   dhikrTypeId: string;
   assignmentType: DhikrAssignmentType;
   targetQuantity: number;
+  khitmaCount: number;
   expiresAt: string;
   periodStart: string;
   periodEnd: string;
@@ -45,6 +46,7 @@ const CreateDhikrTaskModal: React.FC<CreateDhikrTaskModalProps> = ({
       dhikrTypeId: "",
       assignmentType: "one_time",
       targetQuantity: 10000,
+      khitmaCount: 1,
       expiresAt: "",
       periodStart: "",
       periodEnd: "",
@@ -53,6 +55,7 @@ const CreateDhikrTaskModal: React.FC<CreateDhikrTaskModalProps> = ({
 
   const assignmentType = watch("assignmentType");
   const selectedTypeId = watch("dhikrTypeId");
+  const khitmaCount = watch("khitmaCount");
   const periodStart = watch("periodStart");
   const isWeekly = assignmentType === "weekly";
   const selectedType = activeTypes.find((type) => type.id === selectedTypeId);
@@ -71,6 +74,7 @@ const CreateDhikrTaskModal: React.FC<CreateDhikrTaskModalProps> = ({
         dhikrTypeId: firstActiveTypeId,
         assignmentType: "one_time",
         targetQuantity: defaultTargetFor(firstActiveTypeId),
+        khitmaCount: 1,
         expiresAt: "",
         periodStart: "",
         periodEnd: "",
@@ -90,6 +94,18 @@ const CreateDhikrTaskModal: React.FC<CreateDhikrTaskModalProps> = ({
         message: "Create an active dhikr type first",
       });
       return;
+    }
+
+    if (isKhitma) {
+      const count = Number(data.khitmaCount);
+      if (!Number.isInteger(count) || count < 1 || count > 50) {
+        setError("khitmaCount", {
+          type: "manual",
+          message: "Enter a whole number from 1 to 50",
+        });
+        return;
+      }
+      clearErrors("khitmaCount");
     }
 
     if (data.assignmentType === "one_time") {
@@ -122,6 +138,7 @@ const CreateDhikrTaskModal: React.FC<CreateDhikrTaskModalProps> = ({
       assignmentType: data.assignmentType,
       targetQuantity: isKhitma ? 30 : Number(data.targetQuantity),
     };
+    if (isKhitma) body.khitmaCount = Number(data.khitmaCount);
     if (data.assignmentType === "one_time") {
       body.expiresAt = new Date(data.expiresAt).toISOString();
     }
@@ -142,7 +159,7 @@ const CreateDhikrTaskModal: React.FC<CreateDhikrTaskModalProps> = ({
     >
       <p className="text-sm text-gray-500 mb-4">
         {isKhitma
-          ? "Khitma is juz 1–30. Members pick numbers (for example 1, 6, 9). The numbers they do not pick stay free."
+          ? "Each khitmah is its own pool of juz 1–30. The number below is how many of those pools to create now."
           : "Sets a community pool target. Members take portions themselves in the mobile app — nothing is auto-assigned."}
       </p>
       {activeTypes.length === 0 && (
@@ -212,12 +229,22 @@ const CreateDhikrTaskModal: React.FC<CreateDhikrTaskModalProps> = ({
           </div>
 
           {isKhitma ? (
-            <div className="rounded-lg border border-primary/20 bg-primary/5 px-3 py-2">
-              <p className="text-sm text-gray-800">
-                This pool is juz <span className="font-semibold">1 to 30</span>.
-                A member takes specific numbers, for example 1, 6 and 9. Those
-                numbers are taken, and every other number stays available.
-              </p>
+            <div className="space-y-3">
+              <Input
+                label="How many khitmahs *"
+                type="number"
+                min={1}
+                max={50}
+                placeholder="1"
+                hint="Each one is a separate pool of juz 1–30. Members take numbers inside that pool."
+                error={errors.khitmaCount?.message}
+                {...register("khitmaCount", {
+                  required: "Enter how many khitmahs to create",
+                  min: { value: 1, message: "At least 1" },
+                  max: { value: 50, message: "At most 50 at once" },
+                  valueAsNumber: true,
+                })}
+              />
             </div>
           ) : (
             <Input
@@ -308,7 +335,9 @@ const CreateDhikrTaskModal: React.FC<CreateDhikrTaskModalProps> = ({
             isLoading={isSubmitting}
             disabled={activeTypes.length === 0}
           >
-            Create community dhikr task
+            {isKhitma && Number(khitmaCount) > 1
+              ? `Create ${Number(khitmaCount)} khitmahs`
+              : "Create community dhikr task"}
           </Button>
         </div>
       </form>

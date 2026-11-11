@@ -31,6 +31,7 @@ export interface CreateDhikrAssignmentBody {
   dhikrTypeId: string;
   assignmentType: DhikrAssignmentType;
   targetQuantity: number;
+  khitmaCount?: number;
   expiresAt?: string;
   periodStart?: string;
   periodEnd?: string;

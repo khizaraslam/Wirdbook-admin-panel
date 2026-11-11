@@ -43,6 +43,60 @@ const useCommunityDhikr = () => {
     [],
   );
 
+  const pauseAssignment = useCallback(
+    async (communityId: string, assignmentId: string) => {
+      const response = await Communities_APIS.pauseDhikrAssignment(
+        communityId,
+        assignmentId,
+      );
+      const { success = false, message = "" } = response || {};
+      if (success) {
+        successToaster(message || "Community dhikr task paused.");
+        return true;
+      }
+      errorToaster(message || response?.error || "Failed to pause dhikr task");
+      return false;
+    },
+    [],
+  );
+
+  const resumeAssignment = useCallback(
+    async (communityId: string, assignmentId: string) => {
+      const response = await Communities_APIS.resumeDhikrAssignment(
+        communityId,
+        assignmentId,
+      );
+      const { success = false, message = "" } = response || {};
+      if (success) {
+        successToaster(message || "Community dhikr task resumed.");
+        return true;
+      }
+      errorToaster(message || response?.error || "Failed to resume dhikr task");
+      return false;
+    },
+    [],
+  );
+
+  const deleteAssignment = useCallback(
+    async (communityId: string, assignmentId: string) => {
+      const response = await Communities_APIS.deleteDhikrAssignment(
+        communityId,
+        assignmentId,
+      );
+      const { success = false, message = "" } = response || {};
+      if (success) {
+        successToaster(
+          message ||
+            "Task removed from the admin panel. Member usage history is kept.",
+        );
+        return true;
+      }
+      errorToaster(message || response?.error || "Failed to delete dhikr task");
+      return false;
+    },
+    [],
+  );
+
   const getReport = useCallback(
     async (
       communityId: string,
@@ -59,7 +113,14 @@ const useCommunityDhikr = () => {
     [],
   );
 
-  return { getAssignments, createAssignment, getReport };
+  return {
+    getAssignments,
+    createAssignment,
+    pauseAssignment,
+    resumeAssignment,
+    deleteAssignment,
+    getReport,
+  };
 };
 
 export default useCommunityDhikr;

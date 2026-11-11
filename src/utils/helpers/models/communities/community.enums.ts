@@ -6,6 +6,7 @@ export type DhikrAssignmentType = "one_time" | "weekly";
 export type DhikrAssignmentStatus =
   | "open"
   | "in_progress"
+  | "paused"
   | "completed"
   | "expired";
 export type DhikrClaimStatus = "active" | "completed" | "returned";

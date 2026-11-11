@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
+import { confirmationPopup } from "@/utils/helpers/common/alert-service";
 import useCommunityDhikr from "../useDhikrHooks";
 import useDhikrTypes from "@/containers/dhikr-types/useHooks";
 import CreateDhikrTaskModal from "./CreateDhikrTaskModal";
@@ -19,7 +20,14 @@ interface CommunityDhikrTabProps {
 const CommunityDhikrTab: React.FC<CommunityDhikrTabProps> = ({
   communityId,
 }) => {
-  const { getAssignments, createAssignment, getReport } = useCommunityDhikr();
+  const {
+    getAssignments,
+    createAssignment,
+    pauseAssignment,
+    resumeAssignment,
+    deleteAssignment,
+    getReport,
+  } = useCommunityDhikr();
   const { getAll: getDhikrTypes } = useDhikrTypes();
   const [assignments, setAssignments] = useState<DhikrAssignmentDTO[]>([]);
   const [dhikrTypes, setDhikrTypes] = useState<DhikrTypeDTO[]>([]);
@@ -30,6 +38,7 @@ const CommunityDhikrTab: React.FC<CommunityDhikrTabProps> = ({
     null,
   );
   const [reportLoading, setReportLoading] = useState(false);
+  const [actingId, setActingId] = useState<string | null>(null);
   const hasActiveDhikrTypes = dhikrTypes.some((item) => item.status === "active");
 
   const loadAssignments = useCallback(async () => {
@@ -52,12 +61,16 @@ const CommunityDhikrTab: React.FC<CommunityDhikrTabProps> = ({
     loadDhikrTypes();
   }, [loadAssignments, loadDhikrTypes]);
 
-  const activePoolAssignment = useMemo(() => {
-    const active = assignments.find(
-      (a) => a.status === "open" || a.status === "in_progress",
-    );
-    return active ?? assignments[0] ?? null;
-  }, [assignments]);
+  const openPools = useMemo(
+    () =>
+      assignments.filter(
+        (a) =>
+          a.status === "open" ||
+          a.status === "in_progress" ||
+          a.status === "paused",
+      ),
+    [assignments],
+  );
 
   const handleCreate = async (body: CreateDhikrAssignmentBody) => {
     const ok = await createAssignment(communityId, body);
@@ -77,6 +90,53 @@ const CommunityDhikrTab: React.FC<CommunityDhikrTabProps> = ({
   const handleViewReport = async (assignment: DhikrAssignmentDTO) => {
     setSelectedAssignment(assignment);
     await loadReport(assignment.id);
+  };
+
+  const handlePause = async (assignment: DhikrAssignmentDTO) => {
+    const weekly = assignment.assignmentType === "weekly";
+    const result = await confirmationPopup(
+      weekly ? "Pause this weekly task?" : "Pause this task?",
+      weekly
+        ? "Members cannot add progress. On the week end date this task ends and the next week is not created. Resume before that date if it should continue."
+        : "Members cannot add progress until you resume it.",
+    );
+    if (!result.isConfirmed) return;
+    setActingId(assignment.id);
+    const ok = await pauseAssignment(communityId, assignment.id);
+    setActingId(null);
+    if (ok) await loadAssignments();
+  };
+
+  const handleResume = async (assignment: DhikrAssignmentDTO) => {
+    const result = await confirmationPopup(
+      "Resume this task?",
+      assignment.assignmentType === "weekly"
+        ? "Members can take portions again. If this week is still open, the next week will be created when it ends."
+        : "Members can take portions again.",
+    );
+    if (!result.isConfirmed) return;
+    setActingId(assignment.id);
+    const ok = await resumeAssignment(communityId, assignment.id);
+    setActingId(null);
+    if (ok) await loadAssignments();
+  };
+
+  const handleDelete = async (assignment: DhikrAssignmentDTO) => {
+    const result = await confirmationPopup(
+      "Remove this task from the admin panel?",
+      `${assignment.dhikrName || "This task"} closes and disappears from this list. Members keep the usage they already recorded.`,
+    );
+    if (!result.isConfirmed) return;
+    setActingId(assignment.id);
+    const ok = await deleteAssignment(communityId, assignment.id);
+    setActingId(null);
+    if (ok) {
+      if (selectedAssignment?.id === assignment.id) {
+        setSelectedAssignment(null);
+        setReport(null);
+      }
+      await loadAssignments();
+    }
   };
 
   return (
@@ -112,12 +172,16 @@ const CommunityDhikrTab: React.FC<CommunityDhikrTabProps> = ({
         </div>
       )}
 
-      <PoolStatusCard assignment={activePoolAssignment} />
+      <PoolStatusCard assignments={openPools} />
 
       <DhikrAssignmentsTable
         assignments={assignments}
         selectedId={selectedAssignment?.id ?? null}
+        actingId={actingId}
         onViewReport={handleViewReport}
+        onPause={handlePause}
+        onResume={handleResume}
+        onDelete={handleDelete}
       />
 
       <Modal

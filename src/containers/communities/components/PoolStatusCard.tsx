@@ -9,7 +9,7 @@ import {
 } from "@/utils/helpers/communities/dhikr-helpers";
 
 interface PoolStatusCardProps {
-  assignment: DhikrAssignmentDTO | null;
+  assignments: DhikrAssignmentDTO[];
 }
 
 const StatItem: React.FC<{ label: string; value: string | number }> = ({
@@ -24,8 +24,8 @@ const StatItem: React.FC<{ label: string; value: string | number }> = ({
   </div>
 );
 
-const PoolStatusCard: React.FC<PoolStatusCardProps> = ({ assignment }) => {
-  if (!assignment) {
+const PoolStatusCard: React.FC<PoolStatusCardProps> = ({ assignments }) => {
+  if (assignments.length === 0) {
     return (
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
         <h2 className="text-lg font-bold text-gray-900">Pool status</h2>
@@ -36,6 +36,24 @@ const PoolStatusCard: React.FC<PoolStatusCardProps> = ({ assignment }) => {
     );
   }
 
+  return (
+    <div className="space-y-4">
+      <div>
+        <h2 className="text-lg font-bold text-gray-900">Pool status</h2>
+        <p className="text-sm text-gray-500 mt-0.5">
+          {assignments.length} {assignments.length === 1 ? "task" : "tasks"}
+        </p>
+      </div>
+      {assignments.map((assignment) => (
+        <PoolCard key={assignment.id} assignment={assignment} />
+      ))}
+    </div>
+  );
+};
+
+const PoolCard: React.FC<{ assignment: DhikrAssignmentDTO }> = ({
+  assignment,
+}) => {
   const isKhitma = assignment.kind === "khitma" || assignment.unit === "juz";
   const juz = (value: number) => (isKhitma ? `${value} juz` : value);
 
@@ -43,9 +61,10 @@ const PoolStatusCard: React.FC<PoolStatusCardProps> = ({ assignment }) => {
     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
       <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
         <div>
-          <h2 className="text-lg font-bold text-gray-900">Pool status</h2>
+          <h3 className="text-base font-bold text-gray-900">
+            {assignment.dhikrName || "Dhikr task"}
+          </h3>
           <p className="text-sm text-gray-500 mt-0.5">
-            {assignment.dhikrName || "Dhikr task"} ·{" "}
             {formatAssignmentType(assignment.assignmentType)}
           </p>
         </div>

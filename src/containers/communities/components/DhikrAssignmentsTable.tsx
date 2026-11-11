@@ -1,5 +1,5 @@
 import React from "react";
-import { BarChart3 } from "lucide-react";
+import { BarChart3, Pause, Play, Trash2 } from "lucide-react";
 import Button from "@/components/ui/Button";
 import type { DhikrAssignmentDTO } from "@/utils/helpers/models/communities/dhikr-assignment.dto";
 import {
@@ -13,13 +13,21 @@ import {
 interface DhikrAssignmentsTableProps {
   assignments: DhikrAssignmentDTO[];
   selectedId: string | null;
+  actingId: string | null;
   onViewReport: (assignment: DhikrAssignmentDTO) => void;
+  onPause: (assignment: DhikrAssignmentDTO) => void;
+  onResume: (assignment: DhikrAssignmentDTO) => void;
+  onDelete: (assignment: DhikrAssignmentDTO) => void;
 }
 
 const DhikrAssignmentsTable: React.FC<DhikrAssignmentsTableProps> = ({
   assignments,
   selectedId,
+  actingId,
   onViewReport,
+  onPause,
+  onResume,
+  onDelete,
 }) => {
   const columns = [
     "Dhikr",
@@ -114,14 +122,52 @@ const DhikrAssignmentsTable: React.FC<DhikrAssignmentsTableProps> = ({
                     {formatDate(item.createdAt)}
                   </td>
                   <td className="py-4 px-4">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onViewReport(item)}
-                      title="View report"
-                    >
-                      <BarChart3 size={16} />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      {(item.status === "open" ||
+                        item.status === "in_progress") && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onPause(item)}
+                          disabled={actingId !== null}
+                          title={
+                            item.assignmentType === "weekly"
+                              ? "Pause. This week ends on its end date and the next week is not created."
+                              : "Pause this task"
+                          }
+                        >
+                          <Pause size={16} />
+                        </Button>
+                      )}
+                      {item.status === "paused" && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onResume(item)}
+                          disabled={actingId !== null}
+                          title="Resume this task"
+                        >
+                          <Play size={16} />
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onViewReport(item)}
+                        title="View report"
+                      >
+                        <BarChart3 size={16} />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onDelete(item)}
+                        disabled={actingId !== null}
+                        title="Remove from the admin panel. Member usage history stays."
+                      >
+                        <Trash2 size={16} />
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))

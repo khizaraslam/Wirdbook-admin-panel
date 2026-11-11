@@ -27,6 +27,20 @@ export const Communities_APIS = {
   ) => postRequest(`/api/admin/communities/${communityId}/dhikr/assign`, body),
   getDhikrAssignments: (communityId: string) =>
     getRequest(`/api/admin/communities/${communityId}/dhikr/assignments`),
+  pauseDhikrAssignment: (communityId: string, assignmentId: string) =>
+    postRequest(
+      `/api/admin/communities/${communityId}/dhikr/assignments/${assignmentId}/pause`,
+      {},
+    ),
+  resumeDhikrAssignment: (communityId: string, assignmentId: string) =>
+    postRequest(
+      `/api/admin/communities/${communityId}/dhikr/assignments/${assignmentId}/resume`,
+      {},
+    ),
+  deleteDhikrAssignment: (communityId: string, assignmentId: string) =>
+    deleteRequest(
+      `/api/admin/communities/${communityId}/dhikr/assignments/${assignmentId}`,
+    ),
   getDhikrReport: (communityId: string, assignmentId?: string) => {
     const query = assignmentId ? `?assignmentId=${assignmentId}` : "";
     return getRequest(
