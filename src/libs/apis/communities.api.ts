@@ -41,6 +41,15 @@ export const Communities_APIS = {
     deleteRequest(
       `/api/admin/communities/${communityId}/dhikr/assignments/${assignmentId}`,
     ),
+  returnDhikrClaim: (
+    communityId: string,
+    claimId: string,
+    body: { quantity?: number; juzNumbers?: number[] },
+  ) =>
+    postRequest(
+      `/api/admin/communities/${communityId}/dhikr/claims/${claimId}/return`,
+      body,
+    ),
   getDhikrReport: (communityId: string, assignmentId?: string) => {
     const query = assignmentId ? `?assignmentId=${assignmentId}` : "";
     return getRequest(

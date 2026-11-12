@@ -38,6 +38,7 @@ export interface CreateDhikrAssignmentBody {
 }
 
 export interface DhikrClaimReportDTO {
+  id?: string;
   userId?: string;
   userName: string;
   claimedQuantity: number;

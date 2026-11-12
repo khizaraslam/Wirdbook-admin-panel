@@ -1,15 +1,23 @@
 import React from "react";
-import type { DhikrReportDTO } from "@/utils/helpers/models/communities/dhikr-assignment.dto";
+import Button from "@/components/ui/Button";
+import type {
+  DhikrClaimReportDTO,
+  DhikrReportDTO,
+} from "@/utils/helpers/models/communities/dhikr-assignment.dto";
 import { CLAIM_STATUS_STYLES } from "@/utils/helpers/communities/dhikr-helpers";
 
 interface DhikrReportTableProps {
   report: DhikrReportDTO | null;
   isLoading?: boolean;
+  returningId?: string | null;
+  onReturn?: (claim: DhikrClaimReportDTO) => void;
 }
 
 const DhikrReportTable: React.FC<DhikrReportTableProps> = ({
   report,
   isLoading,
+  returningId,
+  onReturn,
 }) => {
   const isKhitma = report?.claims.some(
     (claim) => claim.juzNumbers?.length || claim.completedJuz || claim.pendingJuz,
@@ -20,6 +28,7 @@ const DhikrReportTable: React.FC<DhikrReportTableProps> = ({
     isKhitma ? "Read" : "Progress",
     isKhitma ? "Left" : "Remaining",
     "Status",
+    "",
   ];
 
   if (isLoading) {
@@ -63,9 +72,18 @@ const DhikrReportTable: React.FC<DhikrReportTableProps> = ({
                 </td>
               </tr>
             ) : (
-              report.claims.map((claim, index) => (
+              report.claims.map((claim, index) => {
+                const unread = claim.pendingJuz?.length
+                  ? claim.pendingJuz.length
+                  : claim.remaining;
+                const canReturn =
+                  !!onReturn &&
+                  !!claim.id &&
+                  claim.status === "active" &&
+                  unread > 0;
+                return (
                 <tr
-                  key={claim.userId ?? `${claim.userName}-${index}`}
+                  key={claim.id ?? `${claim.userName}-${index}`}
                   className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors"
                 >
                   <td className="py-4 px-4 font-medium text-gray-900">
@@ -97,8 +115,21 @@ const DhikrReportTable: React.FC<DhikrReportTableProps> = ({
                       {claim.status}
                     </span>
                   </td>
+                  <td className="py-4 px-4 text-right">
+                    {canReturn && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={returningId !== null}
+                        onClick={() => onReturn(claim)}
+                      >
+                        {returningId === claim.id ? "Returning..." : "Return to pool"}
+                      </Button>
+                    )}
+                  </td>
                 </tr>
-              ))
+                );
+              })
             )}
           </tbody>
         </table>

@@ -97,6 +97,28 @@ const useCommunityDhikr = () => {
     [],
   );
 
+  const returnClaim = useCallback(
+    async (
+      communityId: string,
+      claimId: string,
+      body: { quantity?: number; juzNumbers?: number[] },
+    ) => {
+      const response = await Communities_APIS.returnDhikrClaim(
+        communityId,
+        claimId,
+        body,
+      );
+      const { success = false, message = "" } = response || {};
+      if (success) {
+        successToaster(message || "Chosen amount returned to the pool.");
+        return true;
+      }
+      errorToaster(message || response?.error || "Failed to return this portion");
+      return false;
+    },
+    [],
+  );
+
   const getReport = useCallback(
     async (
       communityId: string,
@@ -107,8 +129,21 @@ const useCommunityDhikr = () => {
         assignmentId,
       );
       const { success = false, data = null } = response || {};
-      if (success && data) return data as DhikrReportDTO;
-      return null;
+      if (!success || !data || typeof data !== "object") return null;
+      const payload = data as DhikrReportDTO & {
+        assignment?: DhikrAssignmentDTO;
+      };
+      if (payload.assignment && Array.isArray(payload.claims)) {
+        return {
+          assignmentId: payload.assignment.id,
+          dhikrName:
+            payload.assignment.dhikrName ?? payload.assignment.dhikrTypeName,
+          totalTarget: payload.assignment.totalTarget,
+          completedTotal: payload.assignment.completedTotal,
+          claims: payload.claims,
+        };
+      }
+      return payload;
     },
     [],
   );
@@ -120,6 +155,7 @@ const useCommunityDhikr = () => {
     resumeAssignment,
     deleteAssignment,
     getReport,
+    returnClaim,
   };
 };
 

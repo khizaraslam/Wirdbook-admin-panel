@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
+import Swal from "sweetalert2";
 import { confirmationPopup } from "@/utils/helpers/common/alert-service";
 import useCommunityDhikr from "../useDhikrHooks";
 import useDhikrTypes from "@/containers/dhikr-types/useHooks";
@@ -9,7 +10,10 @@ import CreateDhikrTaskModal from "./CreateDhikrTaskModal";
 import PoolStatusCard from "./PoolStatusCard";
 import DhikrAssignmentsTable from "./DhikrAssignmentsTable";
 import DhikrReportTable from "./DhikrReportTable";
-import type { DhikrAssignmentDTO } from "@/utils/helpers/models/communities/dhikr-assignment.dto";
+import type {
+  DhikrAssignmentDTO,
+  DhikrClaimReportDTO,
+} from "@/utils/helpers/models/communities/dhikr-assignment.dto";
 import type { DhikrTypeDTO } from "@/utils/helpers/models/communities/dhikr-type.dto";
 import type { CreateDhikrAssignmentBody } from "@/utils/helpers/models/communities/dhikr-assignment.dto";
 
@@ -27,6 +31,7 @@ const CommunityDhikrTab: React.FC<CommunityDhikrTabProps> = ({
     resumeAssignment,
     deleteAssignment,
     getReport,
+    returnClaim,
   } = useCommunityDhikr();
   const { getAll: getDhikrTypes } = useDhikrTypes();
   const [assignments, setAssignments] = useState<DhikrAssignmentDTO[]>([]);
@@ -38,6 +43,7 @@ const CommunityDhikrTab: React.FC<CommunityDhikrTabProps> = ({
     null,
   );
   const [reportLoading, setReportLoading] = useState(false);
+  const [returningId, setReturningId] = useState<string | null>(null);
   const [actingId, setActingId] = useState<string | null>(null);
   const hasActiveDhikrTypes = dhikrTypes.some((item) => item.status === "active");
 
@@ -85,6 +91,65 @@ const CommunityDhikrTab: React.FC<CommunityDhikrTabProps> = ({
     const data = await getReport(communityId, assignmentId);
     setReport(data);
     setReportLoading(false);
+  };
+
+  const handleReturnClaim = async (claim: DhikrClaimReportDTO) => {
+    if (!claim.id || !selectedAssignment) return;
+    const pendingJuz = claim.pendingJuz ?? [];
+    const isKhitma = pendingJuz.length > 0;
+    const available = isKhitma ? pendingJuz.length : claim.remaining;
+    const result = await Swal.fire({
+      title: `How much of ${claim.userName}'s available count should go back?`,
+      text: isKhitma
+        ? `Unread juz: ${pendingJuz.join(", ")}. Enter only the numbers to return. Finished juz stay.`
+        : `Available to return: ${available}. Finished count stays on this claim.`,
+      input: "text",
+      inputPlaceholder: isKhitma ? pendingJuz.join(", ") : String(available),
+      showCancelButton: true,
+      confirmButtonText: "Return",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#4f9c37",
+      cancelButtonColor: "#d33",
+      background: "white",
+      inputValidator: (value) => {
+        if (isKhitma) {
+          const numbers = value
+            .split(/[^0-9]+/)
+            .map((part) => Number(part))
+            .filter((part) => part > 0);
+          if (numbers.length === 0) return "Enter the juz numbers to return.";
+          const blocked = numbers.filter((n) => !pendingJuz.includes(n));
+          if (blocked.length > 0) {
+            return `Only unread juz can be returned. Not available: ${blocked.join(", ")}.`;
+          }
+          return undefined;
+        }
+        const amount = Number(value);
+        if (!Number.isInteger(amount) || amount < 1) {
+          return "Enter a whole number of at least 1.";
+        }
+        if (amount > available) {
+          return `You can return at most ${available}.`;
+        }
+        return undefined;
+      },
+    });
+    if (!result.isConfirmed || result.value == null) return;
+    const body = isKhitma
+      ? {
+          juzNumbers: String(result.value)
+            .split(/[^0-9]+/)
+            .map((part) => Number(part))
+            .filter((part) => part > 0),
+        }
+      : { quantity: Number(result.value) };
+    setReturningId(claim.id);
+    const ok = await returnClaim(communityId, claim.id, body);
+    setReturningId(null);
+    if (ok) {
+      await loadReport(selectedAssignment.id);
+      await loadAssignments();
+    }
   };
 
   const handleViewReport = async (assignment: DhikrAssignmentDTO) => {
@@ -197,7 +262,12 @@ const CommunityDhikrTab: React.FC<CommunityDhikrTabProps> = ({
         }
         className="max-w-4xl"
       >
-        <DhikrReportTable report={report} isLoading={reportLoading} />
+        <DhikrReportTable
+          report={report}
+          isLoading={reportLoading}
+          returningId={returningId}
+          onReturn={handleReturnClaim}
+        />
       </Modal>
 
       <CreateDhikrTaskModal
