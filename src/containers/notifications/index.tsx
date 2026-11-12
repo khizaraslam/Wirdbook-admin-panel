@@ -8,6 +8,7 @@ import { AppUsers_APIS, type AppUserOption } from "@/libs/apis/app-users.api";
 import { confirmationPopup } from "@/utils/helpers/common/alert-service";
 import type { AdminNotificationDTO } from "@/utils/helpers/models/notifications/notification.dto";
 import useNotifications from "./useHooks";
+import NotificationCampaigns from "./components/NotificationCampaigns";
 
 interface PaginationMeta {
   page: number;
@@ -118,7 +119,7 @@ const Notifications = () => {
           Notifications
         </h1>
         <p className="text-gray-500 mt-1">
-          Send a bulk notification to every user, or to one selected user.
+          Send a bulk notification now, or schedule a campaign.
         </p>
       </div>
 
@@ -232,6 +233,8 @@ const Notifications = () => {
           {audience === "user" ? "Send to selected user" : "Send to all users"}
         </Button>
       </form>
+
+      <NotificationCampaigns />
 
       <div className="bg-white rounded-2xl p-6 mt-8 shadow-sm border border-gray-100">
         <h2 className="text-lg font-bold text-gray-900 mb-4">Sent notifications</h2>

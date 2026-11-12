@@ -2,7 +2,11 @@ import {
   errorToaster,
   successToaster,
 } from "@/utils/helpers/common/alert-service";
-import { Notifications_APIS } from "@/libs/apis/notifications.api";
+import {
+  Notifications_APIS,
+  type NotificationCampaign,
+  type NotificationCampaignPayload,
+} from "@/libs/apis/notifications.api";
 import type {
   AdminNotificationDTO,
   SendNotificationPayload,
@@ -62,7 +66,67 @@ const useNotifications = () => {
     return false;
   };
 
-  return { list, send, remove };
+  const listCampaigns = async () => {
+    const response = await Notifications_APIS.listCampaigns();
+    const { success = false, data = [] } = response || {};
+    if (!success) return [] as NotificationCampaign[];
+    return (data || []) as NotificationCampaign[];
+  };
+
+  const createCampaign = async (payload: NotificationCampaignPayload) => {
+    const response = await Notifications_APIS.createCampaign(payload);
+    const { success = false, message = "" } = response || {};
+    if (success) {
+      successToaster(message || "Campaign created.");
+      return true;
+    }
+    errorToaster(message || "Failed to create campaign");
+    return false;
+  };
+
+  const pauseCampaign = async (id: string) => {
+    const response = await Notifications_APIS.pauseCampaign(id);
+    const { success = false, message = "" } = response || {};
+    if (success) {
+      successToaster(message || "Campaign paused.");
+      return true;
+    }
+    errorToaster(message || "Failed to pause campaign");
+    return false;
+  };
+
+  const resumeCampaign = async (id: string) => {
+    const response = await Notifications_APIS.resumeCampaign(id);
+    const { success = false, message = "" } = response || {};
+    if (success) {
+      successToaster(message || "Campaign resumed.");
+      return true;
+    }
+    errorToaster(message || "Failed to resume campaign");
+    return false;
+  };
+
+  const removeCampaign = async (id: string) => {
+    const response = await Notifications_APIS.removeCampaign(id);
+    const { success = false, message = "" } = response || {};
+    if (success) {
+      successToaster(message || "Campaign deleted.");
+      return true;
+    }
+    errorToaster(message || "Failed to delete campaign");
+    return false;
+  };
+
+  return {
+    list,
+    send,
+    remove,
+    listCampaigns,
+    createCampaign,
+    pauseCampaign,
+    resumeCampaign,
+    removeCampaign,
+  };
 };
 
 export default useNotifications;
