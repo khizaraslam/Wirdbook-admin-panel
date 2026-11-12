@@ -17,13 +17,19 @@ export const Qasidas_APIS = {
   }) => putRequest("/api/admin/qasidas/settings", body),
   getFieldOptions: () => getRequest("/api/admin/qasidas/field-options"),
 
-  list: (params?: { page?: number; limit?: number; search?: string }) =>
-    getRequest("/api/admin/qasidas", params),
+  list: (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    reviewStatus?: "pending" | "approved" | "rejected";
+  }) => getRequest("/api/admin/qasidas", params),
   getOne: (id: string) => getRequest(`/api/admin/qasidas/${id}`),
   create: (body: FormData) => postRequest("/api/admin/qasidas", body),
   update: (id: string, body: FormData) =>
     patchRequest(`/api/admin/qasidas/${id}`, body),
   remove: (id: string) => deleteRequest(`/api/admin/qasidas/${id}`),
+  approve: (id: string) => postRequest(`/api/admin/qasidas/${id}/approve`, {}),
+  reject: (id: string) => postRequest(`/api/admin/qasidas/${id}/reject`, {}),
   reorder: (ids: string[]) =>
     patchRequest("/api/admin/qasidas/reorder", { ids }),
 

@@ -41,14 +41,14 @@ const MainLayout: React.FC<LayoutProps> = ({ children }) => {
       icon: <Home size={20} />,
     },
     {
-      text: "Tabs",
-      path: "/tabs",
-      icon: <LayoutGrid size={20} />,
-    },
-    {
       text: "Lectures",
       path: "/lectures",
       icon: <BookOpen size={20} />,
+    },
+    {
+      text: "Tabs",
+      path: "/tabs",
+      icon: <LayoutGrid size={20} />,
     },
     {
       text: "Banners",

@@ -10,6 +10,7 @@ import WirdsTab from "../components/WirdsTab";
 import useQasidas from "../useHooks";
 import { siteRoutes } from "@/utils/helpers/enums/routes.enum";
 import { ArrowLeft } from "lucide-react";
+import { confirmationPopup } from "@/utils/helpers/common/alert-service";
 import type { Qasida } from "@/utils/helpers/models/qasidas/qasida.dto";
 import type { ReciterAudioDraft } from "../components/ReciterAudiosEditor";
 import ReciterAudiosPlayer from "../components/ReciterAudiosPlayer";
@@ -46,7 +47,7 @@ const audiosToDrafts = (q: Qasida): ReciterAudioDraft[] =>
 const QasidaEditPage = () => {
   const { id = "" } = useParams<{ id: string }>();
   const location = useLocation();
-  const { getQasida, updateQasida } = useQasidas();
+  const { getQasida, updateQasida, approveQasida, rejectQasida } = useQasidas();
   const [qasida, setQasida] = useState<Qasida | null>(null);
   const [tab, setTab] = useState<TabId>(
     (location.state as { tab?: TabId })?.tab === "wirds" ? "wirds" : "details",
@@ -99,6 +100,34 @@ const QasidaEditPage = () => {
     }
   };
 
+  const refresh = async () => {
+    const data = await getQasida(id);
+    if (!data) return;
+    setQasida(data);
+    reset(qasidaToFormValues(data));
+    setReciters(audiosToDrafts(data));
+  };
+
+  const handleApprove = async () => {
+    const result = await confirmationPopup(
+      "Approve this qasida?",
+      "It will appear in the public qasida API for everyone.",
+    );
+    if (!result.isConfirmed) return;
+    const ok = await approveQasida(id);
+    if (ok) await refresh();
+  };
+
+  const handleReject = async () => {
+    const result = await confirmationPopup(
+      "Reject this qasida?",
+      "It stays on the user’s personal list and will not appear in the public qasida API.",
+    );
+    if (!result.isConfirmed) return;
+    const ok = await rejectQasida(id);
+    if (ok) await refresh();
+  };
+
   if (!qasida) {
     return (
       <p className="text-muted mt-8">Loading qasida…</p>
@@ -120,7 +149,26 @@ const QasidaEditPage = () => {
       <p className="text-muted mt-1">
         {qasida.totalWirds} verses
         {qasida.sourceId != null ? ` · source #${qasida.sourceId}` : ""}
+        {qasida.reviewStatus === "pending"
+          ? " · Pending review"
+          : qasida.reviewStatus === "rejected"
+            ? " · Rejected"
+            : ""}
       </p>
+      {qasida.submittedBy && (
+        <div className="flex flex-wrap gap-2 mt-4">
+          {qasida.reviewStatus !== "approved" && (
+            <Button type="button" variant="primary" onClick={handleApprove}>
+              Approve
+            </Button>
+          )}
+          {qasida.reviewStatus !== "rejected" && (
+            <Button type="button" variant="secondary" onClick={handleReject}>
+              Reject
+            </Button>
+          )}
+        </div>
+      )}
 
       <div className="mt-6 max-w-3xl">
         <ReciterAudiosPlayer qasida={qasida} />

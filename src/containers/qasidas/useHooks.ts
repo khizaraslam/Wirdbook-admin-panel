@@ -50,7 +50,12 @@ const useQasidas = () => {
 
   const listQasidas = useCallback(
     async (
-      params: { page?: number; limit?: number; search?: string },
+      params: {
+        page?: number;
+        limit?: number;
+        search?: string;
+        reviewStatus?: "pending" | "approved" | "rejected";
+      },
       setData: (data: Qasida[]) => void,
       setPagination: (p: Pagination) => void,
     ) => {
@@ -145,6 +150,28 @@ const useQasidas = () => {
     [],
   );
 
+  const rejectQasida = useCallback(async (id: string) => {
+    const response = await Qasidas_APIS.reject(id);
+    const { success = false, message = "" } = response || {};
+    if (success) {
+      successToaster(message || "Qasida rejected.");
+      return true;
+    }
+    errorToaster(message || "Failed to reject qasida");
+    return false;
+  }, []);
+
+  const approveQasida = useCallback(async (id: string) => {
+    const response = await Qasidas_APIS.approve(id);
+    const { success = false, message = "" } = response || {};
+    if (success) {
+      successToaster(message || "Qasida approved and published.");
+      return true;
+    }
+    errorToaster(message || "Failed to approve qasida");
+    return false;
+  }, []);
+
   const deleteWird = useCallback(async (qasidaId: string, wirdId: string) => {
     const response = await Qasidas_APIS.removeWird(qasidaId, wirdId);
     const { success = false, message = "" } = response || {};
@@ -189,6 +216,8 @@ const useQasidas = () => {
     createQasida,
     updateQasida,
     deleteQasida,
+    approveQasida,
+    rejectQasida,
     listWirds,
     createWird,
     updateWird,
