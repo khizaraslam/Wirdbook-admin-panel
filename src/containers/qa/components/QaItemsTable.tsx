@@ -76,14 +76,18 @@ const QaItemsTable: React.FC<QaItemsTableProps> = ({
         </p>
       </div>
       <div className="w-full overflow-x-auto">
-        <table className="w-full text-left border-collapse min-w-[1100px]">
+        <table className="w-full text-left border-collapse table-auto">
           <thead>
             <tr className="border-b border-gray-100 bg-gray-50/30">
               {columns.map((column) => (
                 <th
                   key={column}
-                  className={`py-5 px-4 text-sm font-bold text-gray-400 whitespace-nowrap ${
-                    column === "Actions" ? "text-right" : "text-left"
+                  className={`py-5 px-4 text-sm font-bold text-gray-400 ${
+                    column === "Question"
+                      ? "sticky left-0 z-20 bg-gray-50 min-w-[240px] max-w-[36%] text-left shadow-[2px_0_8px_rgba(0,0,0,0.04)]"
+                      : column === "Actions"
+                        ? "text-right"
+                        : "whitespace-nowrap text-left"
                   }`}
                 >
                   {column}
@@ -110,7 +114,7 @@ const QaItemsTable: React.FC<QaItemsTableProps> = ({
                     key={item.id}
                     className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors group"
                   >
-                    <td className="py-4 px-2 max-w-md">
+                    <td className="py-4 px-2 min-w-[240px] max-w-[36%] sticky left-0 z-10 bg-white group-hover:bg-gray-50 shadow-[2px_0_8px_rgba(0,0,0,0.04)] align-top">
                       <div className="flex items-start gap-3">
                         <div className="p-2 bg-gray-50 text-gray-400 rounded-lg shrink-0 border border-transparent group-hover:border-primary/10">
                           <HelpCircle size={18} />
@@ -119,7 +123,7 @@ const QaItemsTable: React.FC<QaItemsTableProps> = ({
                           <button
                             type="button"
                             onClick={() => onEdit(item)}
-                            className="block w-full text-left font-semibold text-primary text-sm truncate hover:underline cursor-pointer"
+                            className="block w-full text-left font-semibold text-primary text-sm whitespace-normal break-words hover:underline cursor-pointer"
                             dir="ltr"
                             title="Open to edit / answer"
                           >
@@ -129,7 +133,7 @@ const QaItemsTable: React.FC<QaItemsTableProps> = ({
                             <button
                               type="button"
                               onClick={() => onEdit(item)}
-                              className="block w-full text-left text-xs text-gray-500 mt-1 truncate hover:underline hover:text-primary cursor-pointer"
+                              className="block w-full text-left text-xs text-gray-500 mt-1 whitespace-normal break-words hover:underline hover:text-primary cursor-pointer"
                               dir="rtl"
                               title="Open to edit / answer"
                             >
@@ -149,7 +153,7 @@ const QaItemsTable: React.FC<QaItemsTableProps> = ({
                         {item.source === "user" && (
                           <User size={14} className="text-gray-400 shrink-0" />
                         )}
-                        <span className="truncate max-w-[120px]">{askerName}</span>
+                        <span className="whitespace-normal break-words">{askerName}</span>
                       </span>
                     </td>
                     <td className="py-4 px-4 text-sm">

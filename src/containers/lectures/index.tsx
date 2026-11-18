@@ -14,6 +14,7 @@ import Pagination from "@/components/ui/Pagination";
 import { useDebounce } from "@/hooks/useDebounce";
 import { confirmationPopup } from "@/utils/helpers/common/alert-service";
 import type { ContentType } from "@/utils/helpers/enums/content-type.enum";
+import LecturesSectionTabs from "./components/LecturesSectionTabs";
 
 const Lectures = () => {
   const [contentType, setContentType] = useState<ContentType>("english");
@@ -194,7 +195,11 @@ const Lectures = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm relative mt-10">
+      <div className="mt-6">
+        <LecturesSectionTabs />
+      </div>
+
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm relative mt-6">
         <div className="flex items-end gap-6">
           <div className="flex-1 relative">
             <div className="space-y-3">

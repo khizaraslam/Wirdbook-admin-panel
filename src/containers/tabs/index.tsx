@@ -28,6 +28,7 @@ import { UpdateTabDTO } from "@/utils/helpers/models/tabs/update-tab.dto";
 import CustomMessageDisplay from "@/components/data-not-found";
 import useStore from "@/hooks/useStore";
 import type { ContentType } from "@/utils/helpers/enums/content-type.enum";
+import LecturesSectionTabs from "@/containers/lectures/components/LecturesSectionTabs";
 
 const Tabs = () => {
   const { getAllTabs, addTab, updateTab, reorderTabs, deleteTab } = useTabs();
@@ -130,7 +131,11 @@ const Tabs = () => {
         </div>
       </div>
 
-      <div className="bg-primary-light rounded-2xl p-8 mt-10 shadow-sm">
+      <div className="mt-6">
+        <LecturesSectionTabs />
+      </div>
+
+      <div className="bg-primary-light rounded-2xl p-8 mt-6 shadow-sm">
         <h2 className="text-xl font-bold text-gray-900 mb-2">Overview</h2>
         <p className="text-muted mb-6">{languageLabel} tab configuration</p>
         <div className="flex items-center gap-2 text-gray-700 font-medium bg-white/50 w-fit px-4 py-2 rounded-lg border border-primary/10">

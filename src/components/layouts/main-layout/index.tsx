@@ -5,7 +5,6 @@ import Navbar from "@/components/navigation/Navbar";
 import Sidebar from "@/components/navigation/Sidebar";
 import {
   Home,
-  LayoutGrid,
   BookOpen,
   ImageIcon,
   Sparkles,
@@ -44,11 +43,6 @@ const MainLayout: React.FC<LayoutProps> = ({ children }) => {
       text: "Lectures",
       path: "/lectures",
       icon: <BookOpen size={20} />,
-    },
-    {
-      text: "Tabs",
-      path: "/tabs",
-      icon: <LayoutGrid size={20} />,
     },
     {
       text: "Banners",
@@ -95,6 +89,12 @@ const MainLayout: React.FC<LayoutProps> = ({ children }) => {
   const isActive = (path: string) => {
     if (path === "/dashboard") {
       return location.pathname === "/" || location.pathname === "/dashboard";
+    }
+    if (path === "/lectures") {
+      return (
+        location.pathname.startsWith("/lectures") ||
+        location.pathname.startsWith("/tabs")
+      );
     }
     if (path === "/qasidas") {
       return location.pathname.startsWith("/qasidas");
