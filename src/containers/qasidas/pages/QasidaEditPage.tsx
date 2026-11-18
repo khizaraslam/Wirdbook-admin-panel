@@ -47,7 +47,7 @@ const audiosToDrafts = (q: Qasida): ReciterAudioDraft[] =>
 const QasidaEditPage = () => {
   const { id = "" } = useParams<{ id: string }>();
   const location = useLocation();
-  const { getQasida, updateQasida, approveQasida, rejectQasida } = useQasidas();
+  const { getQasida, updateQasida, approveQasida, rejectQasida, keepQasida } = useQasidas();
   const [qasida, setQasida] = useState<Qasida | null>(null);
   const [tab, setTab] = useState<TabId>(
     (location.state as { tab?: TabId })?.tab === "wirds" ? "wirds" : "details",
@@ -118,6 +118,15 @@ const QasidaEditPage = () => {
     if (ok) await refresh();
   };
 
+  const handleKeep = async () => {
+    const result = await confirmationPopup(
+      "Keep this qasida?",
+      "The delete request is cleared. A qasida that was already public goes back to the catalog.",
+    );
+    if (!result.isConfirmed) return;
+    const ok = await keepQasida(id);
+    if (ok) await refresh();
+  };
   const handleReject = async () => {
     const result = await confirmationPopup(
       "Reject this qasida?",
@@ -153,19 +162,29 @@ const QasidaEditPage = () => {
           ? " · Pending review"
           : qasida.reviewStatus === "rejected"
             ? " · Rejected"
-            : ""}
+            : qasida.reviewStatus === "delete_requested"
+              ? " · User asked to delete this"
+              : ""}
       </p>
       {qasida.submittedBy && (
         <div className="flex flex-wrap gap-2 mt-4">
-          {qasida.reviewStatus !== "approved" && (
-            <Button type="button" variant="primary" onClick={handleApprove}>
-              Approve
+          {qasida.reviewStatus === "delete_requested" ? (
+            <Button type="button" variant="primary" onClick={handleKeep}>
+              Keep
             </Button>
-          )}
-          {qasida.reviewStatus !== "rejected" && (
-            <Button type="button" variant="secondary" onClick={handleReject}>
-              Reject
-            </Button>
+          ) : (
+            <>
+              {qasida.reviewStatus !== "approved" && (
+                <Button type="button" variant="primary" onClick={handleApprove}>
+                  Approve
+                </Button>
+              )}
+              {qasida.reviewStatus !== "rejected" && (
+                <Button type="button" variant="secondary" onClick={handleReject}>
+                  Reject
+                </Button>
+              )}
+            </>
           )}
         </div>
       )}

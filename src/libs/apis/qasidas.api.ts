@@ -21,7 +21,7 @@ export const Qasidas_APIS = {
     page?: number;
     limit?: number;
     search?: string;
-    reviewStatus?: "pending" | "approved" | "rejected";
+    reviewStatus?: "pending" | "approved" | "rejected" | "delete_requested";
   }) => getRequest("/api/admin/qasidas", params),
   getOne: (id: string) => getRequest(`/api/admin/qasidas/${id}`),
   create: (body: FormData) => postRequest("/api/admin/qasidas", body),
@@ -30,6 +30,7 @@ export const Qasidas_APIS = {
   remove: (id: string) => deleteRequest(`/api/admin/qasidas/${id}`),
   approve: (id: string) => postRequest(`/api/admin/qasidas/${id}/approve`, {}),
   reject: (id: string) => postRequest(`/api/admin/qasidas/${id}/reject`, {}),
+  keep: (id: string) => postRequest(`/api/admin/qasidas/${id}/keep`, {}),
   reorder: (ids: string[]) =>
     patchRequest("/api/admin/qasidas/reorder", { ids }),
 

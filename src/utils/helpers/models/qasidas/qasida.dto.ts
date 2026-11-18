@@ -35,7 +35,7 @@ export interface Qasida {
   audioDuration: number | null;
   totalWirds: number;
   isEnabled: boolean;
-  reviewStatus?: "pending" | "approved" | "rejected";
+  reviewStatus?: "pending" | "approved" | "rejected" | "delete_requested";
   submittedBy?: string | null;
   indexOrder: number;
   wirds?: QasidaWird[];

@@ -54,7 +54,7 @@ const useQasidas = () => {
         page?: number;
         limit?: number;
         search?: string;
-        reviewStatus?: "pending" | "approved" | "rejected";
+        reviewStatus?: "pending" | "approved" | "rejected" | "delete_requested";
       },
       setData: (data: Qasida[]) => void,
       setPagination: (p: Pagination) => void,
@@ -161,6 +161,17 @@ const useQasidas = () => {
     return false;
   }, []);
 
+  const keepQasida = useCallback(async (id: string) => {
+    const response = await Qasidas_APIS.keep(id);
+    const { success = false, message = "" } = response || {};
+    if (success) {
+      successToaster(message || "Qasida kept.");
+      return true;
+    }
+    errorToaster(message || "Failed to keep qasida");
+    return false;
+  }, []);
+
   const approveQasida = useCallback(async (id: string) => {
     const response = await Qasidas_APIS.approve(id);
     const { success = false, message = "" } = response || {};
@@ -218,6 +229,7 @@ const useQasidas = () => {
     deleteQasida,
     approveQasida,
     rejectQasida,
+    keepQasida,
     listWirds,
     createWird,
     updateWird,

@@ -21,7 +21,7 @@ const defaultPagination: PaginationMeta = {
   hasPrev: false,
 };
 
-type ReviewTab = "approved" | "pending" | "rejected";
+type ReviewTab = "approved" | "pending" | "rejected" | "delete_requested";
 
 const TABS: { id: ReviewTab; label: string; title: string; empty: string }[] = [
   {
@@ -42,16 +42,23 @@ const TABS: { id: ReviewTab; label: string; title: string; empty: string }[] = [
     title: "Rejected qasidas",
     empty: "No rejected qasidas",
   },
+  {
+    id: "delete_requested",
+    label: "Delete requests",
+    title: "Users asked to delete these",
+    empty: "No delete requests",
+  },
 ];
 
 const matchesTab = (item: Qasida, reviewTab: ReviewTab) => {
   if (reviewTab === "pending") return item.reviewStatus === "pending";
   if (reviewTab === "rejected") return item.reviewStatus === "rejected";
-  return item.reviewStatus !== "pending" && item.reviewStatus !== "rejected";
+  if (reviewTab === "delete_requested") return item.reviewStatus === "delete_requested";
+  return item.reviewStatus !== "pending" && item.reviewStatus !== "rejected" && item.reviewStatus !== "delete_requested";
 };
 
 const QasidasListPage = () => {
-  const { listQasidas, updateQasida, deleteQasida, approveQasida, rejectQasida } =
+  const { listQasidas, updateQasida, deleteQasida, approveQasida, rejectQasida, keepQasida } =
     useQasidas();
   const { isLoading } = useStore();
   const [data, setData] = useState<Qasida[]>([]);
@@ -116,13 +123,27 @@ const QasidasListPage = () => {
   };
 
   const handleDelete = async (id: string) => {
+    const asking = data.find((item) => item.id === id)?.reviewStatus === "delete_requested";
     const result = await confirmationPopup(
-      "Delete this qasida? All verses and audio will be removed.",
+      "Delete this qasida?",
+      asking
+        ? "The person who added it asked for this delete. Verses and audio will be removed."
+        : "All verses and audio will be removed.",
     );
     if (result.isConfirmed) {
       const ok = await deleteQasida(id);
       if (ok) load(pagination.page);
     }
+  };
+
+  const handleKeep = async (id: string) => {
+    const result = await confirmationPopup(
+      "Keep this qasida?",
+      "The delete request is cleared. A qasida that was already public goes back to the catalog.",
+    );
+    if (!result.isConfirmed) return;
+    const ok = await keepQasida(id);
+    if (ok) load(pagination.page);
   };
 
   return (
@@ -196,6 +217,7 @@ const QasidasListPage = () => {
             onDelete={handleDelete}
             onApprove={handleApprove}
             onReject={handleReject}
+            onKeep={handleKeep}
           />
           {serverFiltered && (
             <Pagination meta={pagination} onPageChange={handlePageChange} />

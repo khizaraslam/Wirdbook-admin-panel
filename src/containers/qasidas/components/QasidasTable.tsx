@@ -13,6 +13,7 @@ interface QasidasTableProps {
   onDelete: (id: string) => void;
   onApprove: (id: string) => void;
   onReject: (id: string) => void;
+  onKeep: (id: string) => void;
 }
 
 const QasidasTable: React.FC<QasidasTableProps> = ({
@@ -23,6 +24,7 @@ const QasidasTable: React.FC<QasidasTableProps> = ({
   onDelete,
   onApprove,
   onReject,
+  onKeep,
 }) => {
   return (
     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mt-6 overflow-hidden">
@@ -113,38 +115,55 @@ const QasidasTable: React.FC<QasidasTableProps> = ({
                         ? "bg-amber-50 text-amber-800"
                         : item.reviewStatus === "rejected"
                           ? "bg-red-50 text-red-700"
-                          : "bg-emerald-50 text-emerald-800"
+                          : item.reviewStatus === "delete_requested"
+                            ? "bg-orange-50 text-orange-800"
+                            : "bg-emerald-50 text-emerald-800"
                     }`}
                   >
                     {item.reviewStatus === "pending"
                       ? "Pending"
                       : item.reviewStatus === "rejected"
                         ? "Rejected"
-                        : "Public"}
+                        : item.reviewStatus === "delete_requested"
+                          ? "Delete requested"
+                          : "Public"}
                   </span>
                 </td>
                 <td className="py-3 px-3">
                   <div className="flex items-center gap-2">
-                    {(item.reviewStatus === "pending" ||
-                      item.reviewStatus === "rejected") && (
+                    {item.reviewStatus === "delete_requested" ? (
                       <button
                         type="button"
-                        onClick={() => onApprove(item.id)}
-                        title="Approve and publish to all users"
+                        onClick={() => onKeep(item.id)}
+                        title="Keep this qasida and clear the delete request"
                         className="p-2 text-emerald-700 hover:bg-emerald-50 border border-emerald-200 rounded-lg"
                       >
                         <Check size={16} />
                       </button>
-                    )}
-                    {item.submittedBy && item.reviewStatus !== "rejected" && (
-                      <button
-                        type="button"
-                        onClick={() => onReject(item.id)}
-                        title="Reject and keep it private"
-                        className="p-2 text-red-600 hover:bg-red-50 border border-red-200 rounded-lg"
-                      >
-                        <X size={16} />
-                      </button>
+                    ) : (
+                      <>
+                        {(item.reviewStatus === "pending" ||
+                          item.reviewStatus === "rejected") && (
+                          <button
+                            type="button"
+                            onClick={() => onApprove(item.id)}
+                            title="Approve and publish to all users"
+                            className="p-2 text-emerald-700 hover:bg-emerald-50 border border-emerald-200 rounded-lg"
+                          >
+                            <Check size={16} />
+                          </button>
+                        )}
+                        {item.submittedBy && item.reviewStatus !== "rejected" && (
+                          <button
+                            type="button"
+                            onClick={() => onReject(item.id)}
+                            title="Reject and keep it private"
+                            className="p-2 text-red-600 hover:bg-red-50 border border-red-200 rounded-lg"
+                          >
+                            <X size={16} />
+                          </button>
+                        )}
+                      </>
                     )}
                     <Link
                       to={`${siteRoutes.qasidas}/${item.id}/edit`}
