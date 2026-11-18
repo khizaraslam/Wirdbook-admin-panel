@@ -55,10 +55,20 @@ export const DAY_OF_WEEK_OPTIONS = DAYS_OF_WEEK.map((day) => ({
   label: day.labelEn,
 }));
 
-export const HIJRI_MONTHS = Array.from({ length: 12 }, (_, i) => ({
-  value: i + 1,
-  label: `Month ${i + 1}`,
-}));
+export const HIJRI_MONTHS = [
+  { value: 1, label: "Muharram" },
+  { value: 2, label: "Safar" },
+  { value: 3, label: "Rabi al-Awwal" },
+  { value: 4, label: "Rabi al-Thani" },
+  { value: 5, label: "Jumada al-Awwal" },
+  { value: 6, label: "Jumada al-Thani" },
+  { value: 7, label: "Rajab" },
+  { value: 8, label: "Shaban" },
+  { value: 9, label: "Ramadan" },
+  { value: 10, label: "Shawwal" },
+  { value: 11, label: "Dhul Qadah" },
+  { value: 12, label: "Dhul Hijjah" },
+] as const;
 
 export const getMediaUrl = (url: string | null): string => {
   if (!url) return "";
@@ -82,6 +92,14 @@ export const getSelectedDaysOfWeek = (
   return [];
 };
 
+export const getSelectedHijriDays = (
+  schedule: IslamicHighlightDTO["schedule"],
+): number[] => {
+  if (schedule.hijriDays?.length) return schedule.hijriDays;
+  if (schedule.hijriDay != null) return [schedule.hijriDay];
+  return [];
+};
+
 export const formatScheduleLabel = (
   schedule: IslamicHighlightDTO["schedule"],
 ): string => {
@@ -95,12 +113,14 @@ export const formatScheduleLabel = (
     }
     return "Weekly";
   }
-  if (
-    schedule.mode === "hijri" &&
-    schedule.hijriMonth != null &&
-    schedule.hijriDay != null
-  ) {
-    return `Hijri · ${schedule.hijriDay}/${schedule.hijriMonth}`;
+  if (schedule.mode === "hijri") {
+    const days = getSelectedHijriDays(schedule);
+    const month =
+      schedule.hijriMonth != null
+        ? HIJRI_MONTHS.find((item) => item.value === schedule.hijriMonth)?.label
+        : "Every month";
+    if (days.length) return `Hijri · ${days.join(", ")} · ${month}`;
+    return "Hijri";
   }
   return "Every day";
 };
@@ -142,6 +162,7 @@ export interface HighlightFormValues {
   daysOfWeek: number[];
   hijriMonth: string;
   hijriDay: string;
+  hijriDays: number[];
   isEnabled: boolean;
   indexOrder: number;
 }
@@ -174,8 +195,9 @@ export const appendHighlightFormData = (
     }
   }
   if (values.scheduleMode === "hijri") {
+    const days = (values.hijriDays ?? []).filter((day) => Number.isInteger(day));
+    if (days.length) formData.append("hijriDays", days.join(","));
     if (values.hijriMonth) formData.append("hijriMonth", values.hijriMonth);
-    if (values.hijriDay) formData.append("hijriDay", values.hijriDay);
   }
 
   formData.append("isEnabled", values.isEnabled ? "true" : "false");

@@ -6,7 +6,7 @@ import HighlightFormFields, {
   HighlightFormInputs,
 } from "./HighlightFormFields";
 import FileUploadField from "./FileUploadField";
-import { appendHighlightFormData, getSelectedDaysOfWeek } from "@/utils/helpers/islamic-highlights/helpers";
+import { appendHighlightFormData, getSelectedDaysOfWeek, getSelectedHijriDays } from "@/utils/helpers/islamic-highlights/helpers";
 import type { IslamicHighlightDTO } from "@/utils/helpers/models/islamic-highlights/islamic-highlight.dto";
 import type { IslamicHighlightTagDTO } from "@/utils/helpers/models/islamic-highlights/islamic-highlight-tag.dto";
 import type { CreateIslamicHighlightTagDTO } from "@/utils/helpers/models/islamic-highlights/create-islamic-highlight-tag.dto";
@@ -61,6 +61,7 @@ const EditHighlightModal: React.FC<EditHighlightModalProps> = ({
       daysOfWeek: [],
       hijriMonth: "",
       hijriDay: "",
+      hijriDays: [],
       isEnabled: true,
       indexOrder: 0,
       audio: null,
@@ -85,6 +86,7 @@ const EditHighlightModal: React.FC<EditHighlightModalProps> = ({
         hijriMonth:
           s.hijriMonth !== null ? String(s.hijriMonth) : "",
         hijriDay: s.hijriDay !== null ? String(s.hijriDay) : "",
+        hijriDays: getSelectedHijriDays(s),
         isEnabled: highlight.enabled,
         indexOrder: highlight.indexOrder,
         audio: null,

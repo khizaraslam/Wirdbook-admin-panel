@@ -56,6 +56,7 @@ const HighlightFormFields: React.FC<HighlightFormFieldsProps> = ({
 }) => {
   const scheduleMode = watch("scheduleMode");
   const selectedDays = watch("daysOfWeek") ?? [];
+  const selectedHijriDays = watch("hijriDays") ?? [];
 
   useEffect(() => {
     register("daysOfWeek", {
@@ -64,6 +65,12 @@ const HighlightFormFields: React.FC<HighlightFormFieldsProps> = ({
         (Array.isArray(value) && value.length > 0) ||
         "Select at least one day",
     });
+    register("hijriDays", {
+      validate: (value) =>
+        scheduleMode !== "hijri" ||
+        (Array.isArray(value) && value.length > 0) ||
+        "Select at least one Hijri day",
+    });
   }, [register, scheduleMode]);
 
   const toggleDay = (day: number) => {
@@ -71,6 +78,13 @@ const HighlightFormFields: React.FC<HighlightFormFieldsProps> = ({
       ? selectedDays.filter((value) => value !== day)
       : [...selectedDays, day].sort((a, b) => a - b);
     setValue("daysOfWeek", next, { shouldValidate: true, shouldDirty: true });
+  };
+
+  const toggleHijriDay = (day: number) => {
+    const next = selectedHijriDays.includes(day)
+      ? selectedHijriDays.filter((value) => value !== day)
+      : [...selectedHijriDays, day].sort((a, b) => a - b);
+    setValue("hijriDays", next, { shouldValidate: true, shouldDirty: true });
   };
 
   return (
@@ -123,35 +137,53 @@ const HighlightFormFields: React.FC<HighlightFormFieldsProps> = ({
         )}
 
         {scheduleMode === "hijri" && (
-          <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-4">
             <div className="flex flex-col gap-1.5">
-              <label className="form-label">Hijri month *</label>
-              <select
-                className="form-input"
-                {...register("hijriMonth", {
-                  required: scheduleMode === "hijri" ? "Required" : false,
-                })}
-              >
-                <option value="">Month</option>
+              <label className="form-label">Hijri month</label>
+              <select className="form-input" {...register("hijriMonth")}>
+                <option value="">Every month</option>
                 {HIJRI_MONTHS.map((m) => (
                   <option key={m.value} value={String(m.value)}>
                     {m.label}
                   </option>
                 ))}
               </select>
+              <p className="text-[11px] text-gray-500">
+                Every month repeats the selected days in each lunar month. Pick a
+                name to limit it to that month.
+              </p>
             </div>
-            <Input
-              label="Hijri day *"
-              type="number"
-              min={1}
-              max={30}
-              error={errors.hijriDay?.message}
-              {...register("hijriDay", {
-                required: scheduleMode === "hijri" ? "Required" : false,
-                min: { value: 1, message: "1–30" },
-                max: { value: 30, message: "1–30" },
-              })}
-            />
+            <div className="flex flex-col gap-1.5">
+              <label className="form-label">Hijri days *</label>
+              <div className="grid grid-cols-6 sm:grid-cols-10 gap-2">
+                {Array.from({ length: 30 }, (_, index) => index + 1).map((day) => {
+                  const checked = selectedHijriDays.includes(day);
+                  return (
+                    <label
+                      key={day}
+                      className={`flex items-center justify-center rounded-lg border px-2 py-2 text-sm cursor-pointer ${
+                        checked
+                          ? "border-primary bg-primary/5 text-primary"
+                          : "border-gray-200 text-gray-700"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        className="sr-only"
+                        checked={checked}
+                        onChange={() => toggleHijriDay(day)}
+                      />
+                      {day}
+                    </label>
+                  );
+                })}
+              </div>
+              {errors.hijriDays && (
+                <p className="text-[11px] text-red-500">
+                  {errors.hijriDays.message}
+                </p>
+              )}
+            </div>
           </div>
         )}
 
