@@ -35,9 +35,11 @@ export interface StoryPayload {
   segments: (StoryText & { segment_image_id: string | null })[];
 }
 
+type StoryOrderEntry = Omit<StorySummary, "story_image" | "story_image_id"> &
+  Partial<Pick<StorySummary, "story_image" | "story_image_id">>;
+
 interface StoryPage {
   items: StorySummary[];
-  page: number;
   limit: number;
   total: number;
 }
@@ -74,10 +76,42 @@ async function readData<T>(
 const endpoint = "/api/admin/islamic-stories";
 
 export const IslamicStoriesApi = {
-  list: (page: number, limit: number) =>
-    readData<StoryPage>(
-      getRequest(endpoint, { page, limit }),
-      "Could not load stories.",
+  async listOrder(): Promise<StorySummary[]> {
+    const ordered = await readData<StoryOrderEntry[]>(
+      getRequest(`${endpoint}/order`),
+      "Could not load the story order.",
+    );
+
+    const missing = new Set(
+      ordered
+        .filter((story) => story.story_image === undefined)
+        .map((story) => story.story_id),
+    );
+    const covers = new Map<number, StorySummary>();
+    for (let page = 1; missing.size; page++) {
+      const result = await readData<StoryPage>(
+        getRequest(endpoint, { page, limit: 100 }),
+        "Could not load story covers.",
+      );
+      for (const story of result.items) {
+        if (missing.delete(story.story_id)) covers.set(story.story_id, story);
+      }
+      if (page * result.limit >= result.total) break;
+    }
+
+    return ordered.map((story) => {
+      const cover = covers.get(story.story_id);
+      return {
+        ...story,
+        story_image: story.story_image ?? cover?.story_image ?? null,
+        story_image_id: story.story_image_id ?? cover?.story_image_id ?? null,
+      };
+    });
+  },
+  reorder: (storyIds: number[], expectedIds: number[]) =>
+    readData<null>(
+      patchRequest(`${endpoint}/order`, { storyIds, expectedIds }),
+      "Could not save the story order.",
     ),
   get: (id: number) =>
     readData<StoryDetail>(

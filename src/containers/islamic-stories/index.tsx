@@ -1,9 +1,23 @@
 import { useEffect, useState } from "react";
-import { ImageIcon, Plus } from "lucide-react";
+import {
+  closestCenter,
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { Plus } from "lucide-react";
 import Button from "@/components/ui/Button";
 import {
   IslamicStoriesApi,
-  storyImageUrl,
   type StoryDetail,
   type StorySummary,
 } from "@/libs/apis/islamic-stories.api";
@@ -12,33 +26,40 @@ import {
   successToaster,
 } from "@/utils/helpers/common/alert-service";
 import StoryEditor from "./StoryEditor";
+import SortableStoryRow from "./SortableStoryRow";
 
 const pageSize = 20;
 
 export default function IslamicStories() {
   const [page, setPage] = useState(1);
   const [revision, setRevision] = useState(0);
-  const [result, setResult] = useState<Awaited<
-    ReturnType<typeof IslamicStoriesApi.list>
-  > | null>(null);
+  const [stories, setStories] = useState<StorySummary[] | null>(null);
+  const [expectedIds, setExpectedIds] = useState<number[]>([]);
+  const [showAll, setShowAll] = useState(false);
+  const [savingOrder, setSavingOrder] = useState(false);
   const [editor, setEditor] = useState<{ story: StoryDetail | null } | null>(
     null,
   );
   const [busyId, setBusyId] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [listFailed, setListFailed] = useState(false);
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
 
   useEffect(() => {
     let active = true;
-    IslamicStoriesApi.list(page, pageSize)
-      .then((data) => {
+    IslamicStoriesApi.listOrder()
+      .then((items) => {
         if (!active) return;
-        const lastPage = Math.max(1, Math.ceil(data.total / pageSize));
-        if (page > lastPage) {
-          setPage(lastPage);
-          return;
-        }
-        setResult(data);
+        setStories(items);
+        setExpectedIds(items.map(({ story_id }) => story_id));
+        setPage((current) =>
+          Math.min(current, Math.max(1, Math.ceil(items.length / pageSize))),
+        );
       })
       .catch((error: Error) => {
         if (!active) return;
@@ -48,20 +69,49 @@ export default function IslamicStories() {
     return () => {
       active = false;
     };
-  }, [page, revision]);
+  }, [revision]);
+
+  const ids = stories?.map(({ story_id }) => story_id) ?? [];
+  const orderChanged = ids.some((id, index) => id !== expectedIds[index]);
+  const busy = busyId !== null || savingOrder;
+  const actionsDisabled = busy || orderChanged;
+  const totalPages = Math.max(1, Math.ceil(ids.length / pageSize));
+  const offset = showAll ? 0 : (page - 1) * pageSize;
+  const visible = showAll
+    ? (stories ?? [])
+    : (stories?.slice(offset, offset + pageSize) ?? []);
 
   function reload() {
     setListFailed(false);
     setError("");
-    setResult(null);
+    setStories(null);
     setRevision((current) => current + 1);
   }
 
-  function changePage(next: number) {
+  function move({ active, over }: DragEndEvent) {
+    if (!stories || !over || active.id === over.id || busy) return;
+    const from = ids.indexOf(Number(active.id));
+    const to = ids.indexOf(Number(over.id));
+    if (from >= 0 && to >= 0) setStories(arrayMove(stories, from, to));
+  }
+
+  async function saveOrder() {
+    if (!orderChanged || busy) return;
+    setSavingOrder(true);
     setError("");
-    setListFailed(false);
-    setResult(null);
-    setPage(next);
+    try {
+      await IslamicStoriesApi.reorder(ids, expectedIds);
+      setExpectedIds(ids);
+      successToaster("Story order saved.");
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Could not save the story order.",
+      );
+    } finally {
+      setSavingOrder(false);
+    }
   }
 
   async function edit(story: StorySummary) {
@@ -108,28 +158,48 @@ export default function IslamicStories() {
         onSaved={() => {
           successToaster("Story saved.");
           setEditor(null);
-          if (!editor.story && page !== 1) changePage(1);
-          else reload();
+          if (!editor.story) setPage(Math.ceil((ids.length + 1) / pageSize));
+          reload();
         }}
       />
     );
   }
 
-  const totalPages = Math.max(1, Math.ceil((result?.total ?? 0) / pageSize));
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 bg-slate-50 py-2">
         <h1 className="text-3xl font-bold text-primary sm:text-4xl">
           Islamic Stories
         </h1>
-        <Button
-          type="button"
-          leftIcon={<Plus size={18} />}
-          disabled={busyId !== null}
-          onClick={() => setEditor({ story: null })}
-        >
-          Add story
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          {orderChanged && (
+            <>
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={busy}
+                onClick={reload}
+              >
+                Discard changes
+              </Button>
+              <Button
+                type="button"
+                isLoading={savingOrder}
+                onClick={() => void saveOrder()}
+              >
+                Save order
+              </Button>
+            </>
+          )}
+          <Button
+            type="button"
+            leftIcon={<Plus size={18} />}
+            disabled={actionsDisabled}
+            onClick={() => setEditor({ story: null })}
+          >
+            Add story
+          </Button>
+        </div>
       </div>
       {error && (
         <p
@@ -146,129 +216,108 @@ export default function IslamicStories() {
               Retry
             </Button>
           </div>
-        ) : !result ? (
+        ) : !stories ? (
           <p
             role="status"
             className="px-6 py-8 text-center text-sm text-gray-500"
           >
             Loading stories…
           </p>
-        ) : result.items.length === 0 ? (
+        ) : stories.length === 0 ? (
           <p className="px-6 py-8 text-center text-sm text-gray-500">
             No stories yet.
           </p>
         ) : (
           <>
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[560px] text-left">
-                <thead className="border-b border-gray-100 bg-gray-50 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  <tr>
-                    <th scope="col" className="px-5 py-3">
-                      Cover
-                    </th>
-                    <th scope="col" className="px-5 py-3">
-                      Story
-                    </th>
-                    <th scope="col" className="px-5 py-3">
-                      Status
-                    </th>
-                    <th scope="col" className="px-5 py-3 text-right">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {result.items.map((story) => (
-                    <tr key={story.story_id} className="hover:bg-gray-50/50">
-                      <td className="px-5 py-3">
-                        <div className="flex h-14 w-20 items-center justify-center overflow-hidden rounded-lg bg-gray-100 text-gray-400">
-                          {story.story_image ? (
-                            <img
-                              src={storyImageUrl(story.story_image)}
-                              alt=""
-                              loading="lazy"
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            <ImageIcon size={18} aria-hidden />
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-5 py-3">
-                        <div className="font-semibold text-gray-900">
-                          {story.story_name.english}
-                        </div>
-                        <div
-                          lang="ar"
-                          dir="rtl"
-                          className="mt-1 w-fit text-sm text-gray-600"
-                        >
-                          {story.story_name.arabic}
-                        </div>
-                      </td>
-                      <td className="px-5 py-3">
-                        <span
-                          className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                            story.published
-                              ? "bg-emerald-50 text-emerald-700"
-                              : "bg-gray-100 text-gray-700"
-                          }`}
-                        >
-                          {story.published ? "Published" : "Draft"}
-                        </span>
-                      </td>
-                      <td className="whitespace-nowrap px-5 py-3 text-right">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          disabled={busyId !== null}
-                          aria-label={`Edit ${story.story_name.english}`}
-                          onClick={() => void edit(story)}
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          disabled={busyId !== null}
-                          aria-label={`Delete ${story.story_name.english}`}
-                          className="text-red-600"
-                          onClick={() => void remove(story)}
-                        >
-                          Delete
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-5 py-3">
+              <p className="text-sm text-gray-600">
+                Drag a row by its handle to change the mobile story order.
+              </p>
+              <label className="flex items-center gap-2 text-sm text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={showAll}
+                  disabled={busy}
+                  onChange={(event) => setShowAll(event.target.checked)}
+                  className="accent-primary"
+                />
+                Show all stories
+              </label>
             </div>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={move}
+            >
+              <SortableContext
+                items={visible.map(({ story_id }) => story_id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[560px] text-left">
+                    <thead className="border-b border-gray-100 bg-gray-50 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      <tr>
+                        <th scope="col" className="px-5 py-3">
+                          Order
+                        </th>
+                        <th scope="col" className="px-5 py-3">
+                          Cover
+                        </th>
+                        <th scope="col" className="px-5 py-3">
+                          Story
+                        </th>
+                        <th scope="col" className="px-5 py-3">
+                          Status
+                        </th>
+                        <th scope="col" className="px-5 py-3 text-right">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {visible.map((story, index) => (
+                        <SortableStoryRow
+                          key={story.story_id}
+                          story={story}
+                          position={offset + index + 1}
+                          dragDisabled={busy}
+                          actionsDisabled={actionsDisabled}
+                          onEdit={edit}
+                          onRemove={remove}
+                        />
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </SortableContext>
+            </DndContext>
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 px-5 py-4">
               <p className="text-sm text-gray-600">
-                Page {page} of {totalPages} · {result.total} stories
+                {!showAll && `Page ${page} of ${totalPages} · `}
+                {ids.length} stories
               </p>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  disabled={page === 1 || busyId !== null}
-                  onClick={() => changePage(page - 1)}
-                >
-                  Previous
-                </Button>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  disabled={page >= totalPages || busyId !== null}
-                  onClick={() => changePage(page + 1)}
-                >
-                  Next
-                </Button>
-              </div>
+              {!showAll && (
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    disabled={page === 1 || busy}
+                    onClick={() => setPage(page - 1)}
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    disabled={page >= totalPages || busy}
+                    onClick={() => setPage(page + 1)}
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
             </div>
           </>
         )}
