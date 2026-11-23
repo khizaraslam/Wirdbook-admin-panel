@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import {
   closestCenter,
   DndContext,
@@ -14,7 +14,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { Plus } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import Button from "@/components/ui/Button";
 import {
   IslamicStoriesApi,
@@ -32,6 +32,8 @@ const pageSize = 20;
 
 export default function IslamicStories() {
   const [page, setPage] = useState(1);
+  const [searchInput, setSearchInput] = useState("");
+  const [query, setQuery] = useState("");
   const [revision, setRevision] = useState(0);
   const [stories, setStories] = useState<StorySummary[] | null>(null);
   const [expectedIds, setExpectedIds] = useState<number[]>([]);
@@ -52,7 +54,7 @@ export default function IslamicStories() {
 
   useEffect(() => {
     let active = true;
-    IslamicStoriesApi.listOrder()
+    IslamicStoriesApi.listOrder(query)
       .then((items) => {
         if (!active) return;
         setStories(items);
@@ -69,9 +71,10 @@ export default function IslamicStories() {
     return () => {
       active = false;
     };
-  }, [revision]);
+  }, [query, revision]);
 
   const ids = stories?.map(({ story_id }) => story_id) ?? [];
+  const searching = Boolean(query);
   const orderChanged = ids.some((id, index) => id !== expectedIds[index]);
   const busy = busyId !== null || savingOrder;
   const actionsDisabled = busy || orderChanged;
@@ -88,8 +91,21 @@ export default function IslamicStories() {
     setRevision((current) => current + 1);
   }
 
+  function changeSearch(value: string) {
+    const next = value.trim();
+    if (next === query) return;
+    setQuery(next);
+    setPage(1);
+    reload();
+  }
+
+  function submitSearch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    changeSearch(searchInput);
+  }
+
   function move({ active, over }: DragEndEvent) {
-    if (!stories || !over || active.id === over.id || busy) return;
+    if (!stories || !over || active.id === over.id || busy || searching) return;
     const from = ids.indexOf(Number(active.id));
     const to = ids.indexOf(Number(over.id));
     if (from >= 0 && to >= 0) setStories(arrayMove(stories, from, to));
@@ -158,8 +174,13 @@ export default function IslamicStories() {
         onSaved={() => {
           successToaster("Story saved.");
           setEditor(null);
-          if (!editor.story) setPage(Math.ceil((ids.length + 1) / pageSize));
-          reload();
+          if (!editor.story && searching) {
+            setSearchInput("");
+            changeSearch("");
+          } else {
+            if (!editor.story) setPage(Math.ceil((ids.length + 1) / pageSize));
+            reload();
+          }
         }}
       />
     );
@@ -201,6 +222,50 @@ export default function IslamicStories() {
           </Button>
         </div>
       </div>
+      <form
+        role="search"
+        className="flex flex-wrap items-center gap-2"
+        onSubmit={submitSearch}
+      >
+        <label className="relative block w-full max-w-lg">
+          <span className="sr-only">Search Islamic stories</span>
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+            size={17}
+            aria-hidden
+          />
+          <input
+            type="search"
+            dir="auto"
+            placeholder="Search Arabic or English story text"
+            className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            value={searchInput}
+            onChange={(event) => {
+              const next = event.target.value;
+              setSearchInput(next);
+              if (!next) changeSearch("");
+            }}
+            disabled={actionsDisabled}
+            maxLength={200}
+          />
+        </label>
+        <Button type="submit" variant="secondary" disabled={actionsDisabled}>
+          Search
+        </Button>
+        {searching && (
+          <Button
+            type="button"
+            variant="ghost"
+            disabled={actionsDisabled}
+            onClick={() => {
+              setSearchInput("");
+              changeSearch("");
+            }}
+          >
+            Clear search
+          </Button>
+        )}
+      </form>
       {error && (
         <p
           role="alert"
@@ -225,13 +290,15 @@ export default function IslamicStories() {
           </p>
         ) : stories.length === 0 ? (
           <p className="px-6 py-8 text-center text-sm text-gray-500">
-            No stories yet.
+            {searching ? "No stories match your search." : "No stories yet."}
           </p>
         ) : (
           <>
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-5 py-3">
               <p className="text-sm text-gray-600">
-                Drag a row by its handle to change the mobile story order.
+                {searching
+                  ? "Clear search to reorder stories."
+                  : "Drag a row by its handle to change the mobile story order."}
               </p>
               <label className="flex items-center gap-2 text-sm text-gray-700">
                 <input
@@ -279,8 +346,12 @@ export default function IslamicStories() {
                         <SortableStoryRow
                           key={story.story_id}
                           story={story}
-                          position={offset + index + 1}
-                          dragDisabled={busy}
+                          position={
+                            searching
+                              ? (story.position ?? story.story_id)
+                              : offset + index + 1
+                          }
+                          dragDisabled={busy || searching}
                           actionsDisabled={actionsDisabled}
                           onEdit={edit}
                           onRemove={remove}

@@ -12,6 +12,7 @@ export interface StoryText {
 
 export interface StorySummary {
   story_id: number;
+  position?: number;
   story_name: StoryText;
   story_image: string | null;
   story_image_id: string | null;
@@ -76,9 +77,9 @@ async function readData<T>(
 const endpoint = "/api/admin/islamic-stories";
 
 export const IslamicStoriesApi = {
-  async listOrder(): Promise<StorySummary[]> {
+  async listOrder(q?: string): Promise<StorySummary[]> {
     const ordered = await readData<StoryOrderEntry[]>(
-      getRequest(`${endpoint}/order`),
+      getRequest(`${endpoint}/order`, q ? { q } : undefined),
       "Could not load the story order.",
     );
 
