@@ -5,6 +5,7 @@ import Tabs from "@/containers/tabs";
 import Lectures from "@/containers/lectures";
 import Qa from "@/containers/qa";
 import Banners from "@/containers/banners";
+import IslamicStories from "@/containers/islamic-stories";
 import IslamicHighlights from "@/containers/islamic-highlights";
 import HijriEvents from "@/containers/hijri-events";
 import SyncModules from "@/containers/sync-modules";
@@ -29,6 +30,7 @@ const DashboardRoutes = () => {
           path={siteRoutes.islamicHighlights}
           element={<IslamicHighlights />}
         />
+        <Route path={siteRoutes.islamicStories} element={<IslamicStories />} />
         <Route path={siteRoutes.hijriEvents} element={<HijriEvents />} />
         <Route path={siteRoutes.syncModules} element={<SyncModules />} />
         <Route path={siteRoutes.books} element={<Books />} />

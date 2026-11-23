@@ -1,11 +1,13 @@
 import React, { ReactNode } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { useAppSelector } from "@/store/hooks";
+import { siteRoutes } from "@/utils/helpers/enums/routes.enum";
 import Navbar from "@/components/navigation/Navbar";
 import Sidebar from "@/components/navigation/Sidebar";
 import {
   Home,
   BookOpen,
+  BookOpenText,
   ImageIcon,
   Sparkles,
   Calendar,
@@ -53,6 +55,11 @@ const MainLayout: React.FC<LayoutProps> = ({ children }) => {
       text: "Islamic Highlights",
       path: "/islamic-highlights",
       icon: <Sparkles size={20} />,
+    },
+    {
+      text: "Islamic Stories",
+      path: siteRoutes.islamicStories,
+      icon: <BookOpenText size={20} />,
     },
     {
       text: "Hijri Calendar",
