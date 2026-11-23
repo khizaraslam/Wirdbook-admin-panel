@@ -6,6 +6,7 @@ import type { CommunityMemberDTO } from "@/utils/helpers/models/communities/comm
 interface MembersTableProps {
   members: CommunityMemberDTO[];
   onRemove?: (member: CommunityMemberDTO) => void;
+  onRevokeAdmin?: (member: CommunityMemberDTO) => void;
   removingUserId?: string | null;
 }
 
@@ -21,9 +22,11 @@ const formatDate = (value: string) => {
 const MembersTable: React.FC<MembersTableProps> = ({
   members,
   onRemove,
+  onRevokeAdmin,
   removingUserId,
 }) => {
-  const columns = ["Name", "Mobile", "Role", "Joined", ...(onRemove ? ["Actions"] : [])];
+  const showActions = Boolean(onRemove || onRevokeAdmin);
+  const columns = ["Name", "Mobile", "Role", "Joined", ...(showActions ? ["Actions"] : [])];
 
   return (
     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -90,17 +93,30 @@ const MembersTable: React.FC<MembersTableProps> = ({
                   <td className="py-4 px-4 text-gray-500 text-sm">
                     {formatDate(member.joinedAt)}
                   </td>
-                  {onRemove && (
-                    <td className="py-4 px-4">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        title="Remove from community"
-                        disabled={removingUserId === member.userId}
-                        onClick={() => onRemove(member)}
-                      >
-                        <UserMinus size={16} className="text-red-600" />
-                      </Button>
+                  {showActions && (
+                    <td className="py-4 px-4 whitespace-nowrap">
+                      {onRevokeAdmin && member.role === "admin" && (
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          disabled={Boolean(removingUserId)}
+                          onClick={() => onRevokeAdmin(member)}
+                        >
+                          Remove admin access
+                        </Button>
+                      )}
+                      {onRemove && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          title="Remove from community"
+                          aria-label="Remove from community"
+                          disabled={Boolean(removingUserId)}
+                          onClick={() => onRemove(member)}
+                        >
+                          <UserMinus size={16} className="text-red-600" />
+                        </Button>
+                      )}
                     </td>
                   )}
                 </tr>

@@ -17,6 +17,8 @@ export const Communities_APIS = {
     patchRequest(`/api/admin/communities/${id}/status`, body),
   assignAdmin: (id: string, body: { userId: string }) =>
     putRequest(`/api/admin/communities/${id}/admin`, body),
+  revokeAdmin: (communityId: string, userId: string) =>
+    deleteRequest(`/api/admin/communities/${communityId}/admin/${userId}`),
   getMembers: (id: string) =>
     getRequest(`/api/admin/communities/${id}/members`),
   removeMember: (communityId: string, userId: string) =>

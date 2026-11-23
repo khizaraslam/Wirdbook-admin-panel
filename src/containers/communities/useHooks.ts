@@ -143,6 +143,17 @@ const useCommunities = () => {
     return false;
   }, []);
 
+  const revokeAdmin = useCallback(async (id: string, userId: string) => {
+    const response = await Communities_APIS.revokeAdmin(id, userId);
+    const { success = false, message = "" } = response || {};
+    if (success) {
+      successToaster(message || "Admin access removed");
+      return true;
+    }
+    errorToaster(message || response?.error || "Failed to remove admin access");
+    return false;
+  }, []);
+
   const getMembers = useCallback(
     async (id: string): Promise<CommunityMemberDTO[]> => {
       const response = await Communities_APIS.getMembers(id);
@@ -320,6 +331,7 @@ const useCommunities = () => {
     update,
     updateStatus,
     assignAdmin,
+    revokeAdmin,
     removeMember,
     getMembers,
     getNoticeboardPostReports,

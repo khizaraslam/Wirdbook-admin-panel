@@ -23,7 +23,7 @@ type DetailTab = "members" | "dhikr" | "noticeboard";
 
 const CommunityDetailPage = () => {
   const { id = "" } = useParams<{ id: string }>();
-  const { getOne, update, updateStatus, assignAdmin, removeMember } =
+  const { getOne, update, updateStatus, assignAdmin, revokeAdmin, removeMember } =
     useCommunities();
   const { isLoading } = useStore();
   const [community, setCommunity] = useState<CommunityDetailDTO | null>(null);
@@ -74,6 +74,21 @@ const CommunityDetailPage = () => {
       await loadData();
     }
     return ok;
+  };
+
+  const handleRevokeAdmin = async (member: CommunityMemberDTO) => {
+    if (!community || removingUserId) return;
+    const result = await confirmationPopup(
+      "Remove admin access?",
+      `${member.name} will stay in "${community.name}" as a member.`,
+    );
+    if (!result.isConfirmed) return;
+    setRemovingUserId(member.userId);
+    try {
+      if (await revokeAdmin(community.id, member.userId)) await loadData();
+    } finally {
+      setRemovingUserId(null);
+    }
   };
 
   const handleRemoveMember = async (member: CommunityMemberDTO) => {
@@ -197,6 +212,7 @@ const CommunityDetailPage = () => {
             <MembersTable
               members={members}
               onRemove={handleRemoveMember}
+              onRevokeAdmin={handleRevokeAdmin}
               removingUserId={removingUserId}
             />
           )}
