@@ -10,7 +10,6 @@ interface AssignAdminModalProps {
   onSubmit: (userId: string) => Promise<boolean>;
   communityId: string;
   communityName: string;
-  currentAdminUserId?: string | null;
   members?: CommunityMemberDTO[];
 }
 
@@ -23,7 +22,6 @@ const AssignAdminModal: React.FC<AssignAdminModalProps> = ({
   onSubmit,
   communityId,
   communityName,
-  currentAdminUserId,
   members: initialMembers = [],
 }) => {
   const [members, setMembers] = useState<CommunityMemberDTO[]>(initialMembers);
@@ -36,7 +34,7 @@ const AssignAdminModal: React.FC<AssignAdminModalProps> = ({
 
   useEffect(() => {
     if (!isOpen) return;
-    setSelectedUserId(currentAdminUserId || "");
+    setSelectedUserId("");
     setQuery("");
     setUuidInput("");
     setError("");
@@ -56,7 +54,7 @@ const AssignAdminModal: React.FC<AssignAdminModalProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [isOpen, communityId, currentAdminUserId]);
+  }, [isOpen, communityId]);
 
   const filtered = useMemo(() => {
     const term = query.trim().toLowerCase();
@@ -95,19 +93,10 @@ const AssignAdminModal: React.FC<AssignAdminModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`Assign admin — ${communityName}`}
+      title={`Add admin — ${communityName}`}
       className="max-w-lg"
     >
       <form onSubmit={submit} noValidate>
-        <div className="mb-4 rounded-lg border border-gray-100 bg-gray-50 px-3 py-3 text-sm text-gray-700 space-y-2">
-          <p>
-            Only members of this community are listed here.
-          </p>
-          <p className="text-gray-500">
-            Assigning a new admin makes the previous admin a normal member.
-          </p>
-        </div>
-
         <label className="block text-sm font-medium text-gray-700 mb-1.5">
           Search members
         </label>
@@ -136,11 +125,12 @@ const AssignAdminModal: React.FC<AssignAdminModalProps> = ({
           ) : (
             filtered.map((member) => {
               const isSelected = member.userId === selectedUserId;
-              const isCurrent = member.userId === currentAdminUserId;
+              const isAdmin = member.role === "admin";
               return (
                 <button
                   key={member.userId}
                   type="button"
+                  disabled={isAdmin}
                   onClick={() => {
                     setSelectedUserId(member.userId);
                     setUuidInput("");
@@ -152,11 +142,10 @@ const AssignAdminModal: React.FC<AssignAdminModalProps> = ({
                 >
                   <span className="block text-sm font-semibold text-gray-900">
                     {member.name}
-                    {isCurrent ? " (current admin)" : ""}
                   </span>
                   <span className="block text-xs text-gray-500 mt-0.5">
                     {member.phone || "No phone"}
-                    {member.role === "admin" ? " · admin" : " · member"}
+                    {isAdmin ? " · admin" : " · member"}
                   </span>
                 </button>
               );
@@ -194,7 +183,7 @@ const AssignAdminModal: React.FC<AssignAdminModalProps> = ({
             Cancel
           </Button>
           <Button type="submit" variant="primary" isLoading={isSubmitting}>
-            Assign admin
+            Add admin
           </Button>
         </div>
       </form>

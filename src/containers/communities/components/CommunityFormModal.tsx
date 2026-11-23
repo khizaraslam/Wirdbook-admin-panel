@@ -160,7 +160,7 @@ const CommunityFormModal: React.FC<CommunityFormModalProps> = ({
             {onAssignAdmin && (
               <Button type="button" variant="secondary" onClick={onAssignAdmin}>
                 <UserPlus size={16} className="mr-2" />
-                Admin
+                Add admin
               </Button>
             )}
             {onToggleStatus && status && (

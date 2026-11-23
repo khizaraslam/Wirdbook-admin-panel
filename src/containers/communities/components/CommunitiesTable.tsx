@@ -24,7 +24,7 @@ const CommunitiesTable: React.FC<CommunitiesTableProps> = ({
   communities,
   onEdit,
 }) => {
-  const columns = ["Image", "Name", "Admin", "Members", "Status", "Created", "Actions"];
+  const columns = ["Image", "Name", "Admins", "Members", "Status", "Created", "Actions"];
 
   return (
     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mt-6 overflow-hidden">
@@ -83,9 +83,10 @@ const CommunitiesTable: React.FC<CommunitiesTableProps> = ({
                   </span>
                 </td>
                 <td className="py-4 px-4 text-gray-600">
-                  {community.adminName || (
+                  {((community.admins?.map(({ name }) => name).join(", ") ??
+                    community.adminName) || (
                     <span className="text-gray-400 italic">Unassigned</span>
-                  )}
+                  ))}
                 </td>
                 <td className="py-4 px-4">
                   <span className="inline-flex items-center gap-1.5 text-gray-700">

@@ -157,10 +157,11 @@ const CommunityDetailPage = () => {
                   </span>
                 </div>
                 <p className="text-gray-500 mt-1">
-                  Admin:{" "}
-                  {community.adminName || (
+                  Admins:{" "}
+                  {((community.admins?.map(({ name }) => name).join(", ") ??
+                    community.adminName) || (
                     <span className="italic">Unassigned</span>
-                  )}{" "}
+                  ))}{" "}
                   · {community.memberCount} members
                 </p>
               </div>
@@ -225,7 +226,6 @@ const CommunityDetailPage = () => {
             onSubmit={handleAssignAdmin}
             communityId={community.id}
             communityName={community.name}
-            currentAdminUserId={community.adminUserId}
             members={members}
           />
         </>

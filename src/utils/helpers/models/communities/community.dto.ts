@@ -5,7 +5,7 @@ export interface CommunityDTO {
   name: string;
   status: CommunityStatus;
   memberCount: number;
-  adminUserId: string | null;
+  admins?: { userId: string; name: string }[];
   adminName: string | null;
   imageId: string | null;
   imageUrl: string | null;
