@@ -1,3 +1,4 @@
+import AdminAction from "@/components/ui/AdminAction";
 import React, { useEffect, useState } from "react";
 import { Plus, X } from "lucide-react";
 import Input from "@/components/ui/Input";
@@ -98,14 +99,16 @@ const InlineCreateHighlightTag: React.FC<InlineCreateHighlightTagProps> = ({
 
   if (!isOpen) {
     return (
-      <button
-        type="button"
-        onClick={() => setIsOpen(true)}
-        className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline mt-1.5"
-      >
-        <Plus size={12} />
-        Add new tag
-      </button>
+      <AdminAction action="create">
+        <button
+          type="button"
+          onClick={() => setIsOpen(true)}
+          className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline mt-1.5"
+        >
+          <Plus size={12} />
+          Add new tag
+        </button>
+      </AdminAction>
     );
   }
 
@@ -153,15 +156,17 @@ const InlineCreateHighlightTag: React.FC<InlineCreateHighlightTagProps> = ({
         <Button type="button" variant="secondary" size="sm" onClick={reset}>
           Cancel
         </Button>
-        <Button
-          type="button"
-          variant="primary"
-          size="sm"
-          isLoading={isSubmitting}
-          onClick={handleCreate}
-        >
-          Create & select
-        </Button>
+        <AdminAction action="create">
+          <Button
+            type="button"
+            variant="primary"
+            size="sm"
+            isLoading={isSubmitting}
+            onClick={handleCreate}
+          >
+            Create & select
+          </Button>
+        </AdminAction>
       </div>
     </div>
   );

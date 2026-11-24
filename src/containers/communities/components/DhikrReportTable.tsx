@@ -1,3 +1,4 @@
+import AdminAction from "@/components/ui/AdminAction";
 import React from "react";
 import Button from "@/components/ui/Button";
 import type {
@@ -20,7 +21,8 @@ const DhikrReportTable: React.FC<DhikrReportTableProps> = ({
   onReturn,
 }) => {
   const isKhitma = report?.claims.some(
-    (claim) => claim.juzNumbers?.length || claim.completedJuz || claim.pendingJuz,
+    (claim) =>
+      claim.juzNumbers?.length || claim.completedJuz || claim.pendingJuz,
   );
   const columns = [
     "Member",
@@ -36,16 +38,14 @@ const DhikrReportTable: React.FC<DhikrReportTableProps> = ({
   }
 
   if (!report) {
-    return (
-      <p className="text-gray-400 text-sm py-6">No report available.</p>
-    );
+    return <p className="text-gray-400 text-sm py-6">No report available.</p>;
   }
 
   return (
     <div className="overflow-hidden">
       <p className="text-gray-500 text-sm mb-4">
-        {report.claims.length} claims · completed total:{" "}
-        {report.completedTotal} / {report.totalTarget}
+        {report.claims.length} claims · completed total: {report.completedTotal}{" "}
+        / {report.totalTarget}
       </p>
       <div className="w-full overflow-x-auto">
         <table className="w-full text-left border-collapse min-w-[700px]">
@@ -82,52 +82,56 @@ const DhikrReportTable: React.FC<DhikrReportTableProps> = ({
                   claim.status === "active" &&
                   unread > 0;
                 return (
-                <tr
-                  key={claim.id ?? `${claim.userName}-${index}`}
-                  className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors"
-                >
-                  <td className="py-4 px-4 font-medium text-gray-900">
-                    {claim.userName}
-                  </td>
-                  <td className="py-4 px-4 text-gray-700">
-                    {claim.juzNumbers?.length
-                      ? claim.juzNumbers.join(", ")
-                      : claim.claimedQuantity}
-                  </td>
-                  <td className="py-4 px-4 text-gray-700">
-                    {claim.completedJuz
-                      ? claim.completedJuz.length
-                        ? claim.completedJuz.join(", ")
-                        : "—"
-                      : claim.currentProgress}
-                  </td>
-                  <td className="py-4 px-4 text-gray-700">
-                    {claim.pendingJuz
-                      ? claim.pendingJuz.length
-                        ? claim.pendingJuz.join(", ")
-                        : "—"
-                      : claim.remaining}
-                  </td>
-                  <td className="py-4 px-4">
-                    <span
-                      className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${CLAIM_STATUS_STYLES[claim.status]}`}
-                    >
-                      {claim.status}
-                    </span>
-                  </td>
-                  <td className="py-4 px-4 text-right">
-                    {canReturn && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        disabled={returningId !== null}
-                        onClick={() => onReturn(claim)}
+                  <tr
+                    key={claim.id ?? `${claim.userName}-${index}`}
+                    className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors"
+                  >
+                    <td className="py-4 px-4 font-medium text-gray-900">
+                      {claim.userName}
+                    </td>
+                    <td className="py-4 px-4 text-gray-700">
+                      {claim.juzNumbers?.length
+                        ? claim.juzNumbers.join(", ")
+                        : claim.claimedQuantity}
+                    </td>
+                    <td className="py-4 px-4 text-gray-700">
+                      {claim.completedJuz
+                        ? claim.completedJuz.length
+                          ? claim.completedJuz.join(", ")
+                          : "—"
+                        : claim.currentProgress}
+                    </td>
+                    <td className="py-4 px-4 text-gray-700">
+                      {claim.pendingJuz
+                        ? claim.pendingJuz.length
+                          ? claim.pendingJuz.join(", ")
+                          : "—"
+                        : claim.remaining}
+                    </td>
+                    <td className="py-4 px-4">
+                      <span
+                        className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${CLAIM_STATUS_STYLES[claim.status]}`}
                       >
-                        {returningId === claim.id ? "Returning..." : "Return to pool"}
-                      </Button>
-                    )}
-                  </td>
-                </tr>
+                        {claim.status}
+                      </span>
+                    </td>
+                    <td className="py-4 px-4 text-right">
+                      {canReturn && (
+                        <AdminAction action="edit">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            disabled={returningId !== null}
+                            onClick={() => onReturn(claim)}
+                          >
+                            {returningId === claim.id
+                              ? "Returning..."
+                              : "Return to pool"}
+                          </Button>
+                        </AdminAction>
+                      )}
+                    </td>
+                  </tr>
                 );
               })
             )}

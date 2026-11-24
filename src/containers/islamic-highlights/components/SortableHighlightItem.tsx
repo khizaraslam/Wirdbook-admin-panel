@@ -1,3 +1,5 @@
+import { useAdminAction } from "@/utils/helpers/admin-action-context";
+import AdminAction from "@/components/ui/AdminAction";
 import React from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -33,6 +35,7 @@ const SortableHighlightItem: React.FC<SortableHighlightItemProps> = ({
   onDelete,
   onToggleEnabled,
 }) => {
+  const canReorder = useAdminAction("edit");
   const {
     attributes,
     listeners,
@@ -40,7 +43,7 @@ const SortableHighlightItem: React.FC<SortableHighlightItemProps> = ({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: highlight.id });
+  } = useSortable({ id: highlight.id, disabled: !canReorder });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -63,13 +66,15 @@ const SortableHighlightItem: React.FC<SortableHighlightItemProps> = ({
       }`}
     >
       <div className="flex items-start gap-4 min-w-0 flex-1">
-        <div
-          {...attributes}
-          {...listeners}
-          className="cursor-grab active:cursor-grabbing text-muted p-1 hover:bg-primary-light rounded"
-        >
-          <GripVertical size={20} />
-        </div>
+        <AdminAction action="edit">
+          <div
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing text-muted p-1 hover:bg-primary-light rounded"
+          >
+            <GripVertical size={20} />
+          </div>
+        </AdminAction>
 
         <button
           type="button"
@@ -77,11 +82,7 @@ const SortableHighlightItem: React.FC<SortableHighlightItemProps> = ({
           className="w-16 h-16 rounded-xl overflow-hidden bg-primary-light flex-shrink-0 flex items-center justify-center hover:ring-2 hover:ring-primary/30 transition-all"
         >
           {thumbUrl ? (
-            <img
-              src={thumbUrl}
-              alt=""
-              className="w-full h-full object-cover"
-            />
+            <img src={thumbUrl} alt="" className="w-full h-full object-cover" />
           ) : (
             <Sparkles size={24} className="text-primary/50" />
           )}
@@ -155,32 +156,38 @@ const SortableHighlightItem: React.FC<SortableHighlightItemProps> = ({
       </div>
 
       <div className="flex flex-col items-end gap-2 flex-shrink-0">
-        <button
-          type="button"
-          onClick={() => onToggleEnabled(highlight.id, !highlight.enabled)}
-          className={`text-xs font-medium px-2.5 py-1.5 rounded-lg border ${
-            highlight.enabled
-              ? "border-amber-200 text-amber-800 hover:bg-amber-50"
-              : "border-emerald-200 text-emerald-800 hover:bg-emerald-50"
-          }`}
-        >
-          {highlight.enabled ? "Disable" : "Enable"}
-        </button>
+        <AdminAction action="edit">
+          <button
+            type="button"
+            onClick={() => onToggleEnabled(highlight.id, !highlight.enabled)}
+            className={`text-xs font-medium px-2.5 py-1.5 rounded-lg border ${
+              highlight.enabled
+                ? "border-amber-200 text-amber-800 hover:bg-amber-50"
+                : "border-emerald-200 text-emerald-800 hover:bg-emerald-50"
+            }`}
+          >
+            {highlight.enabled ? "Disable" : "Enable"}
+          </button>
+        </AdminAction>
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => onEdit(highlight)}
-            className="p-2 text-primary hover:bg-primary-light border border-primary/10 rounded-lg"
-          >
-            <Edit2 size={18} />
-          </button>
-          <button
-            type="button"
-            onClick={() => onDelete(highlight.id)}
-            className="p-2 text-red-500 hover:bg-red-50 border border-gray-200 rounded-lg"
-          >
-            <Trash2 size={18} />
-          </button>
+          <AdminAction action="edit">
+            <button
+              type="button"
+              onClick={() => onEdit(highlight)}
+              className="p-2 text-primary hover:bg-primary-light border border-primary/10 rounded-lg"
+            >
+              <Edit2 size={18} />
+            </button>
+          </AdminAction>
+          <AdminAction action="delete">
+            <button
+              type="button"
+              onClick={() => onDelete(highlight.id)}
+              className="p-2 text-red-500 hover:bg-red-50 border border-gray-200 rounded-lg"
+            >
+              <Trash2 size={18} />
+            </button>
+          </AdminAction>
         </div>
       </div>
     </div>

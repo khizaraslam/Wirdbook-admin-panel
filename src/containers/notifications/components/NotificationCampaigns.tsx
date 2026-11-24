@@ -1,3 +1,4 @@
+import AdminAction from "@/components/ui/AdminAction";
 import React, { useEffect, useState } from "react";
 import { Pause, Play, Trash2 } from "lucide-react";
 import Button from "@/components/ui/Button";
@@ -37,7 +38,8 @@ const NotificationCampaigns = () => {
   const [name, setName] = useState("");
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
-  const [scheduleKind, setScheduleKind] = useState<CampaignScheduleKind>("weekly");
+  const [scheduleKind, setScheduleKind] =
+    useState<CampaignScheduleKind>("weekly");
   const [daysOfWeek, setDaysOfWeek] = useState<number[]>([1]);
   const [lunarDays, setLunarDays] = useState("13, 14, 15");
   const [hijriMonth, setHijriMonth] = useState(8);
@@ -137,152 +139,156 @@ const NotificationCampaigns = () => {
         with no timezone gets that one send at UTC. Pause stops future sends.
       </p>
 
-      <form onSubmit={onCreate} className="space-y-4 mt-6">
-        <div className="flex flex-wrap gap-2">
-          {(
-            [
-              ["weekly", "Every week"],
-              ["lunar_days", "Lunar days"],
-              ["hijri", "Hijri date"],
-            ] as const
-          ).map(([kind, label]) => (
-            <button
-              key={kind}
-              type="button"
-              onClick={() => {
-                setScheduleKind(kind);
-                setError("");
-                if (kind === "hijri") setSendTime("00:00");
-                if (kind === "weekly") setSendTime("09:00");
-              }}
-              className={`px-4 py-2 rounded-lg text-sm font-medium border ${
-                scheduleKind === kind
-                  ? "bg-primary text-white border-primary"
-                  : "bg-white text-gray-700 border-gray-200"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-
-        {scheduleKind === "weekly" && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {DAY_OF_WEEK_OPTIONS.map((day) => {
-              const checked = daysOfWeek.includes(day.value);
-              return (
-                <label
-                  key={day.value}
-                  className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm cursor-pointer ${
-                    checked
-                      ? "border-primary bg-primary/5 text-primary"
-                      : "border-gray-200 text-gray-700"
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={() => toggleDay(day.value)}
-                  />
-                  {day.label}
-                </label>
-              );
-            })}
-          </div>
-        )}
-
-        {scheduleKind === "lunar_days" && (
-          <div>
-            <Input
-              label="Hijri days of every month"
-              value={lunarDays}
-              onChange={(event) => setLunarDays(event.target.value)}
-              placeholder="13, 14, 15"
-            />
-            <button
-              type="button"
-              className="mt-2 text-sm text-primary font-medium"
-              onClick={() => setLunarDays("13, 14, 15")}
-            >
-              Use 13, 14, 15
-            </button>
-          </div>
-        )}
-
-        {scheduleKind === "hijri" && (
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="form-label">Hijri month</label>
-              <select
-                value={hijriMonth}
-                onChange={(event) => setHijriMonth(Number(event.target.value))}
-                className="form-input w-full"
+      <AdminAction action="create">
+        <form onSubmit={onCreate} className="space-y-4 mt-6">
+          <div className="flex flex-wrap gap-2">
+            {(
+              [
+                ["weekly", "Every week"],
+                ["lunar_days", "Lunar days"],
+                ["hijri", "Hijri date"],
+              ] as const
+            ).map(([kind, label]) => (
+              <button
+                key={kind}
+                type="button"
+                onClick={() => {
+                  setScheduleKind(kind);
+                  setError("");
+                  if (kind === "hijri") setSendTime("00:00");
+                  if (kind === "weekly") setSendTime("09:00");
+                }}
+                className={`px-4 py-2 rounded-lg text-sm font-medium border ${
+                  scheduleKind === kind
+                    ? "bg-primary text-white border-primary"
+                    : "bg-white text-gray-700 border-gray-200"
+                }`}
               >
-                {HIJRI_MONTHS.map((month, index) => (
-                  <option key={month} value={index + 1}>
-                    {index + 1}. {month}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <Input
-              label="Hijri day"
-              type="number"
-              min={1}
-              max={30}
-              value={String(hijriDay)}
-              onChange={(event) => setHijriDay(Number(event.target.value))}
-            />
-            <button
-              type="button"
-              className="text-sm text-primary font-medium text-left"
-              onClick={() => {
-                setHijriMonth(8);
-                setHijriDay(15);
-                setSendTime("00:00");
-              }}
-            >
-              Midnight of 15 Shaban
-            </button>
+                {label}
+              </button>
+            ))}
           </div>
-        )}
 
-        <Input
-          label="Time on the user's phone"
-          type="time"
-          value={sendTime}
-          onChange={(event) => setSendTime(event.target.value)}
-        />
-        <Input
-          label="Campaign name"
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-          maxLength={120}
-          placeholder="White days"
-        />
-        <Input
-          label="Notification title"
-          value={title}
-          onChange={(event) => setTitle(event.target.value)}
-          maxLength={200}
-          placeholder="Ayyam al-Beed"
-        />
-        <div>
-          <label className="form-label">Message</label>
-          <textarea
-            value={body}
-            onChange={(event) => setBody(event.target.value)}
-            maxLength={1000}
-            rows={3}
-            placeholder="Write the notification message"
-            className="form-input w-full"
+          {scheduleKind === "weekly" && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {DAY_OF_WEEK_OPTIONS.map((day) => {
+                const checked = daysOfWeek.includes(day.value);
+                return (
+                  <label
+                    key={day.value}
+                    className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm cursor-pointer ${
+                      checked
+                        ? "border-primary bg-primary/5 text-primary"
+                        : "border-gray-200 text-gray-700"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggleDay(day.value)}
+                    />
+                    {day.label}
+                  </label>
+                );
+              })}
+            </div>
+          )}
+
+          {scheduleKind === "lunar_days" && (
+            <div>
+              <Input
+                label="Hijri days of every month"
+                value={lunarDays}
+                onChange={(event) => setLunarDays(event.target.value)}
+                placeholder="13, 14, 15"
+              />
+              <button
+                type="button"
+                className="mt-2 text-sm text-primary font-medium"
+                onClick={() => setLunarDays("13, 14, 15")}
+              >
+                Use 13, 14, 15
+              </button>
+            </div>
+          )}
+
+          {scheduleKind === "hijri" && (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="form-label">Hijri month</label>
+                <select
+                  value={hijriMonth}
+                  onChange={(event) =>
+                    setHijriMonth(Number(event.target.value))
+                  }
+                  className="form-input w-full"
+                >
+                  {HIJRI_MONTHS.map((month, index) => (
+                    <option key={month} value={index + 1}>
+                      {index + 1}. {month}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <Input
+                label="Hijri day"
+                type="number"
+                min={1}
+                max={30}
+                value={String(hijriDay)}
+                onChange={(event) => setHijriDay(Number(event.target.value))}
+              />
+              <button
+                type="button"
+                className="text-sm text-primary font-medium text-left"
+                onClick={() => {
+                  setHijriMonth(8);
+                  setHijriDay(15);
+                  setSendTime("00:00");
+                }}
+              >
+                Midnight of 15 Shaban
+              </button>
+            </div>
+          )}
+
+          <Input
+            label="Time on the user's phone"
+            type="time"
+            value={sendTime}
+            onChange={(event) => setSendTime(event.target.value)}
           />
-        </div>
-        {error ? <p className="text-sm text-red-600">{error}</p> : null}
-        <Button type="submit" variant="primary" isLoading={saving}>
-          Create campaign
-        </Button>
-      </form>
+          <Input
+            label="Campaign name"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            maxLength={120}
+            placeholder="White days"
+          />
+          <Input
+            label="Notification title"
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            maxLength={200}
+            placeholder="Ayyam al-Beed"
+          />
+          <div>
+            <label className="form-label">Message</label>
+            <textarea
+              value={body}
+              onChange={(event) => setBody(event.target.value)}
+              maxLength={1000}
+              rows={3}
+              placeholder="Write the notification message"
+              className="form-input w-full"
+            />
+          </div>
+          {error ? <p className="text-sm text-red-600">{error}</p> : null}
+          <Button type="submit" variant="primary" isLoading={saving}>
+            Create campaign
+          </Button>
+        </form>
+      </AdminAction>
 
       <div className="mt-8 space-y-3">
         {items.length === 0 ? (
@@ -306,27 +312,37 @@ const NotificationCampaigns = () => {
                     {item.status === "paused" ? "Paused" : "Active"}
                   </span>
                 </div>
-                <p className="text-sm text-gray-500 mt-1">{item.scheduleLabel}</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  {item.scheduleLabel}
+                </p>
                 <p className="text-sm text-gray-800 mt-2">{item.title}</p>
                 <p className="text-sm text-gray-600">{item.body}</p>
               </div>
               <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => onPause(item)}
-                  className="p-2 border border-gray-200 rounded-lg text-gray-700"
-                  title={item.status === "paused" ? "Resume" : "Pause"}
-                >
-                  {item.status === "paused" ? <Play size={16} /> : <Pause size={16} />}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onDelete(item)}
-                  className="p-2 border border-gray-200 rounded-lg text-red-600"
-                  title="Delete"
-                >
-                  <Trash2 size={16} />
-                </button>
+                <AdminAction action="edit">
+                  <button
+                    type="button"
+                    onClick={() => onPause(item)}
+                    className="p-2 border border-gray-200 rounded-lg text-gray-700"
+                    title={item.status === "paused" ? "Resume" : "Pause"}
+                  >
+                    {item.status === "paused" ? (
+                      <Play size={16} />
+                    ) : (
+                      <Pause size={16} />
+                    )}
+                  </button>
+                </AdminAction>
+                <AdminAction action="delete">
+                  <button
+                    type="button"
+                    onClick={() => onDelete(item)}
+                    className="p-2 border border-gray-200 rounded-lg text-red-600"
+                    title="Delete"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </AdminAction>
               </div>
             </div>
           ))

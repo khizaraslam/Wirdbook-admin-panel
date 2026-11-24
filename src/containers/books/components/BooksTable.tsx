@@ -1,3 +1,4 @@
+import AdminAction from "@/components/ui/AdminAction";
 import React from "react";
 import { ExternalLink, RefreshCw } from "lucide-react";
 import Button from "@/components/ui/Button";
@@ -65,15 +66,17 @@ const BooksTable: React.FC<BooksTableProps> = ({ items, onUpdate }) => {
                   </a>
                 </td>
                 <td className="py-4 px-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    leftIcon={<RefreshCw size={14} />}
-                    onClick={() => onUpdate(item)}
-                    className="rounded-md"
-                  >
-                    Update
-                  </Button>
+                  <AdminAction action="edit">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      leftIcon={<RefreshCw size={14} />}
+                      onClick={() => onUpdate(item)}
+                      className="rounded-md"
+                    >
+                      Update
+                    </Button>
+                  </AdminAction>
                 </td>
               </tr>
             ))}

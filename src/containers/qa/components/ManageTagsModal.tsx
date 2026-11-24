@@ -1,3 +1,4 @@
+import AdminAction from "@/components/ui/AdminAction";
 import React, { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { Plus, Edit2, Trash2 } from "lucide-react";
@@ -133,59 +134,63 @@ const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
           Slug is the technical identifier; labels are shown in the UI.
         </p>
 
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          noValidate
-          className="space-y-4 p-4 bg-gray-50 rounded-xl border border-gray-100"
-        >
-          <h3 className="text-sm font-bold text-gray-900">
-            {editingId ? "Edit tag" : "New tag"}
-          </h3>
-          <Input
-            label="Label (English) *"
-            error={errors.labelEn?.message}
-            {...register("labelEn", { required: "English label is required" })}
-            placeholder="e.g. Prayer"
-          />
-          <Input
-            label="Label (Arabic) *"
-            error={errors.labelAr?.message}
-            dir="rtl"
-            {...register("labelAr", { required: "Arabic label is required" })}
-            placeholder="مثال: الصلاة"
-          />
-          <Input
-            label="Slug *"
-            error={errors.slug?.message}
-            hint="Lowercase letters, numbers, and hyphens only (e.g. prayer, daily-wird)"
-            {...register("slug", {
-              required: "Slug is required",
-              pattern: {
-                value: QA_TAG_SLUG_PATTERN,
-                message: QA_TAG_SLUG_VALIDATION_MESSAGE,
-              },
-              onChange: () => {
-                slugManuallyEdited.current = true;
-              },
-            })}
-            placeholder="prayer"
-          />
-          <div className="flex gap-2 justify-end">
-            {editingId && (
-              <Button type="button" variant="secondary" onClick={resetForm}>
-                Cancel edit
+        <AdminAction action={editingId ? "edit" : "create"}>
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            noValidate
+            className="space-y-4 p-4 bg-gray-50 rounded-xl border border-gray-100"
+          >
+            <h3 className="text-sm font-bold text-gray-900">
+              {editingId ? "Edit tag" : "New tag"}
+            </h3>
+            <Input
+              label="Label (English) *"
+              error={errors.labelEn?.message}
+              {...register("labelEn", {
+                required: "English label is required",
+              })}
+              placeholder="e.g. Prayer"
+            />
+            <Input
+              label="Label (Arabic) *"
+              error={errors.labelAr?.message}
+              dir="rtl"
+              {...register("labelAr", { required: "Arabic label is required" })}
+              placeholder="مثال: الصلاة"
+            />
+            <Input
+              label="Slug *"
+              error={errors.slug?.message}
+              hint="Lowercase letters, numbers, and hyphens only (e.g. prayer, daily-wird)"
+              {...register("slug", {
+                required: "Slug is required",
+                pattern: {
+                  value: QA_TAG_SLUG_PATTERN,
+                  message: QA_TAG_SLUG_VALIDATION_MESSAGE,
+                },
+                onChange: () => {
+                  slugManuallyEdited.current = true;
+                },
+              })}
+              placeholder="prayer"
+            />
+            <div className="flex gap-2 justify-end">
+              {editingId && (
+                <Button type="button" variant="secondary" onClick={resetForm}>
+                  Cancel edit
+                </Button>
+              )}
+              <Button
+                type="submit"
+                variant="primary"
+                leftIcon={<Plus size={16} />}
+                isLoading={isSubmitting}
+              >
+                {editingId ? "Update tag" : "Add tag"}
               </Button>
-            )}
-            <Button
-              type="submit"
-              variant="primary"
-              leftIcon={<Plus size={16} />}
-              isLoading={isSubmitting}
-            >
-              {editingId ? "Update tag" : "Add tag"}
-            </Button>
-          </div>
-        </form>
+            </div>
+          </form>
+        </AdminAction>
 
         <div className="overflow-x-auto rounded-xl border border-gray-100">
           <table className="w-full text-sm">
@@ -226,22 +231,26 @@ const ManageTagsModal: React.FC<ManageTagsModalProps> = ({
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-1">
-                        <button
-                          type="button"
-                          onClick={() => startEdit(tag)}
-                          className="p-2 text-gray-500 hover:text-primary rounded-lg"
-                          aria-label={`Edit ${tag.labelEn}`}
-                        >
-                          <Edit2 size={16} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(tag.id)}
-                          className="p-2 text-gray-500 hover:text-red-600 rounded-lg"
-                          aria-label={`Delete ${tag.labelEn}`}
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        <AdminAction action="edit">
+                          <button
+                            type="button"
+                            onClick={() => startEdit(tag)}
+                            className="p-2 text-gray-500 hover:text-primary rounded-lg"
+                            aria-label={`Edit ${tag.labelEn}`}
+                          >
+                            <Edit2 size={16} />
+                          </button>
+                        </AdminAction>
+                        <AdminAction action="delete">
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(tag.id)}
+                            className="p-2 text-gray-500 hover:text-red-600 rounded-lg"
+                            aria-label={`Delete ${tag.labelEn}`}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </AdminAction>
                       </div>
                     </td>
                   </tr>

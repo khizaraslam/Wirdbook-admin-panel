@@ -1,3 +1,4 @@
+import AdminAction from "@/components/ui/AdminAction";
 import React, { useEffect, useState } from "react";
 import { Bell, Send, Trash2 } from "lucide-react";
 import Button from "@/components/ui/Button";
@@ -106,7 +107,10 @@ const Notifications = () => {
     );
     if (!result.isConfirmed) return;
     const ok = await remove(id);
-    if (ok) await load(items.length === 1 && meta.page > 1 ? meta.page - 1 : meta.page);
+    if (ok)
+      await load(
+        items.length === 1 && meta.page > 1 ? meta.page - 1 : meta.page,
+      );
   };
 
   const selectedUser = users.find((user) => user.id === selectedUserId);
@@ -123,121 +127,131 @@ const Notifications = () => {
         </p>
       </div>
 
-      <form
-        onSubmit={onSend}
-        className="bg-white rounded-2xl p-6 mt-8 shadow-sm border border-gray-100 space-y-4"
-      >
-        <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={() => {
-              setAudience("all");
-              setSelectedUserId("");
-              setError("");
-            }}
-            className={`px-4 py-2 rounded-lg text-sm font-medium border ${
-              audience === "all"
-                ? "bg-primary text-white border-primary"
-                : "bg-white text-gray-700 border-gray-200"
-            }`}
-          >
-            All users
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setAudience("user");
-              setError("");
-            }}
-            className={`px-4 py-2 rounded-lg text-sm font-medium border ${
-              audience === "user"
-                ? "bg-primary text-white border-primary"
-                : "bg-white text-gray-700 border-gray-200"
-            }`}
-          >
-            Specific user
-          </button>
-        </div>
-
-        {audience === "user" && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Search user
-            </label>
-            <input
-              type="search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Name or phone"
-              className="w-full px-3 py-2 mb-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-            />
-            <div className="max-h-48 overflow-y-auto border border-gray-100 rounded-lg">
-              {loadingUsers ? (
-                <p className="px-3 py-3 text-sm text-gray-500">Loading users…</p>
-              ) : users.length === 0 ? (
-                <p className="px-3 py-3 text-sm text-gray-500">No users found.</p>
-              ) : (
-                users.map((user) => (
-                  <button
-                    key={user.id}
-                    type="button"
-                    onClick={() => setSelectedUserId(user.id)}
-                    className={`w-full text-left px-3 py-2 text-sm border-b border-gray-50 last:border-0 ${
-                      selectedUserId === user.id
-                        ? "bg-primary-light text-primary"
-                        : "hover:bg-gray-50"
-                    }`}
-                  >
-                    <span className="font-medium">{user.name}</span>
-                    {user.phone ? (
-                      <span className="text-gray-500"> · {user.phone}</span>
-                    ) : null}
-                  </button>
-                ))
-              )}
-            </div>
-            {selectedUser ? (
-              <p className="mt-2 text-sm text-gray-600">
-                Selected: {selectedUser.name}
-                {selectedUser.phone ? ` (${selectedUser.phone})` : ""}
-              </p>
-            ) : null}
-          </div>
-        )}
-
-        <Input
-          label="Title"
-          value={title}
-          onChange={(event) => setTitle(event.target.value)}
-          maxLength={200}
-          placeholder="Announcement"
-        />
-        <div>
-          <label className="form-label">Message</label>
-          <textarea
-            value={body}
-            onChange={(event) => setBody(event.target.value)}
-            maxLength={1000}
-            rows={4}
-            placeholder="Write the notification message"
-            className="form-input w-full"
-          />
-        </div>
-        {error ? <p className="text-sm text-red-600">{error}</p> : null}
-        <Button
-          type="submit"
-          variant="primary"
-          isLoading={sending}
-          leftIcon={<Send size={18} />}
+      <AdminAction action="create">
+        <form
+          onSubmit={onSend}
+          className="bg-white rounded-2xl p-6 mt-8 shadow-sm border border-gray-100 space-y-4"
         >
-          {audience === "user" ? "Send to selected user" : "Send to all users"}
-        </Button>
-      </form>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                setAudience("all");
+                setSelectedUserId("");
+                setError("");
+              }}
+              className={`px-4 py-2 rounded-lg text-sm font-medium border ${
+                audience === "all"
+                  ? "bg-primary text-white border-primary"
+                  : "bg-white text-gray-700 border-gray-200"
+              }`}
+            >
+              All users
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setAudience("user");
+                setError("");
+              }}
+              className={`px-4 py-2 rounded-lg text-sm font-medium border ${
+                audience === "user"
+                  ? "bg-primary text-white border-primary"
+                  : "bg-white text-gray-700 border-gray-200"
+              }`}
+            >
+              Specific user
+            </button>
+          </div>
+
+          {audience === "user" && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Search user
+              </label>
+              <input
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Name or phone"
+                className="w-full px-3 py-2 mb-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              />
+              <div className="max-h-48 overflow-y-auto border border-gray-100 rounded-lg">
+                {loadingUsers ? (
+                  <p className="px-3 py-3 text-sm text-gray-500">
+                    Loading users…
+                  </p>
+                ) : users.length === 0 ? (
+                  <p className="px-3 py-3 text-sm text-gray-500">
+                    No users found.
+                  </p>
+                ) : (
+                  users.map((user) => (
+                    <button
+                      key={user.id}
+                      type="button"
+                      onClick={() => setSelectedUserId(user.id)}
+                      className={`w-full text-left px-3 py-2 text-sm border-b border-gray-50 last:border-0 ${
+                        selectedUserId === user.id
+                          ? "bg-primary-light text-primary"
+                          : "hover:bg-gray-50"
+                      }`}
+                    >
+                      <span className="font-medium">{user.name}</span>
+                      {user.phone ? (
+                        <span className="text-gray-500"> · {user.phone}</span>
+                      ) : null}
+                    </button>
+                  ))
+                )}
+              </div>
+              {selectedUser ? (
+                <p className="mt-2 text-sm text-gray-600">
+                  Selected: {selectedUser.name}
+                  {selectedUser.phone ? ` (${selectedUser.phone})` : ""}
+                </p>
+              ) : null}
+            </div>
+          )}
+
+          <Input
+            label="Title"
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            maxLength={200}
+            placeholder="Announcement"
+          />
+          <div>
+            <label className="form-label">Message</label>
+            <textarea
+              value={body}
+              onChange={(event) => setBody(event.target.value)}
+              maxLength={1000}
+              rows={4}
+              placeholder="Write the notification message"
+              className="form-input w-full"
+            />
+          </div>
+          {error ? <p className="text-sm text-red-600">{error}</p> : null}
+          <Button
+            type="submit"
+            variant="primary"
+            isLoading={sending}
+            leftIcon={<Send size={18} />}
+          >
+            {audience === "user"
+              ? "Send to selected user"
+              : "Send to all users"}
+          </Button>
+        </form>
+      </AdminAction>
 
       <NotificationCampaigns />
 
       <div className="bg-white rounded-2xl p-6 mt-8 shadow-sm border border-gray-100">
-        <h2 className="text-lg font-bold text-gray-900 mb-4">Sent notifications</h2>
+        <h2 className="text-lg font-bold text-gray-900 mb-4">
+          Sent notifications
+        </h2>
         {items.length === 0 ? (
           <CustomMessageDisplay
             show
@@ -258,11 +272,16 @@ const Notifications = () => {
               </thead>
               <tbody>
                 {items.map((item) => (
-                  <tr key={item.id} className="border-b border-gray-50 align-top">
+                  <tr
+                    key={item.id}
+                    className="border-b border-gray-50 align-top"
+                  >
                     <td className="py-3 pr-4 font-medium text-gray-900">
                       {item.title}
                     </td>
-                    <td className="py-3 pr-4 text-gray-600 max-w-md">{item.body}</td>
+                    <td className="py-3 pr-4 text-gray-600 max-w-md">
+                      {item.body}
+                    </td>
                     <td className="py-3 pr-4 text-gray-700">
                       {item.audience === "all"
                         ? "All users"
@@ -274,14 +293,16 @@ const Notifications = () => {
                       {new Date(item.createdAt).toLocaleString()}
                     </td>
                     <td className="py-3">
-                      <button
-                        type="button"
-                        onClick={() => onDelete(item.id)}
-                        className="text-red-600 hover:text-red-700"
-                        aria-label="Remove notification"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      <AdminAction action="delete">
+                        <button
+                          type="button"
+                          onClick={() => onDelete(item.id)}
+                          className="text-red-600 hover:text-red-700"
+                          aria-label="Remove notification"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </AdminAction>
                     </td>
                   </tr>
                 ))}

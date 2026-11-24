@@ -1,3 +1,5 @@
+import { useAdminAction } from "@/utils/helpers/admin-action-context";
+import AdminAction from "@/components/ui/AdminAction";
 import React from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -15,6 +17,7 @@ const SortableTabItem: React.FC<SortableTabItemProps> = ({
   onEdit,
   onDelete,
 }) => {
+  const canReorder = useAdminAction("edit");
   const {
     attributes,
     listeners,
@@ -22,7 +25,7 @@ const SortableTabItem: React.FC<SortableTabItemProps> = ({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: tab.id });
+  } = useSortable({ id: tab.id, disabled: !canReorder });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -41,13 +44,15 @@ const SortableTabItem: React.FC<SortableTabItemProps> = ({
     >
       <div className="flex items-center gap-4">
         {/* Drag Handle */}
-        <div
-          {...attributes}
-          {...listeners}
-          className="cursor-grab active:cursor-grabbing text-muted p-1 hover:bg-primary-light rounded transition-colors"
-        >
-          <GripVertical size={20} />
-        </div>
+        <AdminAction action="edit">
+          <div
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing text-muted p-1 hover:bg-primary-light rounded transition-colors"
+          >
+            <GripVertical size={20} />
+          </div>
+        </AdminAction>
 
         {/* Tab Icon */}
         <div className="bg-primary text-white p-2.5 rounded-xl shadow-sm">
@@ -65,18 +70,22 @@ const SortableTabItem: React.FC<SortableTabItemProps> = ({
 
       {/* Action Buttons */}
       <div className="flex items-center gap-2">
-        <button
-          onClick={() => onEdit(tab)}
-          className="p-2 hover:text-muted cursor-pointer text-primary hover:bg-primary-light border border-primary/10 rounded-lg transition-colors"
-        >
-          <Edit2 size={18} />
-        </button>
-        <button
-          onClick={() => onDelete(tab.id)}
-          className="p-2 hover:text-red-600 cursor-pointer text-red-500 hover:bg-red-50 border border-gray-200 rounded-lg transition-colors"
-        >
-          <Trash2 size={18} />
-        </button>
+        <AdminAction action="edit">
+          <button
+            onClick={() => onEdit(tab)}
+            className="p-2 hover:text-muted cursor-pointer text-primary hover:bg-primary-light border border-primary/10 rounded-lg transition-colors"
+          >
+            <Edit2 size={18} />
+          </button>
+        </AdminAction>
+        <AdminAction action="delete">
+          <button
+            onClick={() => onDelete(tab.id)}
+            className="p-2 hover:text-red-600 cursor-pointer text-red-500 hover:bg-red-50 border border-gray-200 rounded-lg transition-colors"
+          >
+            <Trash2 size={18} />
+          </button>
+        </AdminAction>
       </div>
     </div>
   );

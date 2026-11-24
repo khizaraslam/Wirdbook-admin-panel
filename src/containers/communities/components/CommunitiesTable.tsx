@@ -1,3 +1,4 @@
+import AdminAction from "@/components/ui/AdminAction";
 import React from "react";
 import { Link } from "react-router-dom";
 import { Edit2, Eye, Users } from "lucide-react";
@@ -24,7 +25,15 @@ const CommunitiesTable: React.FC<CommunitiesTableProps> = ({
   communities,
   onEdit,
 }) => {
-  const columns = ["Image", "Name", "Admins", "Members", "Status", "Created", "Actions"];
+  const columns = [
+    "Image",
+    "Name",
+    "Admins",
+    "Members",
+    "Status",
+    "Created",
+    "Actions",
+  ];
 
   return (
     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mt-6 overflow-hidden">
@@ -72,21 +81,23 @@ const CommunitiesTable: React.FC<CommunitiesTableProps> = ({
                 <td className="py-4 px-4">
                   <span className="inline-flex items-center gap-1 font-medium text-gray-900">
                     {community.name}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onEdit(community)}
-                      title="Edit"
-                    >
-                      <Edit2 size={16} />
-                    </Button>
+                    <AdminAction action="edit">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onEdit(community)}
+                        title="Edit"
+                      >
+                        <Edit2 size={16} />
+                      </Button>
+                    </AdminAction>
                   </span>
                 </td>
                 <td className="py-4 px-4 text-gray-600">
-                  {((community.admins?.map(({ name }) => name).join(", ") ??
+                  {(community.admins?.map(({ name }) => name).join(", ") ??
                     community.adminName) || (
                     <span className="text-gray-400 italic">Unassigned</span>
-                  ))}
+                  )}
                 </td>
                 <td className="py-4 px-4">
                   <span className="inline-flex items-center gap-1.5 text-gray-700">

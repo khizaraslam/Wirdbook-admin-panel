@@ -1,3 +1,4 @@
+import { useAdminAction } from "@/utils/helpers/admin-action-context";
 import { useEffect, useState, type FormEvent } from "react";
 import {
   closestCenter,
@@ -31,6 +32,9 @@ import SortableStoryRow from "./SortableStoryRow";
 const pageSize = 20;
 
 export default function IslamicStories() {
+  const canCreate = useAdminAction("create");
+  const canEdit = useAdminAction("edit");
+  const canDelete = useAdminAction("delete");
   const [page, setPage] = useState(1);
   const [searchInput, setSearchInput] = useState("");
   const [query, setQuery] = useState("");
@@ -105,14 +109,22 @@ export default function IslamicStories() {
   }
 
   function move({ active, over }: DragEndEvent) {
-    if (!stories || !over || active.id === over.id || busy || searching) return;
+    if (
+      !canEdit ||
+      !stories ||
+      !over ||
+      active.id === over.id ||
+      busy ||
+      searching
+    )
+      return;
     const from = ids.indexOf(Number(active.id));
     const to = ids.indexOf(Number(over.id));
     if (from >= 0 && to >= 0) setStories(arrayMove(stories, from, to));
   }
 
   async function saveOrder() {
-    if (!orderChanged || busy) return;
+    if (!canEdit || !orderChanged || busy) return;
     setSavingOrder(true);
     setError("");
     try {
@@ -131,6 +143,7 @@ export default function IslamicStories() {
   }
 
   async function edit(story: StorySummary) {
+    if (!canEdit) return;
     setBusyId(story.story_id);
     setError("");
     try {
@@ -146,6 +159,7 @@ export default function IslamicStories() {
   }
 
   async function remove(story: StorySummary) {
+    if (!canDelete) return;
     setBusyId(story.story_id);
     setError("");
     try {
@@ -212,14 +226,16 @@ export default function IslamicStories() {
               </Button>
             </>
           )}
-          <Button
-            type="button"
-            leftIcon={<Plus size={18} />}
-            disabled={actionsDisabled}
-            onClick={() => setEditor({ story: null })}
-          >
-            Add story
-          </Button>
+          {canCreate && (
+            <Button
+              type="button"
+              leftIcon={<Plus size={18} />}
+              disabled={actionsDisabled}
+              onClick={() => setEditor({ story: null })}
+            >
+              Add story
+            </Button>
+          )}
         </div>
       </div>
       <form
@@ -296,9 +312,10 @@ export default function IslamicStories() {
           <>
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-5 py-3">
               <p className="text-sm text-gray-600">
-                {searching
-                  ? "Clear search to reorder stories."
-                  : "Drag a row by its handle to change the mobile story order."}
+                {canEdit &&
+                  (searching
+                    ? "Clear search to reorder stories."
+                    : "Drag a row by its handle to change the mobile story order.")}
               </p>
               <label className="flex items-center gap-2 text-sm text-gray-700">
                 <input
@@ -351,7 +368,9 @@ export default function IslamicStories() {
                               ? (story.position ?? story.story_id)
                               : offset + index + 1
                           }
-                          dragDisabled={busy || searching}
+                          canEdit={canEdit}
+                          canDelete={canDelete}
+                          dragDisabled={busy || searching || !canEdit}
                           actionsDisabled={actionsDisabled}
                           onEdit={edit}
                           onRemove={remove}

@@ -10,7 +10,7 @@ const AuthRoutes = () => {
   const token = getToken();
 
   if (token) {
-    return <Navigate to={siteRoutes.dashboard} replace />;
+    return <Navigate to={siteRoutes.home} replace />;
   }
 
   return (

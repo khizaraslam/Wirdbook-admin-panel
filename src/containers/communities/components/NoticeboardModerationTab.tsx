@@ -1,3 +1,4 @@
+import AdminAction from "@/components/ui/AdminAction";
 import React, { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Trash2, UploadCloud, X, Pencil } from "lucide-react";
@@ -118,7 +119,11 @@ const NoticeboardModerationTab: React.FC<NoticeboardModerationTabProps> = ({
     };
   }, [previewUrl]);
 
-  const openList = async (post: NoticeboardPostDTO, kind: ListKind, page = 1) => {
+  const openList = async (
+    post: NoticeboardPostDTO,
+    kind: ListKind,
+    page = 1,
+  ) => {
     setListPost(post);
     setListKind(kind);
     setListLoading(true);
@@ -135,7 +140,11 @@ const NoticeboardModerationTab: React.FC<NoticeboardModerationTabProps> = ({
       setReports([]);
       setListMeta(result.pagination);
     } else {
-      const result = await getNoticeboardPostReports(communityId, post.id, page);
+      const result = await getNoticeboardPostReports(
+        communityId,
+        post.id,
+        page,
+      );
       setReports(result.items);
       setLikes([]);
       setComments([]);
@@ -266,23 +275,27 @@ const NoticeboardModerationTab: React.FC<NoticeboardModerationTabProps> = ({
                   </div>
                 </div>
                 <div className="flex items-start gap-1 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => startEdit(post)}
-                    className="p-2 rounded-lg text-primary hover:bg-primary/10"
-                    title="Edit post"
-                  >
-                    <Pencil size={16} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(post.id)}
-                    className="p-2 rounded-lg text-red-500 hover:bg-red-50"
-                    title="Delete post"
-                    disabled={isDeleting}
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                  <AdminAction action="edit">
+                    <button
+                      type="button"
+                      onClick={() => startEdit(post)}
+                      className="p-2 rounded-lg text-primary hover:bg-primary/10"
+                      title="Edit post"
+                    >
+                      <Pencil size={16} />
+                    </button>
+                  </AdminAction>
+                  <AdminAction action="delete">
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(post.id)}
+                      className="p-2 rounded-lg text-red-500 hover:bg-red-50"
+                      title="Delete post"
+                      disabled={isDeleting}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </AdminAction>
                 </div>
               </div>
             ))}
@@ -298,111 +311,113 @@ const NoticeboardModerationTab: React.FC<NoticeboardModerationTabProps> = ({
       >
         {editingPost && (
           <>
-          <p className="text-gray-500 text-sm mb-6">
-            {editingPost.authorName} · {formatDate(editingPost.createdAt)}
-          </p>
+            <p className="text-gray-500 text-sm mb-6">
+              {editingPost.authorName} · {formatDate(editingPost.createdAt)}
+            </p>
 
-          <form
-            onSubmit={handleSubmit(onEditSubmit)}
-            noValidate
-            className="space-y-4"
-          >
-            <div>
-              <label htmlFor="category" className="form-label">
-                Category
-              </label>
-              <select
-                id="category"
-                className="form-input"
-                {...register("category")}
-              >
-                <option value="general">General</option>
-                <option value="announcement">Announcement</option>
-              </select>
-            </div>
-
-            <Textarea
-              label="Content"
-              placeholder="Post text"
-              hint="Post must still have content and/or image after update"
-              {...register("content")}
-            />
-
-            <div>
-              <label className="form-label">Image</label>
-              <p className="form-hint mb-2">
-                Upload a new image to replace, or remove the current one
-              </p>
-
-              {previewUrl ? (
-                <div className="relative rounded-xl overflow-hidden border border-gray-100 bg-gray-50">
-                  <img
-                    src={previewUrl}
-                    alt="Post preview"
-                    className="w-full h-40 object-cover"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setValue("image", null as unknown as FileList);
-                      setRemoveImage(true);
-                    }}
-                    className="absolute top-2 right-2 p-1.5 rounded-full bg-black/50 text-white hover:bg-black/70"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-              ) : editingPost.imageUrl && !removeImage ? (
-                <div className="relative rounded-xl overflow-hidden border border-gray-100 bg-gray-50 mb-2">
-                  <img
-                    src={getCommunityImageUrl(editingPost.imageUrl)}
-                    alt="Current"
-                    className="w-full h-40 object-cover"
-                  />
-                </div>
-              ) : (
-                <label className="flex flex-col items-center justify-center gap-2 p-6 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-colors">
-                  <UploadCloud size={24} className="text-gray-400" />
-                  <span className="text-sm text-gray-500">Upload new image</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    {...register("image", {
-                      onChange: () => setRemoveImage(false),
-                    })}
-                  />
+            <form
+              onSubmit={handleSubmit(onEditSubmit)}
+              noValidate
+              className="space-y-4"
+            >
+              <div>
+                <label htmlFor="category" className="form-label">
+                  Category
                 </label>
-              )}
+                <select
+                  id="category"
+                  className="form-input"
+                  {...register("category")}
+                >
+                  <option value="general">General</option>
+                  <option value="announcement">Announcement</option>
+                </select>
+              </div>
 
-              {editingPost.imageUrl && !previewUrl && (
-                <label className="inline-flex items-center gap-2 mt-2">
-                  <input
-                    type="checkbox"
-                    checked={removeImage}
-                    onChange={(e) => setRemoveImage(e.target.checked)}
-                    className="rounded border-gray-300"
-                  />
-                  <span className="text-sm text-gray-600">
-                    Remove existing image
-                  </span>
-                </label>
-              )}
-            </div>
+              <Textarea
+                label="Content"
+                placeholder="Post text"
+                hint="Post must still have content and/or image after update"
+                {...register("content")}
+              />
 
-            <div className="flex flex-wrap gap-3 pt-2">
-              <Button type="submit" variant="primary" isLoading={isSubmitting}>
-                Save changes
-              </Button>
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={closeEdit}
-              >
-                Cancel
-              </Button>
-            </div>
-          </form>
+              <div>
+                <label className="form-label">Image</label>
+                <p className="form-hint mb-2">
+                  Upload a new image to replace, or remove the current one
+                </p>
+
+                {previewUrl ? (
+                  <div className="relative rounded-xl overflow-hidden border border-gray-100 bg-gray-50">
+                    <img
+                      src={previewUrl}
+                      alt="Post preview"
+                      className="w-full h-40 object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setValue("image", null as unknown as FileList);
+                        setRemoveImage(true);
+                      }}
+                      className="absolute top-2 right-2 p-1.5 rounded-full bg-black/50 text-white hover:bg-black/70"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                ) : editingPost.imageUrl && !removeImage ? (
+                  <div className="relative rounded-xl overflow-hidden border border-gray-100 bg-gray-50 mb-2">
+                    <img
+                      src={getCommunityImageUrl(editingPost.imageUrl)}
+                      alt="Current"
+                      className="w-full h-40 object-cover"
+                    />
+                  </div>
+                ) : (
+                  <label className="flex flex-col items-center justify-center gap-2 p-6 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-colors">
+                    <UploadCloud size={24} className="text-gray-400" />
+                    <span className="text-sm text-gray-500">
+                      Upload new image
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      {...register("image", {
+                        onChange: () => setRemoveImage(false),
+                      })}
+                    />
+                  </label>
+                )}
+
+                {editingPost.imageUrl && !previewUrl && (
+                  <label className="inline-flex items-center gap-2 mt-2">
+                    <input
+                      type="checkbox"
+                      checked={removeImage}
+                      onChange={(e) => setRemoveImage(e.target.checked)}
+                      className="rounded border-gray-300"
+                    />
+                    <span className="text-sm text-gray-600">
+                      Remove existing image
+                    </span>
+                  </label>
+                )}
+              </div>
+
+              <div className="flex flex-wrap gap-3 pt-2">
+                <Button
+                  type="submit"
+                  variant="primary"
+                  isLoading={isSubmitting}
+                >
+                  Save changes
+                </Button>
+                <Button type="button" variant="secondary" onClick={closeEdit}>
+                  Cancel
+                </Button>
+              </div>
+            </form>
           </>
         )}
       </Modal>
@@ -444,27 +459,31 @@ const NoticeboardModerationTab: React.FC<NoticeboardModerationTabProps> = ({
           )
         ) : listKind === "comments" ? (
           comments.length === 0 ? (
-          <p className="text-sm text-gray-400 py-6 text-center">No comments</p>
-        ) : (
-          <ul className="divide-y divide-gray-100">
-            {comments.map((comment) => (
-              <li key={comment.id} className="py-3">
-                <p className="text-sm font-medium text-gray-900">
-                  {personLabel(comment.authorName, comment.authorPhone)}
-                  {comment.parentCommentId ? (
-                    <span className="ml-2 text-xs font-normal text-gray-400">
-                      Reply
-                    </span>
-                  ) : null}
-                </p>
-                <p className="text-sm text-gray-700 mt-1">{comment.content}</p>
-                <p className="text-xs text-gray-400 mt-1">
-                  {formatDate(comment.createdAt)}
-                </p>
-              </li>
-            ))}
-          </ul>
-        )
+            <p className="text-sm text-gray-400 py-6 text-center">
+              No comments
+            </p>
+          ) : (
+            <ul className="divide-y divide-gray-100">
+              {comments.map((comment) => (
+                <li key={comment.id} className="py-3">
+                  <p className="text-sm font-medium text-gray-900">
+                    {personLabel(comment.authorName, comment.authorPhone)}
+                    {comment.parentCommentId ? (
+                      <span className="ml-2 text-xs font-normal text-gray-400">
+                        Reply
+                      </span>
+                    ) : null}
+                  </p>
+                  <p className="text-sm text-gray-700 mt-1">
+                    {comment.content}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {formatDate(comment.createdAt)}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )
         ) : reports.length === 0 ? (
           <p className="text-sm text-gray-400 py-6 text-center">No reports</p>
         ) : (

@@ -1,3 +1,4 @@
+import AdminAction from "@/components/ui/AdminAction";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import Button from "@/components/ui/Button";
@@ -39,13 +40,14 @@ const CommunityDhikrTab: React.FC<CommunityDhikrTabProps> = ({
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [selectedAssignment, setSelectedAssignment] =
     useState<DhikrAssignmentDTO | null>(null);
-  const [report, setReport] = useState<Awaited<ReturnType<typeof getReport>>>(
-    null,
-  );
+  const [report, setReport] =
+    useState<Awaited<ReturnType<typeof getReport>>>(null);
   const [reportLoading, setReportLoading] = useState(false);
   const [returningId, setReturningId] = useState<string | null>(null);
   const [actingId, setActingId] = useState<string | null>(null);
-  const hasActiveDhikrTypes = dhikrTypes.some((item) => item.status === "active");
+  const hasActiveDhikrTypes = dhikrTypes.some(
+    (item) => item.status === "active",
+  );
 
   const loadAssignments = useCallback(async () => {
     const data = await getAssignments(communityId);
@@ -213,26 +215,28 @@ const CommunityDhikrTab: React.FC<CommunityDhikrTabProps> = ({
             Create pool tasks — members take portions in the mobile app
           </p>
         </div>
-        <Button
-          variant="primary"
-          onClick={() => setIsCreateOpen(true)}
-          disabled={!hasActiveDhikrTypes}
-          title={
-            hasActiveDhikrTypes
-              ? "Create community dhikr task"
-              : "Create an active dhikr type first"
-          }
-        >
-          <Plus size={18} className="mr-2" />
-          Create community dhikr task
-        </Button>
+        <AdminAction action="create">
+          <Button
+            variant="primary"
+            onClick={() => setIsCreateOpen(true)}
+            disabled={!hasActiveDhikrTypes}
+            title={
+              hasActiveDhikrTypes
+                ? "Create community dhikr task"
+                : "Create an active dhikr type first"
+            }
+          >
+            <Plus size={18} className="mr-2" />
+            Create community dhikr task
+          </Button>
+        </AdminAction>
       </div>
 
       {!hasActiveDhikrTypes && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
           <p className="text-sm text-amber-800">
-            Create at least one active dhikr type before creating a dhikr
-            task. Add or activate a type on the Dhikr Types page first.
+            Create at least one active dhikr type before creating a dhikr task.
+            Add or activate a type on the Dhikr Types page first.
           </p>
         </div>
       )}

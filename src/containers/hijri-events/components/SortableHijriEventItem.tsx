@@ -1,3 +1,5 @@
+import { useAdminAction } from "@/utils/helpers/admin-action-context";
+import AdminAction from "@/components/ui/AdminAction";
 import React from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -22,6 +24,7 @@ const SortableHijriEventItem: React.FC<SortableHijriEventItemProps> = ({
   onEdit,
   onDelete,
 }) => {
+  const canReorder = useAdminAction("edit");
   const {
     attributes,
     listeners,
@@ -29,7 +32,7 @@ const SortableHijriEventItem: React.FC<SortableHijriEventItemProps> = ({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: event.id });
+  } = useSortable({ id: event.id, disabled: !canReorder });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -48,13 +51,15 @@ const SortableHijriEventItem: React.FC<SortableHijriEventItemProps> = ({
       }`}
     >
       <div className="flex items-start gap-4 min-w-0 flex-1">
-        <div
-          {...attributes}
-          {...listeners}
-          className="cursor-grab active:cursor-grabbing text-muted p-1 hover:bg-primary-light rounded transition-colors shrink-0"
-        >
-          <GripVertical size={20} />
-        </div>
+        <AdminAction action="edit">
+          <div
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing text-muted p-1 hover:bg-primary-light rounded transition-colors shrink-0"
+          >
+            <GripVertical size={20} />
+          </div>
+        </AdminAction>
 
         {fullIconUrl ? (
           <img
@@ -88,26 +93,31 @@ const SortableHijriEventItem: React.FC<SortableHijriEventItemProps> = ({
             {event.arabicName || "—"}
           </p>
           <p className="text-sm text-muted mt-1">
-            Hijri {event.hijriDay}/{event.hijriMonth} • Order: {event.indexOrder}
+            Hijri {event.hijriDay}/{event.hijriMonth} • Order:{" "}
+            {event.indexOrder}
           </p>
         </div>
       </div>
 
       <div className="flex items-center gap-2 flex-shrink-0">
-        <button
-          type="button"
-          onClick={() => onEdit(event)}
-          className="p-2 hover:text-muted cursor-pointer text-primary hover:bg-primary-light border border-primary/10 rounded-lg transition-colors"
-        >
-          <Edit2 size={18} />
-        </button>
-        <button
-          type="button"
-          onClick={() => onDelete(event.id)}
-          className="p-2 hover:text-red-600 cursor-pointer text-red-500 hover:bg-red-50 border border-gray-200 rounded-lg transition-colors"
-        >
-          <Trash2 size={18} />
-        </button>
+        <AdminAction action="edit">
+          <button
+            type="button"
+            onClick={() => onEdit(event)}
+            className="p-2 hover:text-muted cursor-pointer text-primary hover:bg-primary-light border border-primary/10 rounded-lg transition-colors"
+          >
+            <Edit2 size={18} />
+          </button>
+        </AdminAction>
+        <AdminAction action="delete">
+          <button
+            type="button"
+            onClick={() => onDelete(event.id)}
+            className="p-2 hover:text-red-600 cursor-pointer text-red-500 hover:bg-red-50 border border-gray-200 rounded-lg transition-colors"
+          >
+            <Trash2 size={18} />
+          </button>
+        </AdminAction>
       </div>
     </div>
   );

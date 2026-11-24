@@ -1,3 +1,5 @@
+import { useAdminAction } from "@/utils/helpers/admin-action-context";
+import AdminAction from "@/components/ui/AdminAction";
 import React from "react";
 import { Check, Edit2, Trash2, X } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -26,6 +28,7 @@ const QasidasTable: React.FC<QasidasTableProps> = ({
   onReject,
   onKeep,
 }) => {
+  const canEdit = useAdminAction("edit");
   return (
     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mt-6 overflow-hidden">
       <div className="border-b border-gray-50 bg-white mb-4">
@@ -96,17 +99,22 @@ const QasidasTable: React.FC<QasidasTableProps> = ({
                   {formatDuration(item.audioDuration)}
                 </td>
                 <td className="py-3 px-3">
-                  <button
-                    type="button"
-                    onClick={() => onToggleEnabled(item.id, !item.isEnabled)}
-                    className={`text-xs font-medium px-2.5 py-1 rounded-lg border ${
-                      item.isEnabled
-                        ? "border-emerald-200 text-emerald-800 bg-emerald-50"
-                        : "border-amber-200 text-amber-800 bg-amber-50"
-                    }`}
+                  <AdminAction
+                    action="edit"
+                    fallback={item.isEnabled ? "On" : "Off"}
                   >
-                    {item.isEnabled ? "On" : "Off"}
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => onToggleEnabled(item.id, !item.isEnabled)}
+                      className={`text-xs font-medium px-2.5 py-1 rounded-lg border ${
+                        item.isEnabled
+                          ? "border-emerald-200 text-emerald-800 bg-emerald-50"
+                          : "border-amber-200 text-amber-800 bg-amber-50"
+                      }`}
+                    >
+                      {item.isEnabled ? "On" : "Off"}
+                    </button>
+                  </AdminAction>
                 </td>
                 <td className="py-3 px-3">
                   <span
@@ -132,52 +140,62 @@ const QasidasTable: React.FC<QasidasTableProps> = ({
                 <td className="py-3 px-3">
                   <div className="flex items-center gap-2">
                     {item.reviewStatus === "delete_requested" ? (
-                      <button
-                        type="button"
-                        onClick={() => onKeep(item.id)}
-                        title="Keep this qasida and clear the delete request"
-                        className="p-2 text-emerald-700 hover:bg-emerald-50 border border-emerald-200 rounded-lg"
-                      >
-                        <Check size={16} />
-                      </button>
+                      <AdminAction action="edit">
+                        <button
+                          type="button"
+                          onClick={() => onKeep(item.id)}
+                          title="Keep this qasida and clear the delete request"
+                          className="p-2 text-emerald-700 hover:bg-emerald-50 border border-emerald-200 rounded-lg"
+                        >
+                          <Check size={16} />
+                        </button>
+                      </AdminAction>
                     ) : (
                       <>
                         {(item.reviewStatus === "pending" ||
                           item.reviewStatus === "rejected") && (
-                          <button
-                            type="button"
-                            onClick={() => onApprove(item.id)}
-                            title="Approve and publish to all users"
-                            className="p-2 text-emerald-700 hover:bg-emerald-50 border border-emerald-200 rounded-lg"
-                          >
-                            <Check size={16} />
-                          </button>
+                          <AdminAction action="edit">
+                            <button
+                              type="button"
+                              onClick={() => onApprove(item.id)}
+                              title="Approve and publish to all users"
+                              className="p-2 text-emerald-700 hover:bg-emerald-50 border border-emerald-200 rounded-lg"
+                            >
+                              <Check size={16} />
+                            </button>
+                          </AdminAction>
                         )}
-                        {item.submittedBy && item.reviewStatus !== "rejected" && (
-                          <button
-                            type="button"
-                            onClick={() => onReject(item.id)}
-                            title="Reject and keep it private"
-                            className="p-2 text-red-600 hover:bg-red-50 border border-red-200 rounded-lg"
-                          >
-                            <X size={16} />
-                          </button>
-                        )}
+                        {item.submittedBy &&
+                          item.reviewStatus !== "rejected" && (
+                            <AdminAction action="edit">
+                              <button
+                                type="button"
+                                onClick={() => onReject(item.id)}
+                                title="Reject and keep it private"
+                                className="p-2 text-red-600 hover:bg-red-50 border border-red-200 rounded-lg"
+                              >
+                                <X size={16} />
+                              </button>
+                            </AdminAction>
+                          )}
                       </>
                     )}
                     <Link
                       to={`${siteRoutes.qasidas}/${item.id}/edit`}
+                      aria-label={canEdit ? "Edit Qasida" : "View Qasida"}
                       className="p-2 text-primary hover:bg-primary-light border border-primary/10 rounded-lg"
                     >
-                      <Edit2 size={16} />
+                      {canEdit ? <Edit2 size={16} /> : "View"}
                     </Link>
-                    <button
-                      type="button"
-                      onClick={() => onDelete(item.id)}
-                      className="p-2 text-red-500 hover:bg-red-50 border border-gray-200 rounded-lg"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                    <AdminAction action="delete">
+                      <button
+                        type="button"
+                        onClick={() => onDelete(item.id)}
+                        className="p-2 text-red-500 hover:bg-red-50 border border-gray-200 rounded-lg"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </AdminAction>
                   </div>
                 </td>
               </tr>

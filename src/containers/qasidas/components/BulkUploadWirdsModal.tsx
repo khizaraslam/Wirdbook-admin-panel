@@ -1,3 +1,4 @@
+import { useAdminAction } from "@/utils/helpers/admin-action-context";
 import React, { useEffect, useRef, useState } from "react";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
@@ -14,6 +15,7 @@ const BulkUploadWirdsModal: React.FC<BulkUploadWirdsModalProps> = ({
   onClose,
   onUpload,
 }) => {
+  const canDelete = useAdminAction("delete");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [replace, setReplace] = useState(false);
@@ -32,7 +34,8 @@ const BulkUploadWirdsModal: React.FC<BulkUploadWirdsModalProps> = ({
     e.preventDefault();
     if (!file) return;
 
-    if (replace) {
+    const replaceExisting = canDelete && replace;
+    if (replaceExisting) {
       const result = await confirmationPopup(
         "Replace all existing verses?",
         "This will delete every verse on this qasida before importing the JSON file. This cannot be undone.",
@@ -41,7 +44,7 @@ const BulkUploadWirdsModal: React.FC<BulkUploadWirdsModalProps> = ({
     }
 
     setUploading(true);
-    const ok = await onUpload(file, replace);
+    const ok = await onUpload(file, replaceExisting);
     setUploading(false);
     if (ok) onClose();
   };
@@ -69,21 +72,23 @@ const BulkUploadWirdsModal: React.FC<BulkUploadWirdsModalProps> = ({
           </p>
         </div>
 
-        <div className="flex items-start gap-3">
-          <input
-            id="bulk-replace-wirds"
-            type="checkbox"
-            className="mt-1 rounded border-gray-300 text-primary"
-            checked={replace}
-            onChange={(e) => setReplace(e.target.checked)}
-          />
-          <label htmlFor="bulk-replace-wirds" className="text-sm text-gray-700">
-            <span className="font-medium">Replace existing verses</span>
-            <span className="block text-muted text-xs mt-0.5">
-              Delete all current verses before importing (append if unchecked).
-            </span>
-          </label>
-        </div>
+        {canDelete && (
+          <div className="flex items-start gap-3">
+            <input
+              id="bulk-replace-wirds"
+              type="checkbox"
+              className="mt-1 rounded border-gray-300 text-primary"
+              checked={replace}
+              onChange={(e) => setReplace(e.target.checked)}
+            />
+            <label htmlFor="bulk-replace-wirds" className="text-sm text-gray-700">
+              <span className="font-medium">Replace existing verses</span>
+              <span className="block text-muted text-xs mt-0.5">
+                Delete all current verses before importing (append if unchecked).
+              </span>
+            </label>
+          </div>
+        )}
 
         <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">
           <Button type="button" variant="secondary" onClick={onClose}>

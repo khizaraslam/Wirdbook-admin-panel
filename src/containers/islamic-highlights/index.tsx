@@ -1,3 +1,5 @@
+import { useAdminAction } from "@/utils/helpers/admin-action-context";
+import AdminAction from "@/components/ui/AdminAction";
 import React, { useEffect, useState } from "react";
 import {
   DndContext,
@@ -23,7 +25,10 @@ import HighlightPreviewModal from "./components/HighlightPreviewModal";
 import ManageHighlightTagsModal from "./components/ManageHighlightTagsModal";
 import useIslamicHighlights from "./useHooks";
 import type { IslamicHighlightTagDTO } from "@/utils/helpers/models/islamic-highlights/islamic-highlight-tag.dto";
-import type { IslamicHighlightDTO, IslamicHighlightTimeSlot } from "@/utils/helpers/models/islamic-highlights/islamic-highlight.dto";
+import type {
+  IslamicHighlightDTO,
+  IslamicHighlightTimeSlot,
+} from "@/utils/helpers/models/islamic-highlights/islamic-highlight.dto";
 import { confirmationPopup } from "@/utils/helpers/common/alert-service";
 import CustomMessageDisplay from "@/components/data-not-found";
 import useStore from "@/hooks/useStore";
@@ -85,7 +90,9 @@ const IslamicHighlights = () => {
     return true;
   });
 
+  const canReorder = useAdminAction("edit");
   const handleDragEnd = async (event: DragEndEvent) => {
+    if (!canReorder) return;
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
@@ -138,28 +145,34 @@ const IslamicHighlights = () => {
     <div>
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h1 className="text-4xl font-bold text-primary">Islamic Highlights</h1>
+          <h1 className="text-4xl font-bold text-primary">
+            Islamic Highlights
+          </h1>
           <p className="text-muted mt-2">
             Schedule verses, hadith, or wisdom with optional audio and images
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button
-            variant="secondary"
-            leftIcon={<Tag size={18} />}
-            className="rounded-md px-4 py-2.5"
-            onClick={() => setIsTagsModalOpen(true)}
-          >
-            Manage Tags
-          </Button>
-          <Button
-            variant="primary"
-            leftIcon={<Plus size={20} />}
-            className="rounded-md px-5 py-2.5 btn-primary"
-            onClick={() => setIsModalOpen(true)}
-          >
-            Add Highlight
-          </Button>
+          <AdminAction action={["create", "edit", "delete"]}>
+            <Button
+              variant="secondary"
+              leftIcon={<Tag size={18} />}
+              className="rounded-md px-4 py-2.5"
+              onClick={() => setIsTagsModalOpen(true)}
+            >
+              Manage Tags
+            </Button>
+          </AdminAction>
+          <AdminAction action="create">
+            <Button
+              variant="primary"
+              leftIcon={<Plus size={20} />}
+              className="rounded-md px-5 py-2.5 btn-primary"
+              onClick={() => setIsModalOpen(true)}
+            >
+              Add Highlight
+            </Button>
+          </AdminAction>
         </div>
       </div>
 
@@ -176,8 +189,7 @@ const IslamicHighlights = () => {
               ? ` ${TIME_SLOT_FILTERS.find((tab) => tab.value === timeSlotFilter)?.label ?? ""}`
               : ""}{" "}
             highlights
-            {timeSlotFilter === "all" ? ` of ${data.length}` : ""} • Drag to
-            reorder
+            {timeSlotFilter === "all" ? ` of ${data.length}` : ""}{canReorder && " · Drag to reorder"}
           </span>
         </div>
       </div>
@@ -185,7 +197,7 @@ const IslamicHighlights = () => {
       <div className="mt-10 mb-4 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">All Highlights</h2>
-          <p className="text-muted">Drag and drop to change display order</p>
+          {canReorder && <p className="text-muted">Drag and drop to change display order</p>}
         </div>
         <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
           <select
@@ -201,20 +213,20 @@ const IslamicHighlights = () => {
             ))}
           </select>
           <div className="flex rounded-lg border border-gray-200 bg-white p-1 w-fit">
-          {TIME_SLOT_FILTERS.map((tab) => (
-            <button
-              key={tab.value}
-              type="button"
-              onClick={() => setTimeSlotFilter(tab.value)}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                timeSlotFilter === tab.value
-                  ? "bg-primary text-white"
-                  : "text-gray-600 hover:bg-gray-50"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+            {TIME_SLOT_FILTERS.map((tab) => (
+              <button
+                key={tab.value}
+                type="button"
+                onClick={() => setTimeSlotFilter(tab.value)}
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                  timeSlotFilter === tab.value
+                    ? "bg-primary text-white"
+                    : "text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
         </div>
       </div>
@@ -247,7 +259,9 @@ const IslamicHighlights = () => {
         <CustomMessageDisplay
           show={!isLoading}
           title={
-            data.length > 0 ? "No Highlights in This Slot" : "No Highlights Found"
+            data.length > 0
+              ? "No Highlights in This Slot"
+              : "No Highlights Found"
           }
           slogan={
             data.length > 0

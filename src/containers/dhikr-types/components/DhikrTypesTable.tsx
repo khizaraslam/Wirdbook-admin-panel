@@ -1,3 +1,4 @@
+import AdminAction from "@/components/ui/AdminAction";
 import React from "react";
 import { Edit2 } from "lucide-react";
 import Button from "@/components/ui/Button";
@@ -96,14 +97,16 @@ const DhikrTypesTable: React.FC<DhikrTypesTableProps> = ({ items, onEdit }) => {
                   {formatDate(item.createdAt)}
                 </td>
                 <td className="py-4 px-4">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onEdit(item)}
-                    title="Edit"
-                  >
-                    <Edit2 size={16} />
-                  </Button>
+                  <AdminAction action="edit">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onEdit(item)}
+                      title="Edit"
+                    >
+                      <Edit2 size={16} />
+                    </Button>
+                  </AdminAction>
                 </td>
               </tr>
             ))}

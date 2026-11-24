@@ -1,3 +1,4 @@
+import AdminAction from "@/components/ui/AdminAction";
 import React, { useCallback, useEffect, useState } from "react";
 import { Plus, Edit2, Trash2, Upload } from "lucide-react";
 import Button from "@/components/ui/Button";
@@ -30,7 +31,8 @@ const WirdsTab: React.FC<WirdsTabProps> = ({ qasidaId }) => {
   const { listWirds, createWird, updateWird, deleteWird, bulkUploadWirds } =
     useQasidas();
   const [wirds, setWirds] = useState<QasidaWird[]>([]);
-  const [pagination, setPagination] = useState<PaginationMeta>(defaultPagination);
+  const [pagination, setPagination] =
+    useState<PaginationMeta>(defaultPagination);
   const [modalOpen, setModalOpen] = useState(false);
   const [bulkUploadOpen, setBulkUploadOpen] = useState(false);
   const [editingWird, setEditingWird] = useState<QasidaWird | null>(null);
@@ -92,25 +94,29 @@ const WirdsTab: React.FC<WirdsTabProps> = ({ qasidaId }) => {
           Paginated verses for this qasida ({pagination.total} total)
         </p>
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            leftIcon={<Upload size={16} />}
-            onClick={() => setBulkUploadOpen(true)}
-          >
-            Bulk Upload JSON
-          </Button>
-          <Button
-            variant="primary"
-            size="sm"
-            leftIcon={<Plus size={16} />}
-            onClick={() => {
-              setEditingWird(null);
-              setModalOpen(true);
-            }}
-          >
-            Add verse
-          </Button>
+          <AdminAction action="create">
+            <Button
+              variant="outline"
+              size="sm"
+              leftIcon={<Upload size={16} />}
+              onClick={() => setBulkUploadOpen(true)}
+            >
+              Bulk Upload JSON
+            </Button>
+          </AdminAction>
+          <AdminAction action="create">
+            <Button
+              variant="primary"
+              size="sm"
+              leftIcon={<Plus size={16} />}
+              onClick={() => {
+                setEditingWird(null);
+                setModalOpen(true);
+              }}
+            >
+              Add verse
+            </Button>
+          </AdminAction>
         </div>
       </div>
 
@@ -119,16 +125,22 @@ const WirdsTab: React.FC<WirdsTabProps> = ({ qasidaId }) => {
           <table className="w-full min-w-[800px]">
             <thead>
               <tr className="bg-gray-50/80 border-b border-gray-100">
-                {["Order", "EN", "AR", "Transliteration", "Rep.", "Title", "Actions"].map(
-                  (h) => (
-                    <th
-                      key={h}
-                      className="py-3 px-3 text-left text-xs font-bold text-gray-400 uppercase"
-                    >
-                      {h}
-                    </th>
-                  ),
-                )}
+                {[
+                  "Order",
+                  "EN",
+                  "AR",
+                  "Transliteration",
+                  "Rep.",
+                  "Title",
+                  "Actions",
+                ].map((h) => (
+                  <th
+                    key={h}
+                    className="py-3 px-3 text-left text-xs font-bold text-gray-400 uppercase"
+                  >
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -141,7 +153,9 @@ const WirdsTab: React.FC<WirdsTabProps> = ({ qasidaId }) => {
                       : "hover:bg-gray-50/50"
                   }
                 >
-                  <td className="py-3 px-3 text-sm text-gray-500">{w.indexOrder}</td>
+                  <td className="py-3 px-3 text-sm text-gray-500">
+                    {w.indexOrder}
+                  </td>
                   <td className="py-3 px-3 text-sm max-w-[180px] truncate">
                     {w.description.en}
                   </td>
@@ -160,23 +174,27 @@ const WirdsTab: React.FC<WirdsTabProps> = ({ qasidaId }) => {
                   </td>
                   <td className="py-3 px-3">
                     <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditingWird(w);
-                          setModalOpen(true);
-                        }}
-                        className="p-1.5 text-primary border border-primary/10 rounded-lg"
-                      >
-                        <Edit2 size={14} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(w.id)}
-                        className="p-1.5 text-red-500 border border-gray-200 rounded-lg"
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                      <AdminAction action="edit">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingWird(w);
+                            setModalOpen(true);
+                          }}
+                          className="p-1.5 text-primary border border-primary/10 rounded-lg"
+                        >
+                          <Edit2 size={14} />
+                        </button>
+                      </AdminAction>
+                      <AdminAction action="delete">
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(w.id)}
+                          className="p-1.5 text-red-500 border border-gray-200 rounded-lg"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </AdminAction>
                     </div>
                   </td>
                 </tr>

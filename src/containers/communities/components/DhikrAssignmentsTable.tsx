@@ -1,3 +1,4 @@
+import AdminAction from "@/components/ui/AdminAction";
 import React from "react";
 import { BarChart3, Pause, Play, Trash2 } from "lucide-react";
 import Button from "@/components/ui/Button";
@@ -125,30 +126,34 @@ const DhikrAssignmentsTable: React.FC<DhikrAssignmentsTableProps> = ({
                     <div className="flex items-center gap-1">
                       {(item.status === "open" ||
                         item.status === "in_progress") && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onPause(item)}
-                          disabled={actingId !== null}
-                          title={
-                            item.assignmentType === "weekly"
-                              ? "Pause. This week ends on its end date and the next week is not created."
-                              : "Pause this task"
-                          }
-                        >
-                          <Pause size={16} />
-                        </Button>
+                        <AdminAction action="edit">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onPause(item)}
+                            disabled={actingId !== null}
+                            title={
+                              item.assignmentType === "weekly"
+                                ? "Pause. This week ends on its end date and the next week is not created."
+                                : "Pause this task"
+                            }
+                          >
+                            <Pause size={16} />
+                          </Button>
+                        </AdminAction>
                       )}
                       {item.status === "paused" && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onResume(item)}
-                          disabled={actingId !== null}
-                          title="Resume this task"
-                        >
-                          <Play size={16} />
-                        </Button>
+                        <AdminAction action="edit">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onResume(item)}
+                            disabled={actingId !== null}
+                            title="Resume this task"
+                          >
+                            <Play size={16} />
+                          </Button>
+                        </AdminAction>
                       )}
                       <Button
                         variant="ghost"
@@ -158,15 +163,17 @@ const DhikrAssignmentsTable: React.FC<DhikrAssignmentsTableProps> = ({
                       >
                         <BarChart3 size={16} />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onDelete(item)}
-                        disabled={actingId !== null}
-                        title="Remove from the admin panel. Member usage history stays."
-                      >
-                        <Trash2 size={16} />
-                      </Button>
+                      <AdminAction action="delete">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onDelete(item)}
+                          disabled={actingId !== null}
+                          title="Remove from the admin panel. Member usage history stays."
+                        >
+                          <Trash2 size={16} />
+                        </Button>
+                      </AdminAction>
                     </div>
                   </td>
                 </tr>

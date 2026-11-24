@@ -1,25 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { HiMiniBars3 } from "react-icons/hi2";
 import { useAppSelector } from "@/store/hooks";
 import { FaAngleDown } from "react-icons/fa6";
 import useOutsideClick from "@/hooks/click-outside-hook";
 import useStore from "@/hooks/useStore";
+import type { AdminProfile } from "@/utils/helpers/admin-access";
 
-const Navbar: React.FC = () => {
+const Navbar: React.FC<{ profile: AdminProfile }> = ({ profile }) => {
   const [profileDropDownOpened, setProfileDropdownOpened] = useState(false);
   const profileDropdownRef = useOutsideClick<HTMLDivElement>(() =>
     setProfileDropdownOpened(false),
   );
-
-  const { userData: storeUser } = useAppSelector(
-    (state) => state.sharedReducer || {},
-  );
-
-  const userData = {
-    firstName: storeUser?.firstName || "",
-    lastName: storeUser?.lastName || "",
-    currentRole: storeUser?.currentRole || "",
-  };
 
   const isSidebarExpanded = useAppSelector(
     (state) => state.sharedReducer?.isSidebarExpanded ?? true,
@@ -47,16 +38,14 @@ const Navbar: React.FC = () => {
           onClick={() => setProfileDropdownOpened(!profileDropDownOpened)}
         >
           <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-bold">
-            {userData.firstName.charAt(0)}
-            {userData.lastName.charAt(0)}
+            {profile.email.charAt(0).toUpperCase()}
           </div>
           <div className="hidden sm:block">
             <h5 className="text-sm font-bold text-gray-900 whitespace-nowrap">
-              {/* {`${userData.firstName} ${userData.lastName}` || "Admin"} */}
-              {"Admin"}
+              {profile.email}
             </h5>
             <p className="text-xs font-semibold text-gray-500">
-              {userData.currentRole.replace(/_/g, " ")}
+              {profile.role === "super_admin" ? "Super Admin" : "Limited Admin"}
             </p>
           </div>
           <div className="p-1.5 rounded-full border border-gray-300">

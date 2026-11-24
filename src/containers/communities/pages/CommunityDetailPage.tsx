@@ -1,3 +1,4 @@
+import AdminAction from "@/components/ui/AdminAction";
 import React, { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, Edit2 } from "lucide-react";
@@ -23,8 +24,14 @@ type DetailTab = "members" | "dhikr" | "noticeboard";
 
 const CommunityDetailPage = () => {
   const { id = "" } = useParams<{ id: string }>();
-  const { getOne, update, updateStatus, assignAdmin, revokeAdmin, removeMember } =
-    useCommunities();
+  const {
+    getOne,
+    update,
+    updateStatus,
+    assignAdmin,
+    revokeAdmin,
+    removeMember,
+  } = useCommunities();
   const { isLoading } = useStore();
   const [community, setCommunity] = useState<CommunityDetailDTO | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -54,8 +61,7 @@ const CommunityDetailPage = () => {
 
   const handleToggleStatus = async () => {
     if (!community) return;
-    const nextStatus =
-      community.status === "active" ? "inactive" : "active";
+    const nextStatus = community.status === "active" ? "inactive" : "active";
     const action = nextStatus === "active" ? "activate" : "deactivate";
     const result = await confirmationPopup(
       `${action.charAt(0).toUpperCase() + action.slice(1)} community?`,
@@ -153,14 +159,16 @@ const CommunityDetailPage = () => {
                   <h1 className="text-2xl font-bold text-gray-900">
                     {community.name}
                   </h1>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setIsEditOpen(true)}
-                    title="Edit"
-                  >
-                    <Edit2 size={18} />
-                  </Button>
+                  <AdminAction action="edit">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsEditOpen(true)}
+                      title="Edit"
+                    >
+                      <Edit2 size={18} />
+                    </Button>
+                  </AdminAction>
                   <span
                     className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${
                       community.status === "active"
@@ -173,10 +181,10 @@ const CommunityDetailPage = () => {
                 </div>
                 <p className="text-gray-500 mt-1">
                   Admins:{" "}
-                  {((community.admins?.map(({ name }) => name).join(", ") ??
+                  {(community.admins?.map(({ name }) => name).join(", ") ??
                     community.adminName) || (
                     <span className="italic">Unassigned</span>
-                  ))}{" "}
+                  )}{" "}
                   · {community.memberCount} members
                 </p>
               </div>

@@ -15,4 +15,5 @@ export enum siteRoutes {
   communities = "/communities",
   dhikrTypes = "/dhikr-types",
   notifications = "/notifications",
+  adminAccess = "/admin-access",
 }

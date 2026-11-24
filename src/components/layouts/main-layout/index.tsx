@@ -1,6 +1,10 @@
 import React, { ReactNode } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { useAppSelector } from "@/store/hooks";
+import {
+  canAccessAdminRoute,
+  type AdminProfile,
+} from "@/utils/helpers/admin-access";
 import { siteRoutes } from "@/utils/helpers/enums/routes.enum";
 import Navbar from "@/components/navigation/Navbar";
 import Sidebar from "@/components/navigation/Sidebar";
@@ -15,20 +19,22 @@ import {
   Library,
   Music2,
   Users,
+  ShieldCheck,
   Bell,
 } from "lucide-react";
 
 interface LayoutProps {
   children: ReactNode;
+  profile: AdminProfile;
 }
 
 interface MenuItem {
   text: string;
-  path: string;
+  path: siteRoutes;
   icon: React.ReactNode;
 }
 
-const MainLayout: React.FC<LayoutProps> = ({ children }) => {
+const MainLayout: React.FC<LayoutProps> = ({ children, profile }) => {
   const location = useLocation();
   const isSidebarExpanded = useAppSelector(
     (state) => state.sharedReducer?.isSidebarExpanded ?? true,
@@ -38,22 +44,22 @@ const MainLayout: React.FC<LayoutProps> = ({ children }) => {
   const menuItems: MenuItem[] = [
     {
       text: "Dashboard",
-      path: "/dashboard",
+      path: siteRoutes.dashboard,
       icon: <Home size={20} />,
     },
     {
       text: "Lectures",
-      path: "/lectures",
+      path: siteRoutes.lectures,
       icon: <BookOpen size={20} />,
     },
     {
       text: "Banners",
-      path: "/banners",
+      path: siteRoutes.banners,
       icon: <ImageIcon size={20} />,
     },
     {
       text: "Islamic Highlights",
-      path: "/islamic-highlights",
+      path: siteRoutes.islamicHighlights,
       icon: <Sparkles size={20} />,
     },
     {
@@ -63,33 +69,38 @@ const MainLayout: React.FC<LayoutProps> = ({ children }) => {
     },
     {
       text: "Hijri Calendar",
-      path: "/hijri-events",
+      path: siteRoutes.hijriEvents,
       icon: <Calendar size={20} />,
     },
     {
       text: "Sync Modules",
-      path: "/sync-modules",
+      path: siteRoutes.syncModules,
       icon: <RefreshCcw size={20} />,
     },
     {
       text: "Books",
-      path: "/books",
+      path: siteRoutes.books,
       icon: <Library size={20} />,
     },
     {
       text: "Qasidas",
-      path: "/qasidas",
+      path: siteRoutes.qasidas,
       icon: <Music2 size={20} />,
     },
     {
       text: "Communities",
-      path: "/communities",
+      path: siteRoutes.communities,
       icon: <Users size={20} />,
     },
     {
       text: "Notifications",
-      path: "/notifications",
+      path: siteRoutes.notifications,
       icon: <Bell size={20} />,
+    },
+    {
+      text: "Admin Access",
+      path: siteRoutes.adminAccess,
+      icon: <ShieldCheck size={20} />,
     },
   ];
 
@@ -120,37 +131,39 @@ const MainLayout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <div className="h-screen bg-slate-50 flex">
       <Sidebar>
-        {menuItems.map((item, index) => (
-          <li key={index}>
-            <Link
-              to={item.path}
-              className={`group flex items-center gap-3 my-1.5 px-4 py-3 rounded-lg transition-all duration-200 ${
-                isActive(item.path)
-                  ? "bg-primary text-white shadow-lg shadow-primary/20"
-                  : "text-muted hover:bg-primary-light hover:text-primary"
-              }`}
-            >
-              <span
-                className={`transition-transform duration-200 ${
-                  isActive(item.path) ? "scale-110" : "group-hover:scale-110"
+        {menuItems
+          .filter(({ path }) => canAccessAdminRoute(profile, path))
+          .map((item) => (
+            <li key={item.path}>
+              <Link
+                to={item.path}
+                className={`group flex items-center gap-3 my-1.5 px-4 py-3 rounded-lg transition-all duration-200 ${
+                  isActive(item.path)
+                    ? "bg-primary text-white shadow-lg shadow-primary/20"
+                    : "text-muted hover:bg-primary-light hover:text-primary"
                 }`}
               >
-                {item.icon}
-              </span>
-              <span
-                className={`font-medium transition-opacity duration-200 ${
-                  isSidebarExpanded ? "opacity-100" : "opacity-0 md:opacity-0"
-                }`}
-              >
-                {item.text}
-              </span>
-            </Link>
-          </li>
-        ))}
+                <span
+                  className={`transition-transform duration-200 ${
+                    isActive(item.path) ? "scale-110" : "group-hover:scale-110"
+                  }`}
+                >
+                  {item.icon}
+                </span>
+                <span
+                  className={`font-medium transition-opacity duration-200 ${
+                    isSidebarExpanded ? "opacity-100" : "opacity-0 md:opacity-0"
+                  }`}
+                >
+                  {item.text}
+                </span>
+              </Link>
+            </li>
+          ))}
       </Sidebar>
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Navbar />
+        <Navbar profile={profile} />
         <main className="flex-1 overflow-y-auto bg-slate-50 p-4 sm:p-6">
           <div className="">{children}</div>
         </main>

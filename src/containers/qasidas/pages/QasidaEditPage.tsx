@@ -1,3 +1,5 @@
+import { useAdminAction } from "@/utils/helpers/admin-action-context";
+import AdminAction from "@/components/ui/AdminAction";
 import React, { useEffect, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -39,7 +41,8 @@ const audiosToDrafts = (q: Qasida): ReciterAudioDraft[] =>
   getQasidaPlayableAudios(q).map((item) => ({
     reciter_name: item.reciter_name || "",
     audio_link: item.audio_link || "",
-    audio_duration: item.audio_duration != null ? String(item.audio_duration) : "",
+    audio_duration:
+      item.audio_duration != null ? String(item.audio_duration) : "",
     audio_key: item.audio_key || "",
     file: null,
   }));
@@ -47,7 +50,8 @@ const audiosToDrafts = (q: Qasida): ReciterAudioDraft[] =>
 const QasidaEditPage = () => {
   const { id = "" } = useParams<{ id: string }>();
   const location = useLocation();
-  const { getQasida, updateQasida, approveQasida, rejectQasida, keepQasida } = useQasidas();
+  const { getQasida, updateQasida, approveQasida, rejectQasida, keepQasida } =
+    useQasidas();
   const [qasida, setQasida] = useState<Qasida | null>(null);
   const [tab, setTab] = useState<TabId>(
     (location.state as { tab?: TabId })?.tab === "wirds" ? "wirds" : "details",
@@ -83,7 +87,9 @@ const QasidaEditPage = () => {
     };
   }, [id, getQasida, reset]);
 
+  const canEdit = useAdminAction("edit");
   const onSubmit = async (data: QasidaFormValues) => {
+    if (!canEdit) return;
     setSubmitting(true);
     const ok = await updateQasida(
       id,
@@ -138,9 +144,7 @@ const QasidaEditPage = () => {
   };
 
   if (!qasida) {
-    return (
-      <p className="text-muted mt-8">Loading qasida…</p>
-    );
+    return <p className="text-muted mt-8">Loading qasida…</p>;
   }
 
   return (
@@ -169,20 +173,34 @@ const QasidaEditPage = () => {
       {qasida.submittedBy && (
         <div className="flex flex-wrap gap-2 mt-4">
           {qasida.reviewStatus === "delete_requested" ? (
-            <Button type="button" variant="primary" onClick={handleKeep}>
-              Keep
-            </Button>
+            <AdminAction action="edit">
+              <Button type="button" variant="primary" onClick={handleKeep}>
+                Keep
+              </Button>
+            </AdminAction>
           ) : (
             <>
               {qasida.reviewStatus !== "approved" && (
-                <Button type="button" variant="primary" onClick={handleApprove}>
-                  Approve
-                </Button>
+                <AdminAction action="edit">
+                  <Button
+                    type="button"
+                    variant="primary"
+                    onClick={handleApprove}
+                  >
+                    Approve
+                  </Button>
+                </AdminAction>
               )}
               {qasida.reviewStatus !== "rejected" && (
-                <Button type="button" variant="secondary" onClick={handleReject}>
-                  Reject
-                </Button>
+                <AdminAction action="edit">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={handleReject}
+                  >
+                    Reject
+                  </Button>
+                </AdminAction>
               )}
             </>
           )}
@@ -216,23 +234,28 @@ const QasidaEditPage = () => {
             onSubmit={handleSubmit(onSubmit)}
             className="bg-white rounded-2xl border border-gray-100 p-8 shadow-sm max-w-3xl space-y-6"
           >
-            <QasidaDetailsFields
-              register={register}
-              errors={errors}
-              setValue={setValue}
-              watch={watch}
-              reciters={reciters}
-              onRecitersChange={setReciters}
-            />
+            <fieldset disabled={!canEdit}>
+              <QasidaDetailsFields
+                readOnly={!canEdit}
+                register={register}
+                errors={errors}
+                setValue={setValue}
+                watch={watch}
+                reciters={reciters}
+                onRecitersChange={setReciters}
+              />
+            </fieldset>
             <div className="flex justify-end">
-              <Button
-                type="submit"
-                variant="primary"
-                disabled={!isValid}
-                isLoading={submitting}
-              >
-                Save Details
-              </Button>
+              <AdminAction action="edit">
+                <Button
+                  type="submit"
+                  variant="primary"
+                  disabled={!isValid}
+                  isLoading={submitting}
+                >
+                  Save Details
+                </Button>
+              </AdminAction>
             </div>
           </form>
         ) : (

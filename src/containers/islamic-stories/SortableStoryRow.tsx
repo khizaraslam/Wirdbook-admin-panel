@@ -10,6 +10,8 @@ import {
 interface Props {
   story: StorySummary;
   position: number;
+  canEdit: boolean;
+  canDelete: boolean;
   dragDisabled: boolean;
   actionsDisabled: boolean;
   onEdit: (story: StorySummary) => Promise<void>;
@@ -19,6 +21,8 @@ interface Props {
 export default function SortableStoryRow({
   story,
   position,
+  canEdit,
+  canDelete,
   dragDisabled,
   actionsDisabled,
   onEdit,
@@ -45,17 +49,19 @@ export default function SortableStoryRow({
     >
       <td className="whitespace-nowrap px-3 py-3 text-sm tabular-nums text-gray-600">
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            ref={setActivatorNodeRef}
-            {...attributes}
-            {...listeners}
-            disabled={dragDisabled}
-            aria-label={`Move ${story.story_name.english}`}
-            className="touch-none cursor-grab rounded p-2 hover:bg-gray-100 focus-visible:outline-primary active:cursor-grabbing disabled:cursor-default"
-          >
-            <GripVertical size={18} aria-hidden />
-          </button>
+          {canEdit && (
+            <button
+              type="button"
+              ref={setActivatorNodeRef}
+              {...attributes}
+              {...listeners}
+              disabled={dragDisabled}
+              aria-label={`Move ${story.story_name.english}`}
+              className="touch-none cursor-grab rounded p-2 hover:bg-gray-100 focus-visible:outline-primary active:cursor-grabbing disabled:cursor-default"
+            >
+              <GripVertical size={18} aria-hidden />
+            </button>
+          )}
           {position}
         </div>
       </td>
@@ -93,27 +99,31 @@ export default function SortableStoryRow({
         </span>
       </td>
       <td className="whitespace-nowrap px-5 py-3 text-right">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          disabled={actionsDisabled}
-          aria-label={`Edit ${story.story_name.english}`}
-          onClick={() => void onEdit(story)}
-        >
-          Edit
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          disabled={actionsDisabled}
-          aria-label={`Delete ${story.story_name.english}`}
-          className="text-red-600"
-          onClick={() => void onRemove(story)}
-        >
-          Delete
-        </Button>
+        {canEdit && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            disabled={actionsDisabled}
+            aria-label={`Edit ${story.story_name.english}`}
+            onClick={() => void onEdit(story)}
+          >
+            Edit
+          </Button>
+        )}
+        {canDelete && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            disabled={actionsDisabled}
+            aria-label={`Delete ${story.story_name.english}`}
+            className="text-red-600"
+            onClick={() => void onRemove(story)}
+          >
+            Delete
+          </Button>
+        )}
       </td>
     </tr>
   );

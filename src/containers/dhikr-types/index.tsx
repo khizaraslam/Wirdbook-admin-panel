@@ -1,3 +1,4 @@
+import AdminAction from "@/components/ui/AdminAction";
 import React, { useCallback, useEffect, useState } from "react";
 import { Plus, Sparkles } from "lucide-react";
 import Button from "@/components/ui/Button";
@@ -72,10 +73,12 @@ const DhikrTypes = () => {
             Predefined dhikr list for community assignments
           </p>
         </div>
-        <Button variant="primary" onClick={() => setIsCreateOpen(true)}>
-          <Plus size={18} className="mr-2" />
-          Add dhikr type
-        </Button>
+        <AdminAction action="create">
+          <Button variant="primary" onClick={() => setIsCreateOpen(true)}>
+            <Plus size={18} className="mr-2" />
+            Add dhikr type
+          </Button>
+        </AdminAction>
       </div>
 
       <div className="mt-6">

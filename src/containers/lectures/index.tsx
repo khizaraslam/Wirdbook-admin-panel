@@ -1,3 +1,4 @@
+import AdminAction from "@/components/ui/AdminAction";
 import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { Plus, Filter, ChevronDown, Check, Search } from "lucide-react";
 import Button from "@/components/ui/Button";
@@ -184,14 +185,16 @@ const Lectures = () => {
             value={contentType}
             onChange={handleLanguageChange}
           />
-          <Button
-            variant="primary"
-            leftIcon={<Plus size={20} />}
-            className="rounded-md px-5 py-2.5 btn-primary"
-            onClick={() => setIsAddModalOpen(true)}
-          >
-            Add {languageLabel} Lecture
-          </Button>
+          <AdminAction action="create">
+            <Button
+              variant="primary"
+              leftIcon={<Plus size={20} />}
+              className="rounded-md px-5 py-2.5 btn-primary"
+              onClick={() => setIsAddModalOpen(true)}
+            >
+              Add {languageLabel} Lecture
+            </Button>
+          </AdminAction>
         </div>
       </div>
 

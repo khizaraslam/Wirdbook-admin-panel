@@ -1,7 +1,16 @@
+import { useAdminAction } from "@/utils/helpers/admin-action-context";
+import AdminAction from "@/components/ui/AdminAction";
 import React from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, ImageIcon, Edit2, Trash2, Eye, EyeOff } from "lucide-react";
+import {
+  GripVertical,
+  ImageIcon,
+  Edit2,
+  Trash2,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import {
   bannerTypeLabel,
   BannerDTO,
@@ -27,6 +36,7 @@ const SortableBannerItem: React.FC<SortableBannerItemProps> = ({
   onDelete,
   onToggleEnabled,
 }) => {
+  const canReorder = useAdminAction("edit");
   const {
     attributes,
     listeners,
@@ -34,7 +44,7 @@ const SortableBannerItem: React.FC<SortableBannerItemProps> = ({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: banner.id });
+  } = useSortable({ id: banner.id, disabled: !canReorder });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -47,10 +57,12 @@ const SortableBannerItem: React.FC<SortableBannerItemProps> = ({
   const isText = banner.type === "text";
   const hasSurah =
     isText &&
-    !!(banner.surah_name?.en_text ||
+    !!(
+      banner.surah_name?.en_text ||
       banner.surah_name?.ar_text ||
       banner.surah_reference?.en_text ||
-      banner.surah_reference?.ar_text);
+      banner.surah_reference?.ar_text
+    );
   const surahLine = hasSurah
     ? [
         banner.surah_name?.en_text || banner.surah_name?.ar_text,
@@ -69,13 +81,15 @@ const SortableBannerItem: React.FC<SortableBannerItemProps> = ({
       }`}
     >
       <div className="flex items-start gap-4 min-w-0 flex-1">
-        <div
-          {...attributes}
-          {...listeners}
-          className="cursor-grab active:cursor-grabbing text-muted p-1 hover:bg-primary-light rounded transition-colors"
-        >
-          <GripVertical size={20} />
-        </div>
+        <AdminAction action="edit">
+          <div
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing text-muted p-1 hover:bg-primary-light rounded transition-colors"
+          >
+            <GripVertical size={20} />
+          </div>
+        </AdminAction>
 
         <div className="w-16 h-16 rounded-xl overflow-hidden bg-primary-light flex-shrink-0 flex items-center justify-center">
           {fullImageUrl ? (
@@ -94,9 +108,7 @@ const SortableBannerItem: React.FC<SortableBannerItemProps> = ({
             <h3 className="text-lg font-semibold text-gray-900 truncate">
               {banner.title?.en_text || banner.title?.ar_text || "—"}
             </h3>
-            <span
-              className="text-xs font-medium px-2 py-0.5 rounded-md shrink-0 bg-primary/10 text-primary border border-primary/20"
-            >
+            <span className="text-xs font-medium px-2 py-0.5 rounded-md shrink-0 bg-primary/10 text-primary border border-primary/20">
               {bannerTypeLabel(banner.type)}
             </span>
             <span
@@ -129,7 +141,10 @@ const SortableBannerItem: React.FC<SortableBannerItemProps> = ({
             </p>
           </div>
           {surahLine ? (
-            <p className="text-xs text-gray-500 truncate mt-0.5" title={surahLine}>
+            <p
+              className="text-xs text-gray-500 truncate mt-0.5"
+              title={surahLine}
+            >
               {surahLine}
             </p>
           ) : null}
@@ -140,32 +155,38 @@ const SortableBannerItem: React.FC<SortableBannerItemProps> = ({
       </div>
 
       <div className="flex flex-col items-end gap-2 flex-shrink-0">
-        <button
-          type="button"
-          onClick={() => onToggleEnabled(banner.id, !banner.enabled)}
-          className={`text-xs font-medium px-2.5 py-1.5 rounded-lg border transition-colors ${
-            banner.enabled
-              ? "border-amber-200 text-amber-800 hover:bg-amber-50"
-              : "border-emerald-200 text-emerald-800 hover:bg-emerald-50"
-          }`}
-        >
-          {banner.enabled ? "Hide from app" : "Show on app"}
-        </button>
+        <AdminAction action="edit">
+          <button
+            type="button"
+            onClick={() => onToggleEnabled(banner.id, !banner.enabled)}
+            className={`text-xs font-medium px-2.5 py-1.5 rounded-lg border transition-colors ${
+              banner.enabled
+                ? "border-amber-200 text-amber-800 hover:bg-amber-50"
+                : "border-emerald-200 text-emerald-800 hover:bg-emerald-50"
+            }`}
+          >
+            {banner.enabled ? "Hide from app" : "Show on app"}
+          </button>
+        </AdminAction>
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => onEdit(banner)}
-            className="p-2 hover:text-muted cursor-pointer text-primary hover:bg-primary-light border border-primary/10 rounded-lg transition-colors"
-          >
-            <Edit2 size={18} />
-          </button>
-          <button
-            type="button"
-            onClick={() => onDelete(banner.id)}
-            className="p-2 hover:text-red-600 cursor-pointer text-red-500 hover:bg-red-50 border border-gray-200 rounded-lg transition-colors"
-          >
-            <Trash2 size={18} />
-          </button>
+          <AdminAction action="edit">
+            <button
+              type="button"
+              onClick={() => onEdit(banner)}
+              className="p-2 hover:text-muted cursor-pointer text-primary hover:bg-primary-light border border-primary/10 rounded-lg transition-colors"
+            >
+              <Edit2 size={18} />
+            </button>
+          </AdminAction>
+          <AdminAction action="delete">
+            <button
+              type="button"
+              onClick={() => onDelete(banner.id)}
+              className="p-2 hover:text-red-600 cursor-pointer text-red-500 hover:bg-red-50 border border-gray-200 rounded-lg transition-colors"
+            >
+              <Trash2 size={18} />
+            </button>
+          </AdminAction>
         </div>
       </div>
     </div>

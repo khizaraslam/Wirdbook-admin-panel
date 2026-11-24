@@ -1,3 +1,4 @@
+import AdminAction from "@/components/ui/AdminAction";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Plus,
@@ -14,7 +15,10 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { confirmationPopup } from "@/utils/helpers/common/alert-service";
 import { QaItemDTO } from "@/utils/helpers/models/qa/qa-item.dto";
 import { QaTagDTO } from "@/utils/helpers/models/qa/qa-tag.dto";
-import { QaFiltersDTO, QaSortOption } from "@/utils/helpers/models/qa/qa-filters.dto";
+import {
+  QaFiltersDTO,
+  QaSortOption,
+} from "@/utils/helpers/models/qa/qa-filters.dto";
 import {
   QA_SOURCE_OPTIONS,
   QA_STATUS_TABS,
@@ -173,27 +177,31 @@ const Qa = () => {
         <div>
           <h1 className="text-4xl font-bold text-primary">Q&A Management</h1>
           <p className="text-muted mt-2">
-            Review user submissions, set public/private visibility, write answers,
-            and publish
+            Review user submissions, set public/private visibility, write
+            answers, and publish
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button
-            variant="secondary"
-            leftIcon={<Tag size={18} />}
-            className="rounded-md px-4 py-2.5"
-            onClick={() => setIsTagsModalOpen(true)}
-          >
-            Manage Tags
-          </Button>
-          <Button
-            variant="primary"
-            leftIcon={<Plus size={20} />}
-            className="rounded-md px-5 py-2.5 btn-primary"
-            onClick={() => setIsAddModalOpen(true)}
-          >
-            Add Q&A
-          </Button>
+          <AdminAction action={["create", "edit", "delete"]}>
+            <Button
+              variant="secondary"
+              leftIcon={<Tag size={18} />}
+              className="rounded-md px-4 py-2.5"
+              onClick={() => setIsTagsModalOpen(true)}
+            >
+              Manage Tags
+            </Button>
+          </AdminAction>
+          <AdminAction action="create">
+            <Button
+              variant="primary"
+              leftIcon={<Plus size={20} />}
+              className="rounded-md px-5 py-2.5 btn-primary"
+              onClick={() => setIsAddModalOpen(true)}
+            >
+              Add Q&A
+            </Button>
+          </AdminAction>
         </div>
       </div>
 
@@ -381,9 +389,7 @@ const Qa = () => {
             </label>
             <select
               value={filters.sort}
-              onChange={(e) =>
-                handleSortChange(e.target.value as QaSortOption)
-              }
+              onChange={(e) => handleSortChange(e.target.value as QaSortOption)}
               className="w-full py-3 px-4 bg-gray-50 border border-gray-100 rounded-lg text-sm font-medium text-gray-700 focus:outline-none focus:border-primary"
             >
               <option value="date">Date (newest first)</option>
@@ -473,8 +479,7 @@ const Qa = () => {
             limit: filters.limit,
             total: totalElements,
             totalPages: Math.ceil(totalElements / filters.limit) || 1,
-            hasNext:
-              filters.page < Math.ceil(totalElements / filters.limit),
+            hasNext: filters.page < Math.ceil(totalElements / filters.limit),
             hasPrev: filters.page > 1,
           }}
           onPageChange={handlePageChange}

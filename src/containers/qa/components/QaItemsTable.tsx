@@ -1,3 +1,4 @@
+import AdminAction from "@/components/ui/AdminAction";
 import React from "react";
 import {
   HelpCircle,
@@ -99,9 +100,7 @@ const QaItemsTable: React.FC<QaItemsTableProps> = ({
             {items.length > 0 ? (
               items.map((item) => {
                 const tagLabel =
-                  item.tag?.labelEn ||
-                  item.tag?.labelAr ||
-                  "Uncategorized";
+                  item.tag?.labelEn || item.tag?.labelAr || "Uncategorized";
                 const publishable = canPublishQaItem(item);
                 const showPublish =
                   canPublishQaStatus(item.status) && publishable;
@@ -125,7 +124,7 @@ const QaItemsTable: React.FC<QaItemsTableProps> = ({
                             onClick={() => onEdit(item)}
                             className="block w-full text-left font-semibold text-primary text-sm whitespace-normal break-words hover:underline cursor-pointer"
                             dir="ltr"
-                            title="Open to edit / answer"
+                            title="View question"
                           >
                             {item.questionEn || item.questionAr || "—"}
                           </button>
@@ -135,7 +134,7 @@ const QaItemsTable: React.FC<QaItemsTableProps> = ({
                               onClick={() => onEdit(item)}
                               className="block w-full text-left text-xs text-gray-500 mt-1 whitespace-normal break-words hover:underline hover:text-primary cursor-pointer"
                               dir="rtl"
-                              title="Open to edit / answer"
+                              title="View question"
                             >
                               {item.questionAr}
                             </button>
@@ -153,7 +152,9 @@ const QaItemsTable: React.FC<QaItemsTableProps> = ({
                         {item.source === "user" && (
                           <User size={14} className="text-gray-400 shrink-0" />
                         )}
-                        <span className="whitespace-normal break-words">{askerName}</span>
+                        <span className="whitespace-normal break-words">
+                          {askerName}
+                        </span>
                       </span>
                     </td>
                     <td className="py-4 px-4 text-sm">
@@ -189,40 +190,46 @@ const QaItemsTable: React.FC<QaItemsTableProps> = ({
                     <td className="py-4 px-4">
                       <div className="flex items-center justify-end gap-1">
                         {showPublish && (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => onPublish(item)}
-                            title="Publish"
-                            className="p-2 text-gray-500 hover:text-emerald-600"
-                          >
-                            <Eye size={18} />
-                          </Button>
+                          <AdminAction action="edit">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => onPublish(item)}
+                              title="Publish"
+                              className="p-2 text-gray-500 hover:text-emerald-600"
+                            >
+                              <Eye size={18} />
+                            </Button>
+                          </AdminAction>
                         )}
                         {showUnpublish && (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => onUnpublish(item)}
-                            title="Unpublish"
-                            className="p-2 text-gray-500 hover:text-amber-600"
-                          >
-                            <EyeOff size={18} />
-                          </Button>
+                          <AdminAction action="edit">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => onUnpublish(item)}
+                              title="Unpublish"
+                              className="p-2 text-gray-500 hover:text-amber-600"
+                            >
+                              <EyeOff size={18} />
+                            </Button>
+                          </AdminAction>
                         )}
                         {showReject && (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => onReject(item)}
-                            title="Reject"
-                            className="p-2 text-gray-500 hover:text-red-600"
-                          >
-                            <XCircle size={18} />
-                          </Button>
+                          <AdminAction action="edit">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => onReject(item)}
+                              title="Reject"
+                              className="p-2 text-gray-500 hover:text-red-600"
+                            >
+                              <XCircle size={18} />
+                            </Button>
+                          </AdminAction>
                         )}
                         {!showPublish &&
                           canPublishQaStatus(item.status) &&
@@ -238,24 +245,28 @@ const QaItemsTable: React.FC<QaItemsTableProps> = ({
                               <Eye size={18} />
                             </Button>
                           )}
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onEdit(item)}
-                          className="p-2 text-gray-500 hover:text-primary"
-                        >
-                          <Edit2 size={18} />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onDelete(item.id)}
-                          className="p-2 text-gray-500 hover:text-red-600"
-                        >
-                          <Trash2 size={18} />
-                        </Button>
+                        <AdminAction action="edit">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onEdit(item)}
+                            className="p-2 text-gray-500 hover:text-primary"
+                          >
+                            <Edit2 size={18} />
+                          </Button>
+                        </AdminAction>
+                        <AdminAction action="delete">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onDelete(item.id)}
+                            className="p-2 text-gray-500 hover:text-red-600"
+                          >
+                            <Trash2 size={18} />
+                          </Button>
+                        </AdminAction>
                       </div>
                     </td>
                   </tr>

@@ -1,3 +1,5 @@
+import { useAdminAction } from "@/utils/helpers/admin-action-context";
+import AdminAction from "@/components/ui/AdminAction";
 import React, { useEffect, useState } from "react";
 import {
   DndContext,
@@ -55,7 +57,9 @@ const Tabs = () => {
     setIsModalOpen(false);
   };
 
+  const canReorder = useAdminAction("edit");
   const handleDragEnd = async (event: DragEndEvent) => {
+    if (!canReorder) return;
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
@@ -112,7 +116,8 @@ const Tabs = () => {
         <div>
           <h1 className="text-4xl font-bold text-primary">Lecture Tabs</h1>
           <p className="text-muted mt-2">
-            Manage {languageLabel.toLowerCase()} categories for organizing lectures
+            Manage {languageLabel.toLowerCase()} categories for organizing
+            lectures
           </p>
         </div>
         <div className="flex flex-col gap-3 sm:items-end">
@@ -120,14 +125,16 @@ const Tabs = () => {
             value={contentType}
             onChange={handleLanguageChange}
           />
-          <Button
-            variant="primary"
-            leftIcon={<Plus size={20} />}
-            className="rounded-md px-5 py-2.5 btn-primary"
-            onClick={() => setIsModalOpen(true)}
-          >
-            Add {languageLabel} Tab
-          </Button>
+          <AdminAction action="create">
+            <Button
+              variant="primary"
+              leftIcon={<Plus size={20} />}
+              className="rounded-md px-5 py-2.5 btn-primary"
+              onClick={() => setIsModalOpen(true)}
+            >
+              Add {languageLabel} Tab
+            </Button>
+          </AdminAction>
         </div>
       </div>
 
@@ -140,13 +147,17 @@ const Tabs = () => {
         <p className="text-muted mb-6">{languageLabel} tab configuration</p>
         <div className="flex items-center gap-2 text-gray-700 font-medium bg-white/50 w-fit px-4 py-2 rounded-lg border border-primary/10">
           <BookOpen size={18} className="text-primary" />
-          <span>{data.length} {languageLabel.toLowerCase()} tabs • Drag to reorder</span>
+          <span>
+            {data.length} {languageLabel.toLowerCase()} tabs{canReorder && " · Drag to reorder"}
+          </span>
         </div>
       </div>
 
       <div className="mt-10 mb-4">
-        <h2 className="text-2xl font-bold text-gray-900">{languageLabel} Tabs</h2>
-        <p className="text-muted">Drag and drop to change order</p>
+        <h2 className="text-2xl font-bold text-gray-900">
+          {languageLabel} Tabs
+        </h2>
+        {canReorder && <p className="text-muted">Drag and drop to change order</p>}
       </div>
 
       {data.length > 0 ? (

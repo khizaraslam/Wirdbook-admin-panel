@@ -3,6 +3,8 @@ import { useForm } from "react-hook-form";
 import Modal from "@/components/ui/Modal";
 import Input from "@/components/ui/Input";
 import Textarea from "@/components/ui/Textarea";
+import AdminAction from "@/components/ui/AdminAction";
+import { useAdminAction } from "@/utils/helpers/admin-action-context";
 import Button from "@/components/ui/Button";
 import { QaItemDTO } from "@/utils/helpers/models/qa/qa-item.dto";
 import { QaTagDTO } from "@/utils/helpers/models/qa/qa-tag.dto";
@@ -85,6 +87,7 @@ const EditQaItemModal: React.FC<EditQaItemModalProps> = ({
     }
   }, [isOpen, item, reset]);
 
+  const canEdit = useAdminAction("edit");
   if (!item) return null;
 
   const formValues = watch();
@@ -106,6 +109,7 @@ const EditQaItemModal: React.FC<EditQaItemModalProps> = ({
     });
 
   const onSubmit = async (data: EditQaFormValues) => {
+    if (!canEdit) return;
     if (!hasQuestionText(data)) return;
     const ok = await onSave(item.id, buildBody(data));
     if (ok) onClose();
@@ -134,183 +138,196 @@ const EditQaItemModal: React.FC<EditQaItemModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title={
-        item.source === "user" && item.status === "submitted"
-          ? "Moderate Submitted Question"
-          : "Edit Q&A Item"
+        !canEdit
+          ? "View Q&A Item"
+          : item.source === "user" && item.status === "submitted"
+            ? "Moderate Submitted Question"
+            : "Edit Q&A Item"
       }
       className="max-w-2xl max-h-[90vh]"
     >
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <div className="space-y-5">
-          <div className="flex flex-wrap items-center gap-2">
-            <span
-              className={`px-3 py-1 rounded-md font-bold text-[10px] uppercase tracking-wider ${QA_STATUS_STYLES[item.status]}`}
-            >
-              {formatQaStatusLabel(item.status)}
-            </span>
-            <span
-              className={`px-3 py-1 rounded-md font-bold text-[10px] uppercase tracking-wider ${QA_SOURCE_STYLES[item.source]}`}
-            >
-              {formatQaSourceLabel(item.source)}
-            </span>
-            <span
-              className={`px-3 py-1 rounded-md font-bold text-[10px] uppercase tracking-wider ${QA_VISIBILITY_STYLES[item.visibility]}`}
-            >
-              {formatQaVisibilityLabel(item.visibility)}
-            </span>
-          </div>
-
-          {item.source === "user" && (
-            <div className="rounded-xl border border-violet-100 bg-violet-50/50 px-4 py-3">
-              <p className="text-xs font-semibold text-violet-900 uppercase tracking-wider">
-                Submitted by
-              </p>
-              <p className="text-sm font-medium text-gray-900 mt-1">
-                {askerName}
-              </p>
+          <fieldset disabled={!canEdit} className="space-y-5">
+            <div className="flex flex-wrap items-center gap-2">
+              <span
+                className={`px-3 py-1 rounded-md font-bold text-[10px] uppercase tracking-wider ${QA_STATUS_STYLES[item.status]}`}
+              >
+                {formatQaStatusLabel(item.status)}
+              </span>
+              <span
+                className={`px-3 py-1 rounded-md font-bold text-[10px] uppercase tracking-wider ${QA_SOURCE_STYLES[item.source]}`}
+              >
+                {formatQaSourceLabel(item.source)}
+              </span>
+              <span
+                className={`px-3 py-1 rounded-md font-bold text-[10px] uppercase tracking-wider ${QA_VISIBILITY_STYLES[item.visibility]}`}
+              >
+                {formatQaVisibilityLabel(item.visibility)}
+              </span>
             </div>
-          )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Textarea
-              label="Question (English)"
-              error={errors.questionEn?.message}
-              {...register("questionEn")}
-            />
-            <Textarea
-              label="Question (Arabic)"
-              dir="rtl"
-              error={errors.questionAr?.message}
-              {...register("questionAr")}
-            />
-          </div>
-          {!hasQuestionText(formValues) && (
-            <p className="text-[11px] text-red-500">
-              At least one question language is required.
-            </p>
-          )}
+            {item.source === "user" && (
+              <div className="rounded-xl border border-violet-100 bg-violet-50/50 px-4 py-3">
+                <p className="text-xs font-semibold text-violet-900 uppercase tracking-wider">
+                  Submitted by
+                </p>
+                <p className="text-sm font-medium text-gray-900 mt-1">
+                  {askerName}
+                </p>
+              </div>
+            )}
 
-          <div className="rounded-xl border border-gray-100 bg-slate-50/50 p-4 space-y-3">
-            <div className="flex flex-col gap-1.5">
-              <label className="form-label">Visibility after publish</label>
-              <select className="form-input" {...register("visibility")}>
-                {QA_VISIBILITY_FORM_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <p className="text-xs text-muted">
-              {selectedVisibility?.description ??
-                "Status (submitted/draft/published) is separate from visibility (public/private)."}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Textarea
-              label="Answer (English)"
-              rows={5}
-              error={errors.answerEn?.message}
-              {...register("answerEn")}
-            />
-            <Textarea
-              label="Answer (Arabic)"
-              rows={5}
-              dir="rtl"
-              error={errors.answerAr?.message}
-              {...register("answerAr")}
-            />
-          </div>
-          {!publishReady && (
-            <p className="text-xs text-muted">
-              Both EN and AR answers are required before publishing.
-            </p>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label className="form-label">Tag</label>
-              <select className="form-input" {...register("tagId")}>
-                <option value="">No tag</option>
-                {tags.map((tag) => (
-                  <option key={tag.id} value={tag.id}>
-                    {tag.labelEn}
-                    {tag.labelAr ? ` / ${tag.labelAr}` : ""}
-                  </option>
-                ))}
-              </select>
-              <InlineCreateTag
-                createTag={createTag}
-                onCreated={async (tag) => {
-                  const refreshed = await onTagsRefresh();
-                  const selectedId =
-                    tag.id ||
-                    refreshed?.find(
-                      (t) =>
-                        t.slug === tag.slug || t.labelEn === tag.labelEn,
-                    )?.id ||
-                    "";
-                  if (selectedId) {
-                    setValue("tagId", selectedId, { shouldDirty: true });
-                  }
-                }}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Textarea
+                label="Question (English)"
+                error={errors.questionEn?.message}
+                {...register("questionEn")}
+              />
+              <Textarea
+                label="Question (Arabic)"
+                dir="rtl"
+                error={errors.questionAr?.message}
+                {...register("questionAr")}
               />
             </div>
-            <Input
-              label="Display order"
-              type="number"
-              {...register("indexOrder", { valueAsNumber: true })}
-            />
-          </div>
+            {!hasQuestionText(formValues) && (
+              <p className="text-[11px] text-red-500">
+                At least one question language is required.
+              </p>
+            )}
 
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-gray-100">
-            <div className="flex flex-wrap gap-2">
-              {canPublishQaStatus(item.status) && (
+            <div className="rounded-xl border border-gray-100 bg-slate-50/50 p-4 space-y-3">
+              <div className="flex flex-col gap-1.5">
+                <label className="form-label">Visibility after publish</label>
+                <select className="form-input" {...register("visibility")}>
+                  {QA_VISIBILITY_FORM_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <p className="text-xs text-muted">
+                {selectedVisibility?.description ??
+                  "Status (submitted/draft/published) is separate from visibility (public/private)."}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Textarea
+                label="Answer (English)"
+                rows={5}
+                error={errors.answerEn?.message}
+                {...register("answerEn")}
+              />
+              <Textarea
+                label="Answer (Arabic)"
+                rows={5}
+                dir="rtl"
+                error={errors.answerAr?.message}
+                {...register("answerAr")}
+              />
+            </div>
+            {!publishReady && (
+              <p className="text-xs text-muted">
+                Both EN and AR answers are required before publishing.
+              </p>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="form-label">Tag</label>
+                <select className="form-input" {...register("tagId")}>
+                  <option value="">No tag</option>
+                  {tags.map((tag) => (
+                    <option key={tag.id} value={tag.id}>
+                      {tag.labelEn}
+                      {tag.labelAr ? ` / ${tag.labelAr}` : ""}
+                    </option>
+                  ))}
+                </select>
+                <InlineCreateTag
+                  createTag={createTag}
+                  onCreated={async (tag) => {
+                    const refreshed = await onTagsRefresh();
+                    const selectedId =
+                      tag.id ||
+                      refreshed?.find(
+                        (t) => t.slug === tag.slug || t.labelEn === tag.labelEn,
+                      )?.id ||
+                      "";
+                    if (selectedId) {
+                      setValue("tagId", selectedId, { shouldDirty: true });
+                    }
+                  }}
+                />
+              </div>
+              <Input
+                label="Display order"
+                type="number"
+                {...register("indexOrder", { valueAsNumber: true })}
+              />
+            </div>
+          </fieldset>
+          {!canEdit && (
+            <Button type="button" variant="secondary" onClick={onClose}>
+              Close
+            </Button>
+          )}
+          <AdminAction action="edit">
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-gray-100">
+              <div className="flex flex-wrap gap-2">
+                {canPublishQaStatus(item.status) && (
+                  <Button
+                    type="button"
+                    variant="primary"
+                    disabled={!publishReady || isSubmitting}
+                    onClick={handlePublish}
+                    title={
+                      publishReady
+                        ? "Save and publish"
+                        : "Fill EN + AR answers first"
+                    }
+                  >
+                    Publish
+                  </Button>
+                )}
+                {canRejectQaItem(item.status) && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleReject}
+                    className="text-red-600 border-red-200 hover:bg-red-50"
+                  >
+                    Reject
+                  </Button>
+                )}
+                {canUnpublishQaItem(item.status) && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleUnpublish}
+                  >
+                    Unpublish
+                  </Button>
+                )}
+              </div>
+              <div className="flex items-center gap-3">
+                <Button type="button" variant="secondary" onClick={onClose}>
+                  Cancel
+                </Button>
                 <Button
-                  type="button"
+                  type="submit"
                   variant="primary"
-                  disabled={!publishReady || isSubmitting}
-                  onClick={handlePublish}
-                  title={
-                    publishReady
-                      ? "Save and publish"
-                      : "Fill EN + AR answers first"
-                  }
+                  isLoading={isSubmitting}
+                  disabled={!hasQuestionText(formValues)}
                 >
-                  Publish
+                  Save changes
                 </Button>
-              )}
-              {canRejectQaItem(item.status) && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleReject}
-                  className="text-red-600 border-red-200 hover:bg-red-50"
-                >
-                  Reject
-                </Button>
-              )}
-              {canUnpublishQaItem(item.status) && (
-                <Button type="button" variant="outline" onClick={handleUnpublish}>
-                  Unpublish
-                </Button>
-              )}
+              </div>
             </div>
-            <div className="flex items-center gap-3">
-              <Button type="button" variant="secondary" onClick={onClose}>
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                isLoading={isSubmitting}
-                disabled={!hasQuestionText(formValues)}
-              >
-                Save changes
-              </Button>
-            </div>
-          </div>
+          </AdminAction>
         </div>
       </form>
     </Modal>

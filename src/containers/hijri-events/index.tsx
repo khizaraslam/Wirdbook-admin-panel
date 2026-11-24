@@ -1,3 +1,5 @@
+import { useAdminAction } from "@/utils/helpers/admin-action-context";
+import AdminAction from "@/components/ui/AdminAction";
 import React, { useEffect, useState } from "react";
 import {
   DndContext,
@@ -20,21 +22,14 @@ import SortableHijriEventItem from "./components/SortableHijriEventItem";
 import AddHijriEventModal from "./components/AddHijriEventModal";
 import EditHijriEventModal from "./components/EditHijriEventModal";
 import useHijriEvents from "./useHooks";
-import type {
-  HijriEventDTO,
-} from "@/utils/helpers/models/hijri-events/hijri-event.dto";
+import type { HijriEventDTO } from "@/utils/helpers/models/hijri-events/hijri-event.dto";
 import { confirmationPopup } from "@/utils/helpers/common/alert-service";
 import CustomMessageDisplay from "@/components/data-not-found";
 import useStore from "@/hooks/useStore";
 
 const HijriEvents = () => {
-  const {
-    getAllEvents,
-    addEvent,
-    updateEvent,
-    reorderEvents,
-    deleteEvent,
-  } = useHijriEvents();
+  const { getAllEvents, addEvent, updateEvent, reorderEvents, deleteEvent } =
+    useHijriEvents();
   const { isLoading } = useStore();
   const [data, setData] = useState<HijriEventDTO[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -51,7 +46,9 @@ const HijriEvents = () => {
     getAllEvents(setData);
   }, []);
 
+  const canReorder = useAdminAction("edit");
   const handleDragEnd = async (event: DragEndEvent) => {
+    if (!canReorder) return;
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
@@ -105,14 +102,16 @@ const HijriEvents = () => {
             Manage Hijri calendar events for the mobile app
           </p>
         </div>
-        <Button
-          variant="primary"
-          leftIcon={<Plus size={20} />}
-          className="rounded-md px-5 py-2.5 btn-primary"
-          onClick={() => setIsModalOpen(true)}
-        >
-          Add Event
-        </Button>
+        <AdminAction action="create">
+          <Button
+            variant="primary"
+            leftIcon={<Plus size={20} />}
+            className="rounded-md px-5 py-2.5 btn-primary"
+            onClick={() => setIsModalOpen(true)}
+          >
+            Add Event
+          </Button>
+        </AdminAction>
       </div>
 
       <div className="bg-primary-light rounded-2xl p-8 mt-10 shadow-sm">
@@ -120,13 +119,13 @@ const HijriEvents = () => {
         <p className="text-muted mb-6">Current Hijri events configuration</p>
         <div className="flex items-center gap-2 text-gray-700 font-medium bg-white/50 w-fit px-4 py-2 rounded-lg border border-primary/10">
           <Calendar size={18} className="text-primary" />
-          <span>{data.length} total events • Drag to reorder</span>
+          <span>{data.length} total events{canReorder && " · Drag to reorder"}</span>
         </div>
       </div>
 
       <div className="mt-10 mb-4">
         <h2 className="text-2xl font-bold text-gray-900">All Events</h2>
-        <p className="text-muted">Drag and drop to change order</p>
+        {canReorder && <p className="text-muted">Drag and drop to change order</p>}
       </div>
 
       {data.length > 0 ? (

@@ -1,3 +1,4 @@
+import AdminAction from "@/components/ui/AdminAction";
 import React from "react";
 import { FileText, Edit2, Trash2, ChevronDown } from "lucide-react";
 import { LecturesDTO } from "@/utils/helpers/models/lectures/lectures.dto";
@@ -123,41 +124,47 @@ const LecturesTable: React.FC<LecturesTableProps> = ({
                     </td>
 
                     <td className="py-4 px-4">
-                      <div className="relative group/select w-full max-w-[140px]">
-                        <select
-                          className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-md text-xs font-bold text-gray-900 cursor-pointer hover:bg-white hover:border-primary/20 transition-all outline-none appearance-none"
-                          value={lecture.tabId || ""}
-                          onChange={(e) =>
-                            onMoveToTab?.(lecture.id, e.target.value)
-                          }
-                        >
-                          {availableTabs.map((tab) => (
-                            <option key={tab.id} value={tab.id}>
-                              {tab.label}
-                            </option>
-                          ))}
-                        </select>
-                        <ChevronDown
-                          size={14}
-                          className="absolute right-3 top-3 text-gray-400 pointer-events-none"
-                        />
-                      </div>
+                      <AdminAction action="edit">
+                        <div className="relative group/select w-full max-w-[140px]">
+                          <select
+                            className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-md text-xs font-bold text-gray-900 cursor-pointer hover:bg-white hover:border-primary/20 transition-all outline-none appearance-none"
+                            value={lecture.tabId || ""}
+                            onChange={(e) =>
+                              onMoveToTab?.(lecture.id, e.target.value)
+                            }
+                          >
+                            {availableTabs.map((tab) => (
+                              <option key={tab.id} value={tab.id}>
+                                {tab.label}
+                              </option>
+                            ))}
+                          </select>
+                          <ChevronDown
+                            size={14}
+                            className="absolute right-3 top-3 text-gray-400 pointer-events-none"
+                          />
+                        </div>
+                      </AdminAction>
                     </td>
 
                     <td className="py-4 px-4">
                       <div className="flex items-center gap-1.5 justify-end">
-                        <button
-                          onClick={() => onEdit(lecture)}
-                          className="p-2 hover:text-muted cursor-pointer text-primary hover:bg-primary-light border border-primary/10 rounded-lg transition-colors"
-                        >
-                          <Edit2 size={16} />
-                        </button>
-                        <button
-                          onClick={() => onDelete(lecture.id)}
-                          className="p-2 hover:text-red-600 cursor-pointer text-red-500 hover:bg-red-50 border border-gray-200 rounded-lg transition-colors"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        <AdminAction action="edit">
+                          <button
+                            onClick={() => onEdit(lecture)}
+                            className="p-2 hover:text-muted cursor-pointer text-primary hover:bg-primary-light border border-primary/10 rounded-lg transition-colors"
+                          >
+                            <Edit2 size={16} />
+                          </button>
+                        </AdminAction>
+                        <AdminAction action="delete">
+                          <button
+                            onClick={() => onDelete(lecture.id)}
+                            className="p-2 hover:text-red-600 cursor-pointer text-red-500 hover:bg-red-50 border border-gray-200 rounded-lg transition-colors"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </AdminAction>
                       </div>
                     </td>
                   </tr>

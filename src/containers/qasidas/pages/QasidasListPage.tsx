@@ -1,3 +1,4 @@
+import AdminAction from "@/components/ui/AdminAction";
 import React, { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Plus, Search, Settings } from "lucide-react";
@@ -7,7 +8,10 @@ import QasidasTable from "../components/QasidasTable";
 import useQasidas from "../useHooks";
 import { useDebounce } from "@/hooks/useDebounce";
 import { confirmationPopup } from "@/utils/helpers/common/alert-service";
-import type { Pagination as PaginationMeta, Qasida } from "@/utils/helpers/models/qasidas/qasida.dto";
+import type {
+  Pagination as PaginationMeta,
+  Qasida,
+} from "@/utils/helpers/models/qasidas/qasida.dto";
 import { siteRoutes } from "@/utils/helpers/enums/routes.enum";
 import CustomMessageDisplay from "@/components/data-not-found";
 import useStore from "@/hooks/useStore";
@@ -53,18 +57,30 @@ const TABS: { id: ReviewTab; label: string; title: string; empty: string }[] = [
 const matchesTab = (item: Qasida, reviewTab: ReviewTab) => {
   if (reviewTab === "pending") return item.reviewStatus === "pending";
   if (reviewTab === "rejected") return item.reviewStatus === "rejected";
-  if (reviewTab === "delete_requested") return item.reviewStatus === "delete_requested";
-  return item.reviewStatus !== "pending" && item.reviewStatus !== "rejected" && item.reviewStatus !== "delete_requested";
+  if (reviewTab === "delete_requested")
+    return item.reviewStatus === "delete_requested";
+  return (
+    item.reviewStatus !== "pending" &&
+    item.reviewStatus !== "rejected" &&
+    item.reviewStatus !== "delete_requested"
+  );
 };
 
 const QasidasListPage = () => {
-  const { listQasidas, updateQasida, deleteQasida, approveQasida, rejectQasida, keepQasida } =
-    useQasidas();
+  const {
+    listQasidas,
+    updateQasida,
+    deleteQasida,
+    approveQasida,
+    rejectQasida,
+    keepQasida,
+  } = useQasidas();
   const { isLoading } = useStore();
   const [data, setData] = useState<Qasida[]>([]);
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState<ReviewTab>("approved");
-  const [pagination, setPagination] = useState<PaginationMeta>(defaultPagination);
+  const [pagination, setPagination] =
+    useState<PaginationMeta>(defaultPagination);
 
   const debouncedSearch = useDebounce(search, 500);
   const activeTab = TABS.find((item) => item.id === tab) ?? TABS[0];
@@ -123,7 +139,8 @@ const QasidasListPage = () => {
   };
 
   const handleDelete = async (id: string) => {
-    const asking = data.find((item) => item.id === id)?.reviewStatus === "delete_requested";
+    const asking =
+      data.find((item) => item.id === id)?.reviewStatus === "delete_requested";
     const result = await confirmationPopup(
       "Delete this qasida?",
       asking
@@ -154,16 +171,20 @@ const QasidasListPage = () => {
           <p className="text-muted mt-2">Manage qasidas, audio, and verses</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Link to={`${siteRoutes.qasidas}/settings`}>
-            <Button variant="secondary" leftIcon={<Settings size={18} />}>
-              Settings
-            </Button>
-          </Link>
-          <Link to={`${siteRoutes.qasidas}/new`}>
-            <Button variant="primary" leftIcon={<Plus size={20} />}>
-              Add Qasida
-            </Button>
-          </Link>
+          <AdminAction action="edit">
+            <Link to={`${siteRoutes.qasidas}/settings`}>
+              <Button variant="secondary" leftIcon={<Settings size={18} />}>
+                Settings
+              </Button>
+            </Link>
+          </AdminAction>
+          <AdminAction action="create">
+            <Link to={`${siteRoutes.qasidas}/new`}>
+              <Button variant="primary" leftIcon={<Plus size={20} />}>
+                Add Qasida
+              </Button>
+            </Link>
+          </AdminAction>
         </div>
       </div>
 

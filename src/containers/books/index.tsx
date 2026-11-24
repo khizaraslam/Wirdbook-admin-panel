@@ -1,3 +1,4 @@
+import AdminAction from "@/components/ui/AdminAction";
 import React, { useCallback, useEffect, useState } from "react";
 import { Library, Plus } from "lucide-react";
 import Button from "@/components/ui/Button";
@@ -17,9 +18,7 @@ const Books = () => {
 
   const loadItems = useCallback(async () => {
     const data = await getAll();
-    setItems(
-      [...data].sort((a, b) => a.filename.localeCompare(b.filename)),
-    );
+    setItems([...data].sort((a, b) => a.filename.localeCompare(b.filename)));
   }, [getAll]);
 
   useEffect(() => {
@@ -54,10 +53,12 @@ const Books = () => {
             Upload and replace book JSON files. There is no delete action.
           </p>
         </div>
-        <Button variant="primary" onClick={() => setIsCreateOpen(true)}>
-          <Plus size={18} className="mr-2" />
-          Add book
-        </Button>
+        <AdminAction action="create">
+          <Button variant="primary" onClick={() => setIsCreateOpen(true)}>
+            <Plus size={18} className="mr-2" />
+            Add book
+          </Button>
+        </AdminAction>
       </div>
 
       {!isLoading && items.length === 0 ? (

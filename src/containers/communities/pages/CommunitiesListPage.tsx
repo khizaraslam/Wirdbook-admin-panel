@@ -1,3 +1,4 @@
+import AdminAction from "@/components/ui/AdminAction";
 import React, { useCallback, useEffect, useState } from "react";
 import { Plus, Users } from "lucide-react";
 import Button from "@/components/ui/Button";
@@ -52,8 +53,7 @@ const CommunitiesListPage = () => {
   };
 
   const handleToggleStatus = async (community: CommunityDTO) => {
-    const nextStatus =
-      community.status === "active" ? "inactive" : "active";
+    const nextStatus = community.status === "active" ? "inactive" : "active";
     const action = nextStatus === "active" ? "activate" : "deactivate";
     const result = await confirmationPopup(
       `${action.charAt(0).toUpperCase() + action.slice(1)} community?`,
@@ -93,10 +93,12 @@ const CommunitiesListPage = () => {
             Manage communities, admins, and membership
           </p>
         </div>
-        <Button variant="primary" onClick={() => setIsCreateOpen(true)}>
-          <Plus size={18} className="mr-2" />
-          Add community
-        </Button>
+        <AdminAction action="create">
+          <Button variant="primary" onClick={() => setIsCreateOpen(true)}>
+            <Plus size={18} className="mr-2" />
+            Add community
+          </Button>
+        </AdminAction>
       </div>
 
       <div className="mt-6">

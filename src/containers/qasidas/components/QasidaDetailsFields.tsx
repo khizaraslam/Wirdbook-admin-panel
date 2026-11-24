@@ -42,6 +42,7 @@ interface QasidaDetailsFieldsProps {
   setValue: UseFormSetValue<QasidaFormValues>;
   watch: UseFormWatch<QasidaFormValues>;
   reciters: ReciterAudioDraft[];
+  readOnly?: boolean;
   onRecitersChange: (items: ReciterAudioDraft[]) => void;
 }
 
@@ -118,6 +119,7 @@ const QasidaDetailsFields: React.FC<QasidaDetailsFieldsProps> = ({
   watch,
   reciters,
   onRecitersChange,
+  readOnly = false,
 }) => {
   const { getFieldOptions } = useQasidas();
   const [authors, setAuthors] = useState<LocalizedText[]>([]);
@@ -289,12 +291,14 @@ const QasidaDetailsFields: React.FC<QasidaDetailsFieldsProps> = ({
         </label>
       </div>
 
-      <ReciterAudiosEditor
-        items={reciters}
-        onChange={onRecitersChange}
-        vocalistOptions={vocalists}
-        defaultVocalistName={singerEn || ""}
-      />
+      {!readOnly && (
+        <ReciterAudiosEditor
+          items={reciters}
+          onChange={onRecitersChange}
+          vocalistOptions={vocalists}
+          defaultVocalistName={singerEn || ""}
+        />
+      )}
     </div>
   );
 };
