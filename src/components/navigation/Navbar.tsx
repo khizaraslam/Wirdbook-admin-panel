@@ -4,9 +4,11 @@ import { useAppSelector } from "@/store/hooks";
 import { FaAngleDown } from "react-icons/fa6";
 import useOutsideClick from "@/hooks/click-outside-hook";
 import useStore from "@/hooks/useStore";
+import ChangeAdminPasswordModal from "./ChangeAdminPasswordModal";
 import type { AdminProfile } from "@/utils/helpers/admin-access";
 
 const Navbar: React.FC<{ profile: AdminProfile }> = ({ profile }) => {
+  const [changingPassword, setChangingPassword] = useState(false);
   const [profileDropDownOpened, setProfileDropdownOpened] = useState(false);
   const profileDropdownRef = useOutsideClick<HTMLDivElement>(() =>
     setProfileDropdownOpened(false),
@@ -57,15 +59,34 @@ const Navbar: React.FC<{ profile: AdminProfile }> = ({ profile }) => {
             ref={profileDropdownRef}
             className="absolute z-10 top-20 right-8 h-fit w-56 bg-white rounded-lg shadow-xl border border-gray-200 p-3"
           >
-            <p
-              className="font-semibold text-sm text-red-600 cursor-pointer hover:bg-red-50 p-3 rounded-lg transition"
+            {profile.role === "super_admin" && (
+              <button
+                type="button"
+                className="w-full rounded-lg p-3 text-left text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                onClick={() => {
+                  setProfileDropdownOpened(false);
+                  setChangingPassword(true);
+                }}
+              >
+                Change password
+              </button>
+            )}
+            <button
+              type="button"
+              className="w-full rounded-lg p-3 text-left text-sm font-semibold text-red-600 hover:bg-red-50"
               onClick={logout}
             >
               Logout
-            </p>
+            </button>
           </div>
         )}
       </div>
+      {changingPassword && profile.role === "super_admin" && (
+        <ChangeAdminPasswordModal
+          onClose={() => setChangingPassword(false)}
+          onChanged={logout}
+        />
+      )}
     </div>
   );
 };

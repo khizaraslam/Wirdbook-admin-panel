@@ -55,6 +55,11 @@ async function read<T>(
 const endpoint = "/api/admin/accounts";
 
 export const AdminAccessApi = {
+  changeOwnPassword: (body: { currentPassword: string; newPassword: string }) =>
+    read<null>(
+      patchRequest("/api/admin/me/password", body),
+      "Could not change the password.",
+    ),
   me: () =>
     read<AdminProfile>(
       getRequest("/api/admin/me"),
