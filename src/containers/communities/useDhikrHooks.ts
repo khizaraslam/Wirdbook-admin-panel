@@ -113,7 +113,9 @@ const useCommunityDhikr = () => {
         successToaster(message || "Chosen amount returned to the pool.");
         return true;
       }
-      errorToaster(message || response?.error || "Failed to return this portion");
+      errorToaster(
+        message || response?.error || "Failed to return this portion",
+      );
       return false;
     },
     [],
@@ -136,6 +138,8 @@ const useCommunityDhikr = () => {
       if (payload.assignment && Array.isArray(payload.claims)) {
         return {
           assignmentId: payload.assignment.id,
+          kind: payload.assignment.kind,
+          unit: payload.assignment.unit,
           dhikrName:
             payload.assignment.dhikrName ?? payload.assignment.dhikrTypeName,
           totalTarget: payload.assignment.totalTarget,

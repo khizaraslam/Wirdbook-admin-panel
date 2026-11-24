@@ -52,6 +52,8 @@ export interface DhikrClaimReportDTO {
 
 export interface DhikrReportDTO {
   assignmentId: string;
+  kind?: DhikrAssignmentDTO["kind"];
+  unit?: DhikrAssignmentDTO["unit"];
   dhikrName?: string;
   totalTarget: number;
   completedTotal: number;

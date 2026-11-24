@@ -5,6 +5,7 @@ import type {
   DhikrClaimReportDTO,
   DhikrReportDTO,
 } from "@/utils/helpers/models/communities/dhikr-assignment.dto";
+import { claimedAndUnreadJuz } from "../select-pool-return";
 import { CLAIM_STATUS_STYLES } from "@/utils/helpers/communities/dhikr-helpers";
 
 interface DhikrReportTableProps {
@@ -14,21 +15,39 @@ interface DhikrReportTableProps {
   onReturn?: (claim: DhikrClaimReportDTO) => void;
 }
 
+function JuzSummary({ count, numbers }: { count: number; numbers: number[] }) {
+  return (
+    <>
+      <span className="font-medium">{count} juz</span>
+      {count > 0 && (
+        <div className="mt-0.5 text-xs text-gray-500">
+          {numbers.length === count
+            ? numbers.join(", ")
+            : "Exact numbers unavailable"}
+        </div>
+      )}
+    </>
+  );
+}
+
 const DhikrReportTable: React.FC<DhikrReportTableProps> = ({
   report,
   isLoading,
   returningId,
   onReturn,
 }) => {
-  const isKhitma = report?.claims.some(
-    (claim) =>
-      claim.juzNumbers?.length || claim.completedJuz || claim.pendingJuz,
-  );
+  const isKhitma =
+    report?.kind === "khitma" ||
+    report?.unit === "juz" ||
+    report?.claims.some(
+      (claim) =>
+        claim.juzNumbers?.length || claim.completedJuz || claim.pendingJuz,
+    );
   const columns = [
     "Member",
-    "Taken",
-    isKhitma ? "Read" : "Progress",
-    isKhitma ? "Left" : "Remaining",
+    isKhitma ? "Juz claimed" : "Taken",
+    isKhitma ? "Juz read" : "Progress",
+    isKhitma ? "Unread juz" : "Remaining",
     "Status",
     "",
   ];
@@ -44,8 +63,11 @@ const DhikrReportTable: React.FC<DhikrReportTableProps> = ({
   return (
     <div className="overflow-hidden">
       <p className="text-gray-500 text-sm mb-4">
-        {report.claims.length} claims · completed total: {report.completedTotal}{" "}
-        / {report.totalTarget}
+        {report.claims.length} {report.claims.length === 1 ? "claim" : "claims"}{" "}
+        ·{" "}
+        {isKhitma
+          ? `${report.completedTotal} of ${report.totalTarget} juz read`
+          : `Completed total: ${report.completedTotal} / ${report.totalTarget}`}
       </p>
       <div className="w-full overflow-x-auto">
         <table className="w-full text-left border-collapse min-w-[700px]">
@@ -73,9 +95,8 @@ const DhikrReportTable: React.FC<DhikrReportTableProps> = ({
               </tr>
             ) : (
               report.claims.map((claim, index) => {
-                const unread = claim.pendingJuz?.length
-                  ? claim.pendingJuz.length
-                  : claim.remaining;
+                const juz = isKhitma ? claimedAndUnreadJuz(claim) : null;
+                const unread = juz ? juz.unread.length : claim.remaining;
                 const canReturn =
                   !!onReturn &&
                   !!claim.id &&
@@ -90,23 +111,34 @@ const DhikrReportTable: React.FC<DhikrReportTableProps> = ({
                       {claim.userName}
                     </td>
                     <td className="py-4 px-4 text-gray-700">
-                      {claim.juzNumbers?.length
-                        ? claim.juzNumbers.join(", ")
-                        : claim.claimedQuantity}
+                      {juz ? (
+                        <JuzSummary
+                          count={claim.claimedQuantity}
+                          numbers={juz.held}
+                        />
+                      ) : (
+                        claim.claimedQuantity
+                      )}
                     </td>
                     <td className="py-4 px-4 text-gray-700">
-                      {claim.completedJuz
-                        ? claim.completedJuz.length
-                          ? claim.completedJuz.join(", ")
-                          : "—"
-                        : claim.currentProgress}
+                      {juz ? (
+                        <JuzSummary
+                          count={claim.currentProgress}
+                          numbers={[...juz.done]}
+                        />
+                      ) : (
+                        claim.currentProgress
+                      )}
                     </td>
                     <td className="py-4 px-4 text-gray-700">
-                      {claim.pendingJuz
-                        ? claim.pendingJuz.length
-                          ? claim.pendingJuz.join(", ")
-                          : "—"
-                        : claim.remaining}
+                      {juz ? (
+                        <JuzSummary
+                          count={claim.remaining}
+                          numbers={juz.unread}
+                        />
+                      ) : (
+                        claim.remaining
+                      )}
                     </td>
                     <td className="py-4 px-4">
                       <span
@@ -116,6 +148,16 @@ const DhikrReportTable: React.FC<DhikrReportTableProps> = ({
                       </span>
                     </td>
                     <td className="py-4 px-4 text-right">
+                      {juz &&
+                        claim.status === "active" &&
+                        claim.remaining > 0 &&
+                        !juz.unread.length && (
+                          <AdminAction action="edit">
+                            <span className="text-xs text-gray-500">
+                              Exact juz required to return
+                            </span>
+                          </AdminAction>
+                        )}
                       {canReturn && (
                         <AdminAction action="edit">
                           <Button

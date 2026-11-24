@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
-import Swal from "sweetalert2";
+import { selectPoolReturn } from "../select-pool-return";
 import { confirmationPopup } from "@/utils/helpers/common/alert-service";
 import useCommunityDhikr from "../useDhikrHooks";
 import useDhikrTypes from "@/containers/dhikr-types/useHooks";
@@ -96,61 +96,27 @@ const CommunityDhikrTab: React.FC<CommunityDhikrTabProps> = ({
   };
 
   const handleReturnClaim = async (claim: DhikrClaimReportDTO) => {
-    if (!claim.id || !selectedAssignment) return;
-    const pendingJuz = claim.pendingJuz ?? [];
-    const isKhitma = pendingJuz.length > 0;
-    const available = isKhitma ? pendingJuz.length : claim.remaining;
-    const result = await Swal.fire({
-      title: `How much of ${claim.userName}'s available count should go back?`,
-      text: isKhitma
-        ? `Unread juz: ${pendingJuz.join(", ")}. Enter only the numbers to return. Finished juz stay.`
-        : `Available to return: ${available}. Finished count stays on this claim.`,
-      input: "text",
-      inputPlaceholder: isKhitma ? pendingJuz.join(", ") : String(available),
-      showCancelButton: true,
-      confirmButtonText: "Return",
-      cancelButtonText: "Cancel",
-      confirmButtonColor: "#4f9c37",
-      cancelButtonColor: "#d33",
-      background: "white",
-      inputValidator: (value) => {
-        if (isKhitma) {
-          const numbers = value
-            .split(/[^0-9]+/)
-            .map((part) => Number(part))
-            .filter((part) => part > 0);
-          if (numbers.length === 0) return "Enter the juz numbers to return.";
-          const blocked = numbers.filter((n) => !pendingJuz.includes(n));
-          if (blocked.length > 0) {
-            return `Only unread juz can be returned. Not available: ${blocked.join(", ")}.`;
-          }
-          return undefined;
-        }
-        const amount = Number(value);
-        if (!Number.isInteger(amount) || amount < 1) {
-          return "Enter a whole number of at least 1.";
-        }
-        if (amount > available) {
-          return `You can return at most ${available}.`;
-        }
-        return undefined;
-      },
-    });
-    if (!result.isConfirmed || result.value == null) return;
-    const body = isKhitma
-      ? {
-          juzNumbers: String(result.value)
-            .split(/[^0-9]+/)
-            .map((part) => Number(part))
-            .filter((part) => part > 0),
-        }
-      : { quantity: Number(result.value) };
+    if (!claim.id || !selectedAssignment || returningId) return;
+    const assignmentId = selectedAssignment.id;
+    const isKhitma =
+      selectedAssignment.kind === "khitma" ||
+      selectedAssignment.unit === "juz" ||
+      report?.kind === "khitma" ||
+      report?.unit === "juz" ||
+      Boolean(
+        claim.juzNumbers?.length || claim.pendingJuz || claim.completedJuz,
+      );
     setReturningId(claim.id);
-    const ok = await returnClaim(communityId, claim.id, body);
-    setReturningId(null);
-    if (ok) {
-      await loadReport(selectedAssignment.id);
-      await loadAssignments();
+    try {
+      const body = await selectPoolReturn(claim, isKhitma);
+      if (!body) return;
+      const ok = await returnClaim(communityId, claim.id, body);
+      if (ok) {
+        await loadReport(assignmentId);
+        await loadAssignments();
+      }
+    } finally {
+      setReturningId(null);
     }
   };
 
@@ -256,6 +222,7 @@ const CommunityDhikrTab: React.FC<CommunityDhikrTabProps> = ({
       <Modal
         isOpen={!!selectedAssignment}
         onClose={() => {
+          if (returningId) return;
           setSelectedAssignment(null);
           setReport(null);
         }}
